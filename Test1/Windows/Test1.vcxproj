@@ -83,6 +83,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK12.lib;d3d12.lib;dxgi.lib;dxguid.lib;runtimeobject.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\External\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\..\Engine\Include;..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
@@ -108,6 +110,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK12.lib;d3d12.lib;dxgi.lib;dxguid.lib;runtimeobject.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\External\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\..\Engine\Include;..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
@@ -129,6 +133,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK12.lib;d3d12.lib;dxgi.lib;dxguid.lib;runtimeobject.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\External\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\..\Engine\Include;..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
@@ -154,6 +160,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK12.lib;d3d12.lib;dxgi.lib;dxguid.lib;runtimeobject.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\External\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\..\Engine\Include;..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
@@ -163,6 +171,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Code\Windows\framework.h" />
     <ClInclude Include="..\Code\Windows\Resource.h" />
     <ClInclude Include="..\Code\Windows\targetver.h" />
   </ItemGroup>

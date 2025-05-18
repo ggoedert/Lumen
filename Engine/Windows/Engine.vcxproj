@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -99,7 +99,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -119,7 +119,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -139,7 +139,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -151,13 +151,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Include\Windows\lFramework.h" />
+    <ClInclude Include="..\Code\Windows\D3DX12.h" />
+    <ClInclude Include="..\Code\Windows\DeviceResources.h" />
+    <ClInclude Include="..\Code\Windows\Engine.h" />
+    <ClInclude Include="..\Code\Windows\Framework.h" />
+    <ClInclude Include="..\Code\Windows\StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Windows\lEngine.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />
     <ClCompile Include="..\Code\Windows\Engine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

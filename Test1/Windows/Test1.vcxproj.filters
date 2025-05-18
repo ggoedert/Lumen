@@ -27,6 +27,9 @@
     <ClInclude Include="..\Code\Windows\Resource.h">
       <Filter>Source Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\Code\Windows\framework.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Windows\Main.cpp">
