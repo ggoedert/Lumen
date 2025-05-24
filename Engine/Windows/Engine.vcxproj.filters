@@ -17,23 +17,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Include\lApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\Include\Windows\lEngine.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\Engine.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\Include\Windows\lDeviceResources.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\D3DX12.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\Include\Windows\lStepTimer.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\DeviceResources.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\Include\Windows\lFramework.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\StepTimer.h">
-      <Filter>Source Files\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Code\Windows\Framework.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\Include\Windows\lD3DX12.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

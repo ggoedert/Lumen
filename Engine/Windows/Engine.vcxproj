@@ -151,14 +151,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Code\Windows\D3DX12.h" />
-    <ClInclude Include="..\Code\Windows\DeviceResources.h" />
-    <ClInclude Include="..\Code\Windows\Engine.h" />
-    <ClInclude Include="..\Code\Windows\Framework.h" />
-    <ClInclude Include="..\Code\Windows\StepTimer.h" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\Include\lApplication.h" />
+    <ClInclude Include="..\Include\Windows\lD3DX12.h" />
+    <ClInclude Include="..\Include\Windows\lDeviceResources.h" />
     <ClInclude Include="..\Include\Windows\lEngine.h" />
+    <ClInclude Include="..\Include\Windows\lFramework.h" />
+    <ClInclude Include="..\Include\Windows\lStepTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />

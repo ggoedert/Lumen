@@ -2,11 +2,10 @@
 // DeviceResources.cpp - A wrapper for the Direct3D 12 device and swapchain
 //
 
-#include "Framework.h"
-#include "DeviceResources.h"
+#include "lFramework.h"
+#include "lDeviceResources.h"
 
 using namespace DirectX;
-using namespace DX;
 
 using Microsoft::WRL::ComPtr;
 
@@ -39,7 +38,7 @@ namespace
 }
 
 // Constructor for DeviceResources.
-DeviceResources::DeviceResources(
+Lumen::DeviceResources::DeviceResources(
     DXGI_FORMAT backBufferFormat,
     DXGI_FORMAT depthBufferFormat,
     UINT backBufferCount,
@@ -74,14 +73,14 @@ DeviceResources::DeviceResources(
 }
 
 // Destructor for DeviceResources.
-DeviceResources::~DeviceResources()
+Lumen::DeviceResources::~DeviceResources()
 {
     // Ensure that the GPU is no longer referencing resources that are about to be destroyed.
     WaitForGpu();
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
-void DeviceResources::CreateDeviceResources()
+void Lumen::DeviceResources::CreateDeviceResources()
 {
 #if defined(_DEBUG)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
@@ -266,7 +265,7 @@ void DeviceResources::CreateDeviceResources()
 }
 
 // These resources need to be recreated every time the window size is changed.
-void DeviceResources::CreateWindowSizeDependentResources()
+void Lumen::DeviceResources::CreateWindowSizeDependentResources()
 {
     if (!m_window)
     {
@@ -433,7 +432,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
 }
 
 // This method is called when the Win32 window is created (or re-created).
-void DeviceResources::SetWindow(HWND window, int width, int height) noexcept
+void Lumen::DeviceResources::SetWindow(HWND window, int width, int height) noexcept
 {
     m_window = window;
 
@@ -443,7 +442,7 @@ void DeviceResources::SetWindow(HWND window, int width, int height) noexcept
 }
 
 // This method is called when the Win32 window changes size.
-bool DeviceResources::WindowSizeChanged(int width, int height)
+bool Lumen::DeviceResources::WindowSizeChanged(int width, int height)
 {
     RECT newRc;
     newRc.left = newRc.top = 0;
@@ -466,7 +465,7 @@ bool DeviceResources::WindowSizeChanged(int width, int height)
 }
 
 // Recreate all device resources and set them back to the current state.
-void DeviceResources::HandleDeviceLost()
+void Lumen::DeviceResources::HandleDeviceLost()
 {
     if (m_deviceNotify)
     {
@@ -509,7 +508,7 @@ void DeviceResources::HandleDeviceLost()
 }
 
 // Prepare the command list and render target for rendering.
-void DeviceResources::Prepare(D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
+void Lumen::DeviceResources::Prepare(D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 {
     // Reset command list and allocator.
     ThrowIfFailed(m_commandAllocators[m_backBufferIndex]->Reset());
@@ -526,7 +525,7 @@ void DeviceResources::Prepare(D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_
 }
 
 // Present the contents of the swap chain to the screen.
-void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
+void Lumen::DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
 {
     if (beforeState != D3D12_RESOURCE_STATE_PRESENT)
     {
@@ -581,7 +580,7 @@ void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
 }
 
 // Wait for pending GPU work to complete.
-void DeviceResources::WaitForGpu() noexcept
+void Lumen::DeviceResources::WaitForGpu() noexcept
 {
     if (m_commandQueue && m_fence && m_fenceEvent.IsValid())
     {
@@ -602,7 +601,7 @@ void DeviceResources::WaitForGpu() noexcept
 }
 
 // Prepare to render the next frame.
-void DeviceResources::MoveToNextFrame()
+void Lumen::DeviceResources::MoveToNextFrame()
 {
     // Schedule a Signal command in the queue.
     const UINT64 currentFenceValue = m_fenceValues[m_backBufferIndex];
@@ -624,7 +623,7 @@ void DeviceResources::MoveToNextFrame()
 
 // This method acquires the first available hardware adapter that supports Direct3D 12.
 // If no such adapter can be found, try WARP. Otherwise throw an exception.
-void DeviceResources::GetAdapter(IDXGIAdapter1** ppAdapter)
+void Lumen::DeviceResources::GetAdapter(IDXGIAdapter1** ppAdapter)
 {
     *ppAdapter = nullptr;
 
@@ -715,7 +714,7 @@ void DeviceResources::GetAdapter(IDXGIAdapter1** ppAdapter)
 }
 
 // Sets the color space for the swap chain in order to handle HDR output.
-void DeviceResources::UpdateColorSpace()
+void Lumen::DeviceResources::UpdateColorSpace()
 {
     if (!m_dxgiFactory)
         return;

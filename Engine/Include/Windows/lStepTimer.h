@@ -9,7 +9,7 @@
 #include <exception>
 
 
-namespace DX
+namespace Lumen
 {
     // Helper class for animation and simulation timing.
     class StepTimer

@@ -1,4 +1,4 @@
-// header.h : include file for standard system include files,
+// include file for standard system include files,
 // or project specific include files
 //
 
@@ -48,7 +48,7 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
-#include "D3DX12.h"
+#include "lD3DX12.h"
 
 #include <algorithm>
 #include <cmath>
@@ -96,7 +96,7 @@
 #include "VertexTypes.h"
 #include "WICTextureLoader.h"
 
-namespace DX
+namespace Lumen
 {
     // Helper class for COM exceptions
     class com_exception : public std::exception
