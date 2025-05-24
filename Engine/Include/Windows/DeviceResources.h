@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace Lumen
+namespace DX
 {
     // Provides an interface for an application that owns DeviceResources to be notified of the device being lost or created.
     interface IDeviceNotify
@@ -31,10 +31,10 @@ namespace Lumen
         ~DeviceResources();
 
         DeviceResources(DeviceResources&&) = default;
-        DeviceResources& operator= (DeviceResources&&) = default;
+        DeviceResources& operator=(DeviceResources&&) = default;
 
         DeviceResources(DeviceResources const&) = delete;
-        DeviceResources& operator= (DeviceResources const&) = delete;
+        DeviceResources& operator=(DeviceResources const&) = delete;
 
         void CreateDeviceResources();
         void CreateWindowSizeDependentResources();

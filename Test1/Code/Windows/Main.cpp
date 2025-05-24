@@ -7,13 +7,13 @@
 // windows debug
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
 #include <crtdbg.h>
 #endif
+#include "resource.h"
+
+#include "lEngineWindows.h"
 
 #include "Application.h"
-
-#include "resource.h"
 
 // misc app setup
 #ifdef __clang__
@@ -62,7 +62,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     LoadStringW(hInstance, IDC_LUMENAPPLICATION, szWindowClass, MAX_LOADSTRING);
 
     // start engine and application
-    std::unique_ptr<Lumen::Engine> engine = std::make_unique<Lumen::Engine>(std::make_unique<Application>());
+    std::unique_ptr<Lumen::EngineWindows> engine = std::make_unique<Lumen::EngineWindows>(std::make_unique<Application>());
 
     // register class and create window
     {
@@ -157,7 +157,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static bool s_fullscreen = true;
 #endif
 
-    auto engine = reinterpret_cast<Lumen::Engine *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    auto engine = reinterpret_cast<Lumen::EngineWindows *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)
     {

@@ -1,30 +1,20 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Application interface class
+/// \brief     Engine interface class
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifndef L_APPLICATION_H
-#define L_APPLICATION_H
-
-//#include "lMath.h"
+#ifndef L_ENGINE_H
+#define L_ENGINE_H
 
 /// Lumen namespace
 namespace Lumen
 {
 
-    /// Application interface class
-    class Application
+    /// Engine class
+    class Engine
     {
     public:
-        Application() noexcept(false) {}
-        ~Application() {}
-
-        Application(Application &&) = default;
-        Application &operator=(Application &&) = default;
-
-        Application(Application const &) = delete;
-        Application &operator=(Application const &) = delete;
     };
 }
 

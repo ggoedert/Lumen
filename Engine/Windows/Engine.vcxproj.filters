@@ -20,27 +20,33 @@
     <ClInclude Include="..\Include\lApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lEngine.h">
+    <ClInclude Include="..\Include\Windows\D3DX12.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lDeviceResources.h">
+    <ClInclude Include="..\Include\Windows\DDS.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lStepTimer.h">
+    <ClInclude Include="..\Include\Windows\DeviceResources.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lFramework.h">
+    <ClInclude Include="..\Include\Windows\Framework.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lD3DX12.h">
+    <ClInclude Include="..\Include\Windows\lEngineWindows.h">
       <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\lStepTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\lEngine.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Code\Windows\Engine.cpp">
+    <ClCompile Include="..\Code\Windows\DeviceResources.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\Windows\DeviceResources.cpp">
+    <ClCompile Include="..\Code\Windows\EngineWindows.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
   </ItemGroup>

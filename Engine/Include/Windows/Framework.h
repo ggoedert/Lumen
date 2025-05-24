@@ -48,7 +48,7 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
-#include "lD3DX12.h"
+#include "D3DX12.h"
 
 #include <algorithm>
 #include <cmath>
@@ -104,7 +104,7 @@ namespace Lumen
     public:
         com_exception(HRESULT hr) noexcept : result(hr) {}
 
-        const char* what() const override
+        const char *what() const override
         {
             static char s_str[64] = {};
             sprintf_s(s_str, "Failure with HRESULT of %08X", static_cast<unsigned int>(result));

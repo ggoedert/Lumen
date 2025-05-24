@@ -1,66 +1,67 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine implementation class
+/// \brief     Engine windows implementation class
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
 // helper
-#include "lFramework.h"
-
+#include "Framework.h"
 #include "DDS.h"
 
-// engine interfaces
-#include "lEngine.h"
+// engine interface
+#include "lEngineWindows.h"
 
+using namespace DX;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
+using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
 
-Lumen::Engine::Engine(std::unique_ptr<Application> &&application) noexcept(false)
+EngineWindows::EngineWindows(std::unique_ptr<Application> &&application) noexcept(false)
 {
-    m_application = std::move(application);  // move from temporary or argument
-    m_deviceResources = std::make_unique<DeviceResources>();
-    m_deviceResources->RegisterDeviceNotify(this);
+    mApplication = std::move(application);  // move from temporary or argument
+    mDeviceResources = std::make_unique<DeviceResources>();
+    mDeviceResources->RegisterDeviceNotify(this);
 }
 
-Lumen::Engine::~Engine()
+EngineWindows::~EngineWindows()
 {
-    if (m_deviceResources)
+    if (mDeviceResources)
     {
-        m_deviceResources->WaitForGpu();
+        mDeviceResources->WaitForGpu();
     }
 }
 
 /// initialize the Direct3D resources required to run
-void Lumen::Engine::Initialize(HWND window, int width, int height)
+void EngineWindows::Initialize(HWND window, int width, int height)
 {
-    m_deviceResources->SetWindow(window, width, height);
+    mDeviceResources->SetWindow(window, width, height);
 
-    m_deviceResources->CreateDeviceResources();
+    mDeviceResources->CreateDeviceResources();
     CreateDeviceDependentResources();
 
-    m_deviceResources->CreateWindowSizeDependentResources();
+    mDeviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
 
     // TODO: change the timer settings if you want something other than the default variable timestep mode
     // e.g. for 60 FPS fixed timestep update logic, call:
     /*
-    m_timer.SetFixedTimeStep(true);
-    m_timer.SetTargetElapsedSeconds(1.0 / 60);
+    mTimer.SetFixedTimeStep(true);
+    mTimer.SetTargetElapsedSeconds(1.0 / 60);
     */
 }
 
 #pragma region Frame Update
 /// executes the basic game loop
-bool Lumen::Engine::Tick()
+bool EngineWindows::Tick()
 {
     bool updateResult = true;
 
-    m_timer.Tick([&]()
+    mTimer.Tick([&]()
     {
         if (updateResult)
-            updateResult = Update(m_timer);
+            updateResult = Update(mTimer);
     });
     if (!updateResult)
         return false;
@@ -70,7 +71,7 @@ bool Lumen::Engine::Tick()
 }
 
 /// updates the world
-bool Lumen::Engine::Update(StepTimer const &timer)
+bool EngineWindows::Update(StepTimer const &timer)
 {
     bool runResult = true;
 
@@ -80,11 +81,11 @@ bool Lumen::Engine::Update(StepTimer const &timer)
 
     // TODO: add your game logic here
 #if 0
-    m_world = Matrix::CreateRotationZ(cosf(time) * 2.f);
+    mWorld = Matrix::CreateRotationZ(cosf(time) * 2.f);
 #endif
 
 #if 1
-    m_world = Matrix::CreateRotationY(time);
+    mWorld = Matrix::CreateRotationY(time);
 #endif
 
     PIXEndEvent();
@@ -95,57 +96,57 @@ bool Lumen::Engine::Update(StepTimer const &timer)
 
 #pragma region Frame Render
 /// draws the scene
-void Lumen::Engine::Render()
+void EngineWindows::Render()
 {
     // don't try to render anything before the first Update
-    if (m_timer.GetFrameCount() == 0)
+    if (mTimer.GetFrameCount() == 0)
     {
         return;
     }
 
     // prepare the command list to render a new frame
-    m_deviceResources->Prepare();
+    mDeviceResources->Prepare();
     Clear();
 
-    auto commandList = m_deviceResources->GetCommandList();
+    auto commandList = mDeviceResources->GetCommandList();
     PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
     // TODO: add your rendering code here
-    ID3D12DescriptorHeap *heaps[] = { m_resourceDescriptors->Heap(), m_states->Heap() };
+    ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
     commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
-    m_effect->SetWorld(m_world);
+    mEffect->SetWorld(mWorld);
 
-    m_effect->Apply(commandList);
+    mEffect->Apply(commandList);
 
-    m_shape->Draw(commandList);
+    mShape->Draw(commandList);
 
     PIXEndEvent(commandList);
 
     // show the new frame
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
-    m_deviceResources->Present();
-    m_graphicsMemory->Commit(m_deviceResources->GetCommandQueue());
+    mDeviceResources->Present();
+    mGraphicsMemory->Commit(mDeviceResources->GetCommandQueue());
     PIXEndEvent();
 }
 
 /// helper method to clear the back buffers
-void Lumen::Engine::Clear()
+void EngineWindows::Clear()
 {
-    auto commandList = m_deviceResources->GetCommandList();
+    auto commandList = mDeviceResources->GetCommandList();
     PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Clear");
 
     // clear the views
-    auto rtvDescriptor = m_deviceResources->GetRenderTargetView();
-    auto dsvDescriptor = m_deviceResources->GetDepthStencilView();
+    auto rtvDescriptor = mDeviceResources->GetRenderTargetView();
+    auto dsvDescriptor = mDeviceResources->GetDepthStencilView();
 
     commandList->OMSetRenderTargets(1, &rtvDescriptor, FALSE, &dsvDescriptor);
     commandList->ClearRenderTargetView(rtvDescriptor, Colors::CornflowerBlue, 0, nullptr);
     commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // set the viewport and scissor rect
-    auto viewport = m_deviceResources->GetScreenViewport();
-    auto scissorRect = m_deviceResources->GetScissorRect();
+    auto viewport = mDeviceResources->GetScreenViewport();
+    auto scissorRect = mDeviceResources->GetScissorRect();
     commandList->RSSetViewports(1, &viewport);
     commandList->RSSetScissorRects(1, &scissorRect);
 
@@ -154,42 +155,42 @@ void Lumen::Engine::Clear()
 #pragma endregion
 
 #pragma region Message Handlers
-void Lumen::Engine::OnActivated()
+void EngineWindows::OnActivated()
 {
     // TODO: game is becoming active window
 }
 
-void Lumen::Engine::OnDeactivated()
+void EngineWindows::OnDeactivated()
 {
     // TODO: game is becoming background window
 }
 
-void Lumen::Engine::OnSuspending()
+void EngineWindows::OnSuspending()
 {
     // TODO: game is being power-suspended (or minimized)
 }
 
-void Lumen::Engine::OnResuming()
+void EngineWindows::OnResuming()
 {
-    m_timer.ResetElapsedTime();
+    mTimer.ResetElapsedTime();
 
     // TODO: game is being power-resumed (or returning from minimize)
 }
 
-void Lumen::Engine::OnWindowMoved()
+void EngineWindows::OnWindowMoved()
 {
-    auto r = m_deviceResources->GetOutputSize();
-    m_deviceResources->WindowSizeChanged(r.right, r.bottom);
+    auto r = mDeviceResources->GetOutputSize();
+    mDeviceResources->WindowSizeChanged(r.right, r.bottom);
 }
 
-void Lumen::Engine::OnDisplayChange()
+void EngineWindows::OnDisplayChange()
 {
-    m_deviceResources->UpdateColorSpace();
+    mDeviceResources->UpdateColorSpace();
 }
 
-void Lumen::Engine::OnWindowSizeChanged(int width, int height)
+void EngineWindows::OnWindowSizeChanged(int width, int height)
 {
-    if (!m_deviceResources->WindowSizeChanged(width, height))
+    if (!mDeviceResources->WindowSizeChanged(width, height))
         return;
 
     CreateWindowSizeDependentResources();
@@ -198,19 +199,19 @@ void Lumen::Engine::OnWindowSizeChanged(int width, int height)
 }
 
 // properties
-void Lumen::Engine::GetDefaultSize(int &width, int &height) const noexcept
+void EngineWindows::GetDefaultSize(int &width, int &height) const noexcept
 {
     // TODO: change to desired default window size (note minimum size is 320x200)
-    width = 1920;
-    height = 1080;
+    width = 1600;
+    height = 900;
 }
 #pragma endregion
 
 #pragma region Direct3D Resources
 /// these are the resources that depend on the device.
-void Lumen::Engine::CreateDeviceDependentResources()
+void EngineWindows::CreateDeviceDependentResources()
 {
-    auto device = m_deviceResources->GetD3DDevice();
+    auto device = mDeviceResources->GetD3DDevice();
 
     // check shader model 6 support
     D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { D3D_SHADER_MODEL_6_0 };
@@ -224,17 +225,17 @@ void Lumen::Engine::CreateDeviceDependentResources()
     }
 
     // TODO: initialize device dependent objects here (independent of window size)
-    m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
+    mGraphicsMemory = std::make_unique<GraphicsMemory>(device);
 
-    m_states = std::make_unique<CommonStates>(device);
+    mStates = std::make_unique<CommonStates>(device);
 
-    m_resourceDescriptors = std::make_unique<DescriptorHeap>(device,
+    mResourceDescriptors = std::make_unique<DescriptorHeap>(device,
         Descriptors::Count);
 
-    m_shape = GeometricPrimitive::CreateSphere();
+    mShape = GeometricPrimitive::CreateSphere();
 
 #if 0
-    m_shape = GeometricPrimitive::CreateTorus();
+    mShape = GeometricPrimitive::CreateTorus();
 #endif
 
     ResourceUploadBatch resourceUpload(device);
@@ -300,22 +301,22 @@ void Lumen::Engine::CreateDeviceDependentResources()
     }
 
     ThrowIfFailed(
-        CreateDDSTextureFromMemory(device, resourceUpload, m_ddsTexture, sizeof(m_ddsTexture), m_texture.ReleaseAndGetAddressOf(), true));
+        CreateDDSTextureFromMemory(device, resourceUpload, m_ddsTexture, sizeof(m_ddsTexture), mTexture.ReleaseAndGetAddressOf(), true));
 
-    CreateShaderResourceView(device, m_texture.Get(),
-        m_resourceDescriptors->GetCpuHandle(Descriptors::Procedural));
+    CreateShaderResourceView(device, mTexture.Get(),
+        mResourceDescriptors->GetCpuHandle(Descriptors::Procedural));
 
 #if 1
-    m_shape->LoadStaticBuffers(device, resourceUpload);
+    mShape->LoadStaticBuffers(device, resourceUpload);
 #endif
 
     auto uploadResourcesFinished = resourceUpload.End(
-        m_deviceResources->GetCommandQueue());
+        mDeviceResources->GetCommandQueue());
 
     uploadResourcesFinished.wait();
 
-    RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
-        m_deviceResources->GetDepthBufferFormat());
+    RenderTargetState rtState(mDeviceResources->GetBackBufferFormat(),
+        mDeviceResources->GetDepthBufferFormat());
 
     EffectPipelineStateDescription pd(
         &GeometricPrimitive::VertexType::InputLayout,
@@ -324,47 +325,47 @@ void Lumen::Engine::CreateDeviceDependentResources()
         CommonStates::CullNone,
         rtState);
 
-    //m_effect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
-    //m_effect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
-    m_effect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
-    //m_effect->EnableDefaultLighting();
-    m_effect->SetLightEnabled(0, true);
-    m_effect->SetLightDiffuseColor(0, Colors::White);
-    m_effect->SetLightDirection(0, -Vector3::UnitZ);
+    //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
+    //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
+    mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
+    //mEffect->EnableDefaultLighting();
+    mEffect->SetLightEnabled(0, true);
+    mEffect->SetLightDiffuseColor(0, Colors::White);
+    mEffect->SetLightDirection(0, -Vector3::UnitZ);
 
-    m_effect->SetTexture(m_resourceDescriptors->GetGpuHandle(Descriptors::Procedural),
-        m_states->AnisotropicWrap());
+    mEffect->SetTexture(mResourceDescriptors->GetGpuHandle(Descriptors::Procedural),
+        mStates->AnisotropicWrap());
 
-    m_world = Matrix::Identity;
+    mWorld = Matrix::Identity;
 }
 
 /// allocate all memory resources that change on a window SizeChanged event
-void Lumen::Engine::CreateWindowSizeDependentResources()
+void EngineWindows::CreateWindowSizeDependentResources()
 {
     // TODO: initialize windows-size dependent objects here
-    auto size = m_deviceResources->GetOutputSize();
+    auto size = mDeviceResources->GetOutputSize();
 
-    m_view = Matrix::CreateLookAt(Vector3(2.f, 2.f, 2.f),
+    mView = Matrix::CreateLookAt(Vector3(2.f, 2.f, 2.f),
         Vector3::Zero, Vector3::UnitY);
-    m_proj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
+    mProj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
         float(size.right) / float(size.bottom), 0.1f, 10.f);
 
-    m_effect->SetView(m_view);
-    m_effect->SetProjection(m_proj);
+    mEffect->SetView(mView);
+    mEffect->SetProjection(mProj);
 }
 
-void Lumen::Engine::OnDeviceLost()
+void EngineWindows::OnDeviceLost()
 {
     // TODO: add Direct3D resource cleanup here
-    m_shape.reset();
-    m_effect.reset();
-    m_texture.Reset();
-    m_resourceDescriptors.reset();
-    m_states.reset();
-    m_graphicsMemory.reset();
+    mShape.reset();
+    mEffect.reset();
+    mTexture.Reset();
+    mResourceDescriptors.reset();
+    mStates.reset();
+    mGraphicsMemory.reset();
 }
 
-void Lumen::Engine::OnDeviceRestored()
+void EngineWindows::OnDeviceRestored()
 {
     CreateDeviceDependentResources();
 

@@ -1,35 +1,36 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine implementation class
+/// \brief     Engine windows implementation class
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifndef L_ENGINE_H
-#define L_ENGINE_H
+#ifndef L_ENGINE_WINDOWS_H
+#define L_ENGINE_WINDOWS_H
 
 // helpers headers
+#include "Framework.h"
+#include "DeviceResources.h"
+#include "lEngine.h"
 #include "lApplication.h"
-#include "lDeviceResources.h"
 #include "lStepTimer.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    /// Engine implementation class
+    /// Engine windows implementation class.
     /// creates a D3D12 device and provides a game loop
-    class Engine final : public IDeviceNotify
+    class EngineWindows final : public Engine, public DX::IDeviceNotify
     {
     public:
+        EngineWindows() = delete;
+        EngineWindows(std::unique_ptr<Application> &&application) noexcept(false);
+        ~EngineWindows();
 
-        Engine() = delete;
-        Engine(std::unique_ptr<Application> &&application) noexcept(false);
-        ~Engine();
+        EngineWindows(EngineWindows &&) = default;
+        EngineWindows &operator=(EngineWindows &&) = default;
 
-        Engine(Engine &&) = default;
-        Engine &operator= (Engine &&) = default;
-
-        Engine(Engine const &) = delete;
-        Engine &operator= (Engine const &) = delete;
+        EngineWindows(EngineWindows const &) = delete;
+        EngineWindows &operator=(EngineWindows const &) = delete;
 
         // initialization and management
         void Initialize(HWND window, int width, int height);
@@ -54,7 +55,6 @@ namespace Lumen
         void GetDefaultSize(int &width, int &height) const noexcept;
 
     private:
-
         bool Update(StepTimer const &timer);
         void Render();
 
@@ -64,27 +64,27 @@ namespace Lumen
         void CreateWindowSizeDependentResources();
 
         // application
-        std::unique_ptr<Application> m_application;
+        std::unique_ptr<Application> mApplication;
 
         // device resources
-        std::unique_ptr<DeviceResources>    m_deviceResources;
+        std::unique_ptr<DX::DeviceResources> mDeviceResources;
 
         // rendering loop timer
-        StepTimer                           m_timer;
+        StepTimer mTimer;
 
-        std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
-        std::unique_ptr<DirectX::CommonStates> m_states;
+        std::unique_ptr<DirectX::GraphicsMemory> mGraphicsMemory;
+        std::unique_ptr<DirectX::CommonStates> mStates;
 
-        DirectX::SimpleMath::Matrix m_world;
-        DirectX::SimpleMath::Matrix m_view;
-        DirectX::SimpleMath::Matrix m_proj;
+        DirectX::SimpleMath::Matrix mWorld;
+        DirectX::SimpleMath::Matrix mView;
+        DirectX::SimpleMath::Matrix mProj;
 
-        std::unique_ptr<DirectX::GeometricPrimitive> m_shape;
+        std::unique_ptr<DirectX::GeometricPrimitive> mShape;
 
-        std::unique_ptr<DirectX::BasicEffect> m_effect;
+        std::unique_ptr<DirectX::BasicEffect> mEffect;
 
-        std::unique_ptr<DirectX::DescriptorHeap> m_resourceDescriptors;
-        Microsoft::WRL::ComPtr<ID3D12Resource> m_texture;
+        std::unique_ptr<DirectX::DescriptorHeap> mResourceDescriptors;
+        Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
 
         enum Descriptors : size_t
         {

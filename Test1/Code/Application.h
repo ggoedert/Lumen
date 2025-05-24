@@ -7,15 +7,13 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "lApplication.h"
-#include "lEngine.h"
-
 #include <string>
+
+#include "lApplication.h"
 
 /// Application class
 class Application : public Lumen::Application
 {
-
 public:
 
 };
