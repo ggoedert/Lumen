@@ -30,10 +30,16 @@
     <ClInclude Include="..\Code\Application.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Code\MainScene.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Windows\Main.cpp">
       <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\MainScene.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

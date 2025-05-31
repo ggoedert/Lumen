@@ -1,15 +1,13 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine windows implementation class
+/// \brief     Engine windows implementation
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-// helper
-#include "Framework.h"
-#include "DDS.h"
-
-// engine interface
 #include "lEngineWindows.h"
+#include "lApplication.h"
+
+#include "DDS.h"
 
 using namespace DX;
 using namespace DirectX;
@@ -18,10 +16,13 @@ using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
 
-EngineWindows::EngineWindows(std::unique_ptr<Application> &&application) noexcept(false)
+EngineWindows::EngineWindows(std::shared_ptr<Application> application) noexcept(false) :
+    mDeviceResources(std::make_unique<DeviceResources>()),
+    mApplication(application)
 {
-    mApplication = std::move(application);  // move from temporary or argument
-    mDeviceResources = std::make_unique<DeviceResources>();
+    // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
+    //   Add DeviceResources::c_AllowTearing to opt-in to variable rate displays.
+    //   Add DeviceResources::c_EnableHDR for HDR10 display.
     mDeviceResources->RegisterDeviceNotify(this);
 }
 
@@ -34,8 +35,10 @@ EngineWindows::~EngineWindows()
 }
 
 /// initialize the Direct3D resources required to run
-void EngineWindows::Initialize(HWND window, int width, int height)
+bool EngineWindows::Initialize(HWND window, int width, int height)
 {
+    mApplication->SetEngine(shared_from_this());
+
     mDeviceResources->SetWindow(window, width, height);
 
     mDeviceResources->CreateDeviceResources();
@@ -50,6 +53,9 @@ void EngineWindows::Initialize(HWND window, int width, int height)
     mTimer.SetFixedTimeStep(true);
     mTimer.SetTargetElapsedSeconds(1.0 / 60);
     */
+
+    // load application
+    return mApplication->Load();
 }
 
 #pragma region Frame Update
@@ -247,9 +253,9 @@ void EngineWindows::CreateDeviceDependentResources()
 #define HEIGHT 256
 #define SCREEN_TEX_PITCH ((256 * 8 * 4 + 7) / 8)
 
-    byte m_ddsTexture[DDS_PREFIX + 256 * 256 * 4];
-    *((DWORD *)m_ddsTexture) = DDS_MAGIC;
-    DDS_HEADER *header = (DDS_HEADER *)(m_ddsTexture + sizeof(DWORD));
+    std::vector<byte> m_ddsTexture(DDS_PREFIX + 256 * 256 * 4);
+    *((DWORD *)m_ddsTexture.data()) = DDS_MAGIC;
+    DDS_HEADER *header = (DDS_HEADER *)(m_ddsTexture.data() + sizeof(DWORD));
 
     memset(header, 0, sizeof(DDS_HEADER));
     header->size = sizeof(DDS_HEADER);
@@ -261,7 +267,7 @@ void EngineWindows::CreateDeviceDependentResources()
     header->ddspf = DDSPF_A8B8G8R8;
     header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
-    byte *tex = m_ddsTexture + DDS_PREFIX;
+    byte *tex = m_ddsTexture.data() + DDS_PREFIX;
     for (int y = 0; y < 256; y++)
     {
         for (int x = 0; x < 256; x++)
@@ -301,7 +307,7 @@ void EngineWindows::CreateDeviceDependentResources()
     }
 
     ThrowIfFailed(
-        CreateDDSTextureFromMemory(device, resourceUpload, m_ddsTexture, sizeof(m_ddsTexture), mTexture.ReleaseAndGetAddressOf(), true));
+        CreateDDSTextureFromMemory(device, resourceUpload, m_ddsTexture.data(), m_ddsTexture.size(), mTexture.ReleaseAndGetAddressOf(), true));
 
     CreateShaderResourceView(device, mTexture.Get(),
         mResourceDescriptors->GetCpuHandle(Descriptors::Procedural));

@@ -153,14 +153,18 @@
   <ItemGroup>
     <ClInclude Include="..\Include\lApplication.h" />
     <ClInclude Include="..\Include\lEngine.h" />
-    <ClInclude Include="..\Include\lStepTimer.h" />
+    <ClInclude Include="..\Include\lSceneManager.h" />
+    <ClInclude Include="..\Include\lScene.h" />
     <ClInclude Include="..\Include\Windows\D3DX12.h" />
     <ClInclude Include="..\Include\Windows\DDS.h" />
     <ClInclude Include="..\Include\Windows\DeviceResources.h" />
     <ClInclude Include="..\Include\Windows\Framework.h" />
     <ClInclude Include="..\Include\Windows\lEngineWindows.h" />
+    <ClInclude Include="..\Include\Windows\StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Code\Application.cpp" />
+    <ClCompile Include="..\Code\SceneManager.cpp" />
     <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />
     <ClCompile Include="..\Code\Windows\EngineWindows.cpp" />
   </ItemGroup>

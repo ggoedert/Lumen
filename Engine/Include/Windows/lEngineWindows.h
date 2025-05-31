@@ -1,39 +1,34 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine windows implementation class
+/// \brief     Engine windows implementation
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
 #ifndef L_ENGINE_WINDOWS_H
 #define L_ENGINE_WINDOWS_H
 
+#include "lEngine.h"
+
 // helpers headers
 #include "Framework.h"
 #include "DeviceResources.h"
-#include "lEngine.h"
-#include "lApplication.h"
-#include "lStepTimer.h"
+#include "StepTimer.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    /// Engine windows implementation class.
+    class Application;
+
+    /// Engine windows implementation.
     /// creates a D3D12 device and provides a game loop
     class EngineWindows final : public Engine, public DX::IDeviceNotify
     {
     public:
-        EngineWindows() = delete;
-        EngineWindows(std::unique_ptr<Application> &&application) noexcept(false);
+        EngineWindows(std::shared_ptr<Application> application) noexcept(false);
         ~EngineWindows();
 
-        EngineWindows(EngineWindows &&) = default;
-        EngineWindows &operator=(EngineWindows &&) = default;
-
-        EngineWindows(EngineWindows const &) = delete;
-        EngineWindows &operator=(EngineWindows const &) = delete;
-
         // initialization and management
-        void Initialize(HWND window, int width, int height);
+        bool Initialize(HWND window, int width, int height);
 
         // basic game loop
         bool Tick();
@@ -64,7 +59,7 @@ namespace Lumen
         void CreateWindowSizeDependentResources();
 
         // application
-        std::unique_ptr<Application> mApplication;
+        std::shared_ptr<Application> mApplication;
 
         // device resources
         std::unique_ptr<DX::DeviceResources> mDeviceResources;

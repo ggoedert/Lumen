@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Main windows entry point
+/// \brief     main windows entry point
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
@@ -11,9 +11,9 @@
 #endif
 #include "resource.h"
 
-#include "lEngineWindows.h"
-
 #include "Application.h"
+
+#include "lEngineWindows.h"
 
 // misc app setup
 #ifdef __clang__
@@ -51,18 +51,18 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #endif
 
     if (!DirectX::XMVerifyCPUSupport())
-        return 0;
+        return 1;
 
     Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
     if (FAILED(initialize))
-        return 0;
+        return 1;
 
     // initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_LUMENAPPLICATION, szWindowClass, MAX_LOADSTRING);
 
     // start engine and application
-    std::unique_ptr<Lumen::EngineWindows> engine = std::make_unique<Lumen::EngineWindows>(std::make_unique<Application>());
+    auto engine = std::make_shared<Lumen::EngineWindows>(std::make_shared<Application>("Test1", 1));
 
     // register class and create window
     {
@@ -78,7 +78,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         wcex.lpszClassName = szWindowClass;
         wcex.hIconSm = LoadIconW(wcex.hInstance, MAKEINTRESOURCE(IDI_LUMENAPPLICATION));
         if (!RegisterClassExW(&wcex))
-            return 0;
+            return 1;
 
         // create window
         int w, h;
@@ -94,7 +94,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             nullptr);
 
         if (!hwnd)
-            return 0;
+            return 1;
 
         ShowWindow(hwnd, nCmdShow);
 #else
@@ -105,7 +105,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             nullptr);
 
         if (!hwnd)
-            return 0;
+            return 1;
 
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 #endif
@@ -114,7 +114,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         GetClientRect(hwnd, &rc);
 
-        engine->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top);
+        if (!engine->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top))
+            return 1;
     }
 
     // main message loop
@@ -139,8 +140,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             }
         }
     }
-
-    engine.reset();
 
     return static_cast<int>(msg.wParam);
 }

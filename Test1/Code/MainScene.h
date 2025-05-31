@@ -1,22 +1,26 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine interface
+/// \brief     main scene interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifndef L_ENGINE_H
-#define L_ENGINE_H
+#ifndef MAIN_SCENE_H
+#define MAIN_SCENE_H
 
-#include <memory>
+#include "lScene.h"
 
-/// Lumen namespace
-namespace Lumen
+/// MainScene class
+class MainScene : public Lumen::Scene
 {
-    /// Engine class
-    class Engine : public std::enable_shared_from_this<Engine>
-    {
-    public:
-    };
-}
+public:
+    /// constructor
+    MainScene(Lumen::Application &application) : Scene(application) {}
+
+    /// load scene
+    bool Load() override;
+
+    /// unload scene
+    void Unload() override;
+};
 
 #endif

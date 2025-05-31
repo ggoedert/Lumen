@@ -172,10 +172,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Code\Application.h" />
+    <ClInclude Include="..\Code\MainScene.h" />
     <ClInclude Include="..\Code\Windows\Resource.h" />
     <ClInclude Include="..\Code\Windows\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Code\MainScene.cpp" />
     <ClCompile Include="..\Code\Windows\Main.cpp" />
   </ItemGroup>
   <ItemGroup>

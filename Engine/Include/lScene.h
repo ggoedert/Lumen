@@ -1,44 +1,34 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Application interface
+/// \brief     scene interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifndef L_APPLICATION_H
-#define L_APPLICATION_H
-
-#include "lEngine.h"
-#include "lSceneManager.h"
+#ifndef L_SCENE_H
+#define L_SCENE_H
 
 /// Lumen namespace
 namespace Lumen
 {
-    /// Application class
-    class Application
+    class Application;
+
+    /// Scene class
+    class Scene
     {
     public:
         /// constructor
-        Application();
+        Scene(Application &application) : mApplication(application) {}
 
-        /// virtual destructor
-        virtual ~Application() {}
-
-        /// set engine
-        void SetEngine(std::shared_ptr<Engine> engine) { mEngine = engine; }
-
-        /// load application
+        /// load scene
         virtual bool Load() = 0;
 
-        /// unload application
+        /// unload scene
         virtual void Unload() = 0;
 
     protected:
-        /// Scene manager
-        SceneManager mSceneManager;
 
-    private:
-        /// engine pointer
-        std::weak_ptr<Engine> mEngine;
+        /// application
+        Application &mApplication;
     };
 }
 

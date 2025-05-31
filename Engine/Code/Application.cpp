@@ -1,22 +1,12 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine interface
+/// \brief     application
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifndef L_ENGINE_H
-#define L_ENGINE_H
+#include "lApplication.h"
 
-#include <memory>
+using namespace Lumen;
 
-/// Lumen namespace
-namespace Lumen
-{
-    /// Engine class
-    class Engine : public std::enable_shared_from_this<Engine>
-    {
-    public:
-    };
-}
-
-#endif
+/// constructor
+Application::Application() : mSceneManager(*this) {}
