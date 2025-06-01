@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     client application
+/// \brief     client application interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
@@ -10,7 +10,6 @@
 #include "MainScene.h"
 
 #include "lApplication.h"
-#include "lSceneManager.h"
 
 #include <memory>
 #include <string>
@@ -18,6 +17,8 @@
 /// Application class
 class Application : public Lumen::Application
 {
+    CLASS_UTILS(Application);
+
 public:
     /// constructor
     Application(const std::string &name, const int version) : Lumen::Application() {}
@@ -25,7 +26,7 @@ public:
     /// load our test scene
     bool Load() override
     {
-        mMainScene = std::make_shared<MainScene>(*this);
+        mMainScene = MainScene::MakePtr(*this);
         return mSceneManager.Load(mMainScene);
     }
 
@@ -36,7 +37,7 @@ public:
     }
 
 private:
-    std::shared_ptr<MainScene> mMainScene;
+    MainScene::Ptr mMainScene;
 };
 
 #endif

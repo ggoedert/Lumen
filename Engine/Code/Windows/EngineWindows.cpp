@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 
 #include "lEngineWindows.h"
-#include "lApplication.h"
 
 #include "DDS.h"
 
@@ -14,9 +13,11 @@ using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using namespace Lumen;
 
+const std::string EngineWindows::mName = std::string(EngineWindows::CacheName());
+
 using Microsoft::WRL::ComPtr;
 
-EngineWindows::EngineWindows(std::shared_ptr<Application> application) noexcept(false) :
+EngineWindows::EngineWindows(Application::Ptr application) noexcept(false) :
     mDeviceResources(std::make_unique<DeviceResources>()),
     mApplication(application)
 {

@@ -62,7 +62,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     LoadStringW(hInstance, IDC_LUMENAPPLICATION, szWindowClass, MAX_LOADSTRING);
 
     // start engine and application
-    auto engine = std::make_shared<Lumen::EngineWindows>(std::make_shared<Application>("Test1", 1));
+    auto engine = Lumen::EngineWindows::MakePtr(Application::MakePtr("Test1", 1));
 
     // register class and create window
     {

@@ -7,7 +7,7 @@
 #ifndef L_ENGINE_H
 #define L_ENGINE_H
 
-#include <memory>
+#include "lDefs.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -15,7 +15,7 @@ namespace Lumen
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
     {
-    public:
+        CLASS_UTILS(Engine);
     };
 }
 

@@ -12,6 +12,8 @@
 /// MainScene class
 class MainScene : public Lumen::Scene
 {
+    CLASS_UTILS(MainScene);
+
 public:
     /// constructor
     MainScene(Lumen::Application &application) : Scene(application) {}

@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\lApplication.h" />
+    <ClInclude Include="..\Include\lDefs.h" />
     <ClInclude Include="..\Include\lEngine.h" />
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />

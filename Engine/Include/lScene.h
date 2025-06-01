@@ -7,6 +7,8 @@
 #ifndef L_SCENE_H
 #define L_SCENE_H
 
+#include "lDefs.h"
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -15,6 +17,8 @@ namespace Lumen
     /// Scene class
     class Scene
     {
+        CLASS_UTILS(Scene);
+
     public:
         /// constructor
         Scene(Application &application) : mApplication(application) {}

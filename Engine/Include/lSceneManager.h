@@ -7,23 +7,22 @@
 #ifndef L_SCENE_MANAGER_H
 #define L_SCENE_MANAGER_H
 
-#include <memory>
+#include "lScene.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     class Application;
-    class Scene;
 
     /// SceneManager class
     class SceneManager
     {
     public:
         /// constructor
-        SceneManager(Application &application) : mApplication(application), mCurrentScene(nullptr) {}
+        SceneManager(Application &application) : mApplication(application) {}
 
         /// load scene
-        bool Load(std::shared_ptr<Scene> scene);
+        bool Load(Scene::Ptr scene);
 
         /// unload current scene
         void Unload();
@@ -33,7 +32,7 @@ namespace Lumen
         Application &mApplication;
 
         /// current loaded scene
-        std::shared_ptr<Scene> mCurrentScene;
+        Scene::Ptr mCurrentScene;
     };
 }
 

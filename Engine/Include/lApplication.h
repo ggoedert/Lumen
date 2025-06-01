@@ -16,6 +16,8 @@ namespace Lumen
     /// Application class
     class Application
     {
+        CLASS_UTILS(Application);
+
     public:
         /// constructor
         Application();
@@ -24,7 +26,7 @@ namespace Lumen
         virtual ~Application() {}
 
         /// set engine
-        void SetEngine(std::shared_ptr<Engine> engine) { mEngine = engine; }
+        void SetEngine(Engine::Ptr engine) { mEngine = engine; }
 
         /// load application
         virtual bool Load() = 0;
@@ -38,7 +40,7 @@ namespace Lumen
 
     private:
         /// engine pointer
-        std::weak_ptr<Engine> mEngine;
+        Engine::WeakPtr mEngine;
     };
 }
 

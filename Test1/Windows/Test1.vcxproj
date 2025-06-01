@@ -177,6 +177,7 @@
     <ClInclude Include="..\Code\Windows\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Code\Application.cpp" />
     <ClCompile Include="..\Code\MainScene.cpp" />
     <ClCompile Include="..\Code\Windows\Main.cpp" />
   </ItemGroup>

@@ -5,12 +5,11 @@
 //==============================================================================================================================================================================
 
 #include "lSceneManager.h"
-#include "lScene.h"
 
 using namespace Lumen;
 
 /// load scene
-bool SceneManager::Load(std::shared_ptr<Scene> scene)
+bool SceneManager::Load(Scene::Ptr scene)
 {
     //unload last scene
     Unload();

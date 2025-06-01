@@ -1,12 +1,9 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     application
+/// \brief     client application
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lApplication.h"
+#include "Application.h"
 
-using namespace Lumen;
-
-/// constructor
-Application::Application() : mSceneManager(*this)/*, mRunning(true), mDeltaTime(0.f), mTime(0.f)*/ {}
+const std::string Application::mName = std::string(Application::CacheName());
