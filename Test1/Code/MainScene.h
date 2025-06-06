@@ -3,16 +3,17 @@
 /// \brief     main scene interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
+#pragma once
 
-#ifndef MAIN_SCENE_H
-#define MAIN_SCENE_H
-
+#include "lGameObject.h"
 #include "lScene.h"
+
+CLASS_PTR_DEFS(MainScene);
 
 /// MainScene class
 class MainScene : public Lumen::Scene
 {
-    CLASS_UTILS(MainScene);
+    CLASS_PTR_MAKERS(MainScene);
 
 public:
     /// constructor
@@ -23,6 +24,8 @@ public:
 
     /// unload scene
     void Unload() override;
-};
 
-#endif
+private:
+    Lumen::GameObjectPtr mPlayer;
+    Lumen::GameObjectPtr mCamera;
+};

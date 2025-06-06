@@ -1,35 +1,22 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     scene interface
+/// \brief     Math windows platform
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "SimpleMath.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Scene);
-
-    /// Scene class
-    class Scene
+    /// Math namespace (Windows platform specific)
+    namespace Math
     {
-        CLASS_PTR_MAKERS(Scene);
-
-    public:
-        /// load scene
-        virtual bool Load() = 0;
-
-        /// unload scene
-        virtual void Unload() = 0;
-
-    protected:
-        /// constructor
-        Scene(Application &application) : mApplication(application) {}
-
-        /// application
-        Application &mApplication;
-    };
+        /// alias to DirectX 12 helper classes
+        using Vector = DirectX::XMVECTORF32;
+        using Vector2 = DirectX::SimpleMath::Vector2;
+        using Vector3 = DirectX::SimpleMath::Vector3;
+        using Vector4 = DirectX::SimpleMath::Vector4;
+    }
 }

@@ -152,20 +152,34 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\lApplication.h" />
+    <ClInclude Include="..\Include\lBehavior.h" />
+    <ClInclude Include="..\Include\lCamera.h" />
+    <ClInclude Include="..\Include\lComponent.h" />
+    <ClInclude Include="..\Include\lDebugLog.h" />
     <ClInclude Include="..\Include\lDefs.h" />
     <ClInclude Include="..\Include\lEngine.h" />
+    <ClInclude Include="..\Include\lGameObject.h" />
+    <ClInclude Include="..\Include\lMath.h" />
+    <ClInclude Include="..\Include\lObject.h" />
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />
+    <ClInclude Include="..\Include\lTransform.h" />
     <ClInclude Include="..\Include\Windows\D3DX12.h" />
     <ClInclude Include="..\Include\Windows\DDS.h" />
     <ClInclude Include="..\Include\Windows\DeviceResources.h" />
     <ClInclude Include="..\Include\Windows\Framework.h" />
     <ClInclude Include="..\Include\Windows\lEngineWindows.h" />
+    <ClInclude Include="..\Include\Windows\lMathPlatform.h" />
     <ClInclude Include="..\Include\Windows\StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Application.cpp" />
+    <ClCompile Include="..\Code\Camera.cpp" />
+    <ClCompile Include="..\Code\Component.cpp" />
+    <ClCompile Include="..\Code\Engine.cpp" />
+    <ClCompile Include="..\Code\GameObject.cpp" />
     <ClCompile Include="..\Code\SceneManager.cpp" />
+    <ClCompile Include="..\Code\Windows\DebugLogWindows.cpp" />
     <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />
     <ClCompile Include="..\Code\Windows\EngineWindows.cpp" />
   </ItemGroup>

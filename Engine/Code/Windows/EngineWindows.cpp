@@ -13,11 +13,9 @@ using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using namespace Lumen;
 
-const std::string EngineWindows::mName = std::string(EngineWindows::CacheName());
-
 using Microsoft::WRL::ComPtr;
 
-EngineWindows::EngineWindows(Application::Ptr application) noexcept(false) :
+EngineWindows::EngineWindows(ApplicationPtr application) noexcept(false) :
     mDeviceResources(std::make_unique<DeviceResources>()),
     mApplication(application)
 {
@@ -29,6 +27,9 @@ EngineWindows::EngineWindows(Application::Ptr application) noexcept(false) :
 
 EngineWindows::~EngineWindows()
 {
+    // unload application
+    mApplication->Unload();
+
     if (mDeviceResources)
     {
         mDeviceResources->WaitForGpu();

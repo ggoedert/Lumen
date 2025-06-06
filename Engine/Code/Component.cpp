@@ -1,9 +1,16 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     client application
+/// \brief     Component
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "Application.h"
+#include "lComponent.h"
+#include "lGameObject.h"
 
-const std::string Application::mName = std::string(Application::CacheName());
+using namespace Lumen;
+
+/// constructs a component with type, name, and parent. called by derived classes
+Component::Component(Type componentType, const std::string &componentName, GameObjectPtr parent) : Object(parent.get()), mComponentType(componentType), mComponentName(componentName)
+{
+    parent->AddComponent(this);
+}

@@ -3,9 +3,7 @@
 /// \brief     client application interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
-
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#pragma once
 
 #include "MainScene.h"
 
@@ -14,10 +12,12 @@
 #include <memory>
 #include <string>
 
+CLASS_PTR_DEFS(Application);
+
 /// Application class
 class Application : public Lumen::Application
 {
-    CLASS_UTILS(Application);
+    CLASS_PTR_MAKERS(Application);
 
 public:
     /// constructor
@@ -27,17 +27,15 @@ public:
     bool Load() override
     {
         mMainScene = MainScene::MakePtr(*this);
-        return mSceneManager.Load(mMainScene);
+        return GetSceneManager().Load(mMainScene);
     }
 
     /// unload our test scene
     void Unload() override
     {
-        mSceneManager.Unload();
+        GetSceneManager().Unload();
     }
 
 private:
-    MainScene::Ptr mMainScene;
+    MainScenePtr mMainScene;
 };
-
-#endif

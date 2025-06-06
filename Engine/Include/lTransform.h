@@ -1,35 +1,30 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     scene interface
+/// \brief     Transform interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "lObject.h"
+#include "lMath.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Scene);
+    class GameObject;
+    CLASS_PTR_DEFS(Transform);
 
-    /// Scene class
-    class Scene
+    /// Transform class
+    class Transform : public Object
     {
-        CLASS_PTR_MAKERS(Scene);
+        CLASS_NO_DEFAULT_CTOR(Transform);
+        CLASS_NO_COPY_MOVE(Transform);
 
     public:
-        /// load scene
-        virtual bool Load() = 0;
-
-        /// unload scene
-        virtual void Unload() = 0;
-
-    protected:
         /// constructor
-        Scene(Application &application) : mApplication(application) {}
+        Transform(GameObject *parent) : Object(parent) {}
 
-        /// application
-        Application &mApplication;
+        /// position
+        Math::Vector3 mPosition;
     };
 }

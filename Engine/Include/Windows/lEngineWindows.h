@@ -3,12 +3,10 @@
 /// \brief     Engine windows implementation
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
+#pragma once
 
-#ifndef L_ENGINE_WINDOWS_H
-#define L_ENGINE_WINDOWS_H
-
-#include "lEngine.h"
 #include "lApplication.h"
+#include "lEngine.h"
 
 // helpers headers
 #include "Framework.h"
@@ -18,14 +16,16 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_PTR_DEFS(EngineWindows);
+
     /// Engine windows implementation.
     /// creates a D3D12 device and provides a game loop
     class EngineWindows final : public Engine, public DX::IDeviceNotify
     {
-        CLASS_UTILS(EngineWindows);
+        CLASS_PTR_MAKERS(EngineWindows);
 
     public:
-        EngineWindows(Application::Ptr application) noexcept(false);
+        EngineWindows(ApplicationPtr application) noexcept(false);
         ~EngineWindows();
 
         // initialization and management
@@ -60,7 +60,7 @@ namespace Lumen
         void CreateWindowSizeDependentResources();
 
         // application
-        Application::Ptr mApplication;
+        ApplicationPtr mApplication;
 
         // device resources
         std::unique_ptr<DX::DeviceResources> mDeviceResources;
@@ -89,5 +89,3 @@ namespace Lumen
         };
     };
 };
-
-#endif

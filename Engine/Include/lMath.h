@@ -1,35 +1,18 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     scene interface
+/// \brief     Math
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "lMathPlatform.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Scene);
-
-    /// Scene class
-    class Scene
+    /// Math namespace
+    namespace Math
     {
-        CLASS_PTR_MAKERS(Scene);
-
-    public:
-        /// load scene
-        virtual bool Load() = 0;
-
-        /// unload scene
-        virtual void Unload() = 0;
-
-    protected:
-        /// constructor
-        Scene(Application &application) : mApplication(application) {}
-
-        /// application
-        Application &mApplication;
-    };
+        //
+    }
 }

@@ -1,20 +1,11 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine interface
+/// \brief     Camera
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
-#pragma once
 
-#include "lDefs.h"
+#include "lCamera.h"
 
-/// Lumen namespace
-namespace Lumen
-{
-    CLASS_PTR_DEFS(Engine);
+using namespace Lumen;
 
-    /// Engine class
-    class Engine : public std::enable_shared_from_this<Engine>
-    {
-        CLASS_PTR_MAKERS(Engine);
-    };
-}
+DEFINE_COMPONENT_TRAITS(Camera);

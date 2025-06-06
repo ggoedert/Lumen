@@ -1,35 +1,26 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     scene interface
+/// \brief     debug log interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include <string>
 
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Scene);
-
-    /// Scene class
-    class Scene
+    /// DebugLog class
+    class DebugLog
     {
-        CLASS_PTR_MAKERS(Scene);
-
     public:
-        /// load scene
-        virtual bool Load() = 0;
+        /// log error
+        static void Error(const std::string &error);
 
-        /// unload scene
-        virtual void Unload() = 0;
+        /// log warning
+        static void Warning(const std::string &warning);
 
-    protected:
-        /// constructor
-        Scene(Application &application) : mApplication(application) {}
-
-        /// application
-        Application &mApplication;
+        /// log info
+        static void Info(const std::string &info);
     };
 }
