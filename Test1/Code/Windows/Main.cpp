@@ -13,7 +13,7 @@
 
 #include "Application.h"
 
-#include "lEngineWindows.h"
+#include "lFramework.h"
 
 // misc app setup
 #ifdef __clang__
@@ -62,7 +62,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     LoadStringW(hInstance, IDC_LUMENAPPLICATION, szWindowClass, MAX_LOADSTRING);
 
     // start engine and application
-    auto engine = Lumen::EngineWindows::MakePtr(Application::MakePtr("Test1", 1));
+    auto engine = Lumen::Engine::MakePtr(Application::MakePtr("Test1", 1));
 
     // register class and create window
     {
@@ -114,7 +114,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         GetClientRect(hwnd, &rc);
 
-        if (!engine->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top))
+        if (!engine->Initialize(std::vector<std::any>{hwnd, rc.right - rc.left, rc.bottom - rc.top}))
             return 1;
     }
 
@@ -156,7 +156,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static bool s_fullscreen = true;
 #endif
 
-    auto engine = reinterpret_cast<Lumen::EngineWindows *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    auto engine = reinterpret_cast<Lumen::Engine *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message)
     {

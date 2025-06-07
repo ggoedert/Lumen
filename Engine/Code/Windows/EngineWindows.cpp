@@ -4,8 +4,13 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lEngineWindows.h"
+#include "lApplication.h"
+#include "lEngine.h"
 
+// helpers headers
+#include "EngineFramework.h"
+#include "DeviceResources.h"
+#include "StepTimer.h"
 #include "DDS.h"
 
 using namespace DX;
@@ -14,6 +19,82 @@ using namespace DirectX::SimpleMath;
 using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
+
+/// Engine windows implementation.
+/// creates a D3D12 device and provides a game loop
+class EngineWindows final : public Engine, public DX::IDeviceNotify
+{
+
+public:
+    EngineWindows(ApplicationPtr application) noexcept(false);
+    ~EngineWindows();
+
+    // initialization and management
+    bool Initialize(std::any config) override;
+
+    // basic game loop
+    bool Tick() override;
+
+    // IDeviceNotify
+    void OnDeviceLost() override;
+    void OnDeviceRestored() override;
+
+    // messages
+    void OnActivated() override;
+    void OnDeactivated() override;
+    void OnSuspending() override;
+    void OnResuming() override;
+    void OnWindowMoved() override;
+    void OnDisplayChange() override;
+    void OnWindowSizeChanged(int width, int height) override;
+
+    // properties
+    void GetDefaultSize(int &width, int &height) const noexcept override;
+
+private:
+    bool Update(StepTimer const &timer);
+    void Render();
+
+    void Clear();
+
+    void CreateDeviceDependentResources();
+    void CreateWindowSizeDependentResources();
+
+    // application
+    ApplicationPtr mApplication;
+
+    // device resources
+    std::unique_ptr<DX::DeviceResources> mDeviceResources;
+
+    // rendering loop timer
+    StepTimer mTimer;
+
+    std::unique_ptr<DirectX::GraphicsMemory> mGraphicsMemory;
+    std::unique_ptr<DirectX::CommonStates> mStates;
+
+    DirectX::SimpleMath::Matrix mWorld;
+    DirectX::SimpleMath::Matrix mView;
+    DirectX::SimpleMath::Matrix mProj;
+
+    std::unique_ptr<DirectX::GeometricPrimitive> mShape;
+
+    std::unique_ptr<DirectX::BasicEffect> mEffect;
+
+    std::unique_ptr<DirectX::DescriptorHeap> mResourceDescriptors;
+    Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
+
+    enum Descriptors : size_t
+    {
+        Procedural,
+        Count
+    };
+};
+
+// allocate smart pointer version of the engine, implemented at platform level
+Lumen::EnginePtr Engine::MakePtr(ApplicationPtr application)
+{
+    return std::make_shared<EngineWindows>(application);
+}
 
 EngineWindows::EngineWindows(ApplicationPtr application) noexcept(false) :
     mDeviceResources(std::make_unique<DeviceResources>()),
@@ -37,8 +118,13 @@ EngineWindows::~EngineWindows()
 }
 
 /// initialize the Direct3D resources required to run
-bool EngineWindows::Initialize(HWND window, int width, int height)
+bool EngineWindows::Initialize(std::any config)
 {
+    std::vector<std::any> args = std::any_cast<std::vector<std::any>>(config);
+    HWND window = std::any_cast<HWND>(args[0]);
+    LONG width = std::any_cast<LONG>(args[1]);
+    LONG height = std::any_cast<LONG>(args[2]);
+
     mApplication->SetEngine(shared_from_this());
 
     mDeviceResources->SetWindow(window, width, height);

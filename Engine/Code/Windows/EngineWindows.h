@@ -9,46 +9,43 @@
 #include "lEngine.h"
 
 // helpers headers
-#include "Framework.h"
+#include "EngineFramework.h"
 #include "DeviceResources.h"
 #include "StepTimer.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEFS(EngineWindows);
-
     /// Engine windows implementation.
     /// creates a D3D12 device and provides a game loop
     class EngineWindows final : public Engine, public DX::IDeviceNotify
     {
-        CLASS_PTR_MAKERS(EngineWindows);
 
     public:
         EngineWindows(ApplicationPtr application) noexcept(false);
         ~EngineWindows();
 
         // initialization and management
-        bool Initialize(HWND window, int width, int height);
+        bool Initialize(std::any config) override;
 
         // basic game loop
-        bool Tick();
+        bool Tick() override;
 
         // IDeviceNotify
         void OnDeviceLost() override;
         void OnDeviceRestored() override;
 
         // messages
-        void OnActivated();
-        void OnDeactivated();
-        void OnSuspending();
-        void OnResuming();
-        void OnWindowMoved();
-        void OnDisplayChange();
-        void OnWindowSizeChanged(int width, int height);
+        void OnActivated() override;
+        void OnDeactivated() override;
+        void OnSuspending() override;
+        void OnResuming() override;
+        void OnWindowMoved() override;
+        void OnDisplayChange() override;
+        void OnWindowSizeChanged(int width, int height) override;
 
         // properties
-        void GetDefaultSize(int &width, int &height) const noexcept;
+        void GetDefaultSize(int &width, int &height) const noexcept override;
 
     private:
         bool Update(StepTimer const &timer);

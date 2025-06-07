@@ -9,6 +9,7 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <any>
 
 /// Lumen namespace
 namespace Lumen
