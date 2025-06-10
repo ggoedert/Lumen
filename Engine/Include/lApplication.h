@@ -5,27 +5,24 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lMath.h"
 #include "lSceneManager.h"
 #include "lEngine.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    class SceneManager;
-    CLASS_PTR_DEFS(Application);
+    CLASS_PTR_DEF(Engine);
+    CLASS_WEAK_PTR_DEF(Engine);
 
     /// Application class
     class Application
     {
         CLASS_NO_COPY_MOVE(Application);
-        CLASS_PTR_MAKERS(Application);
 
     public:
         /// set engine
-        [[nodiscard]] void SetEngine(EnginePtr engine) { mEngine = engine; }
-
-        /// get scene manager
-        [[nodiscard]] SceneManager &GetSceneManager() { return *mSceneManager; }
+        [[nodiscard]] void SetEngine(const EnginePtr &engine) { mEngine = engine; }
 
         /// load application
         virtual bool Load() = 0;
@@ -34,13 +31,13 @@ namespace Lumen
         virtual void Unload() = 0;
 
         /// get delta time
-        [[nodiscard]] float &GetDeltaTime() { return mDeltaTime; }
+        [[nodiscard]] float GetDeltaTime() const { return mDeltaTime; }
 
         /// get time
-        [[nodiscard]] float &GetTime() { return mTime; }
+        [[nodiscard]] float GetTime() const { return mTime; }
 
         /// get background color
-        const Math::Vector &GetBackgroundColor();
+        const Math::Vector &GetBackgroundColor() const;
 
     protected:
         /// constructs application
@@ -56,9 +53,6 @@ namespace Lumen
         void Quit();
 
     private:
-        /// Scene manager
-        SceneManager *mSceneManager;
-
         /// default background color
         static constexpr Math::Vector cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
 

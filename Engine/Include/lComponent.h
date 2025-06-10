@@ -5,20 +5,23 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lObject.h"
-
-#include <string>
+#include "lDefs.h"
+#include "lGameObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_PTR_DEF(Component);
+    CLASS_WEAK_PTR_DEF(Component);
+    namespace SceneManager { void Run(); }
+
     /// Component class
     class Component : public Object
     {
-        friend class SceneManager;
-        friend class GameObject;
         CLASS_NO_DEFAULT_CTOR(Component);
         CLASS_NO_COPY_MOVE(Component);
+        friend class GameObject;
+        friend void SceneManager::Run();
 
     public:
         /// get component type
@@ -27,9 +30,12 @@ namespace Lumen
         /// get component name
         [[nodiscard]] const std::string &ComponentName() const noexcept { return mComponentName; }
 
+        /// get owning game object
+        [[nodiscard]] const GameObjectWeakPtr &GetGameObject() const { return mGameObject; }
+
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        Component(Type componentType, const std::string &componentName, GameObjectPtr parent);
+        Component(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
         virtual ~Component() noexcept override = default;
@@ -46,5 +52,11 @@ namespace Lumen
 
         /// component name
         const std::string &mComponentName;
+
+        /// owning game object
+        GameObjectWeakPtr mGameObject;
     };
+
+    /// alias for collection of components
+    using Components = std::vector<ComponentWeakPtr>;
 }

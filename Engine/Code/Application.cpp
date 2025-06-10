@@ -10,13 +10,10 @@
 using namespace Lumen;
 
 /// constructs application
-Application::Application() : mSceneManager(new SceneManager(*this)) {}
+Application::Application() {}
 
 /// destroys application
-Application::~Application() noexcept
-{
-    delete mSceneManager;
-}
+Application::~Application() noexcept {}
 
 /// run application
 bool Application::Run(float deltaTime)
@@ -25,7 +22,7 @@ bool Application::Run(float deltaTime)
     {
         mDeltaTime = deltaTime;
         mTime += mDeltaTime;
-        mSceneManager->Run();
+        SceneManager::Run();
         return true;
     }
     return false;
@@ -38,12 +35,15 @@ void Application::Quit()
 }
 
 /// get background color
-const Math::Vector &Application::GetBackgroundColor()
+const Math::Vector &Application::GetBackgroundColor() const
 {
-    std::vector<Component *> &cameras = GetSceneManager().GetComponents(Camera::ComponentType());
+    Components cameras = SceneManager::GetComponents(Camera::ComponentType());
     if (!cameras.empty())
     {
-        return static_cast<Camera *>(cameras.front())->BackgroundColor();
+        if (ComponentPtr cameraPtr = cameras.front().lock())
+        {
+            return static_cast<Camera *>(cameraPtr.get())->BackgroundColor();
+        }
     }
     return cDefaultBackgroundColor;
 }

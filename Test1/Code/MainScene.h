@@ -5,19 +5,22 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lApplication.h"
 #include "lGameObject.h"
 #include "lScene.h"
 
-CLASS_PTR_DEFS(MainScene);
+CLASS_PTR_DEF(MainScene);
 
 /// MainScene class
 class MainScene : public Lumen::Scene
 {
-    CLASS_PTR_MAKERS(MainScene);
+    CLASS_NO_DEFAULT_CTOR(MainScene);
+    CLASS_NO_COPY_MOVE(MainScene);
+    CLASS_PTR_MAKER(MainScene);
 
 public:
     /// constructor
-    MainScene(Lumen::Application &application) : Scene(application) {}
+    MainScene(const Lumen::Application &application) : Lumen::Scene(), mApplication(application) {}
 
     /// load scene
     bool Load() override;
@@ -26,6 +29,7 @@ public:
     void Unload() override;
 
 private:
-    Lumen::GameObjectPtr mPlayer;
-    Lumen::GameObjectPtr mCamera;
+    const Lumen::Application &mApplication;
+    Lumen::GameObjectWeakPtr mPlayer;
+    Lumen::GameObjectWeakPtr mCamera;
 };

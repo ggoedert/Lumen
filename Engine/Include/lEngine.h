@@ -11,22 +11,28 @@
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Application);
-    CLASS_PTR_DEFS(Engine);
+    CLASS_PTR_DEF(Engine);
+    CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_PTR_DEF(Application);
 
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
     {
+        CLASS_NO_DEFAULT_CTOR(Engine);
+        CLASS_NO_COPY_MOVE(Engine);
+
     public:
         /// virtual destructor
         virtual ~Engine() = default;
 
         // allocate smart pointer version of the engine, implemented at platform level
-        static EnginePtr MakePtr(ApplicationPtr application);
+        static EnginePtr MakePtr(const ApplicationPtr &application);
 
         // initialization and management
-        virtual bool Initialize(std::any config) = 0;
+        virtual bool Initialize(const std::any &config);
+
+        /// shutdown
+        virtual void Shutdown();
 
         // basic game loop
         virtual bool Tick() = 0;
@@ -44,7 +50,10 @@ namespace Lumen
         virtual void GetDefaultSize(int &width, int &height) const noexcept = 0;
 
     protected:
-        /// protected default constructor, allows construction by smart pointer
-        Engine() = default;
+        /// protected constructor
+        Engine(const ApplicationPtr &application) : mApplication(application) {}
+
+        // application
+        ApplicationPtr mApplication;
     };
 }

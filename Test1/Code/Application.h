@@ -8,16 +8,19 @@
 #include "MainScene.h"
 
 #include "lApplication.h"
+#include "lSceneManager.h"
 
 #include <memory>
 #include <string>
 
-CLASS_PTR_DEFS(Application);
+CLASS_PTR_DEF(Application);
 
 /// Application class
 class Application : public Lumen::Application
 {
-    CLASS_PTR_MAKERS(Application);
+    CLASS_NO_DEFAULT_CTOR(Application);
+    CLASS_NO_COPY_MOVE(Application);
+    CLASS_PTR_MAKER(Application);
 
 public:
     /// constructor
@@ -27,13 +30,13 @@ public:
     bool Load() override
     {
         mMainScene = MainScene::MakePtr(*this);
-        return GetSceneManager().Load(mMainScene);
+        return Lumen::SceneManager::Load(mMainScene);
     }
 
     /// unload our test scene
     void Unload() override
     {
-        GetSceneManager().Unload();
+        Lumen::SceneManager::Unload();
     }
 
 private:

@@ -10,17 +10,16 @@
 /// Lumen namespace
 namespace Lumen
 {
-    /// DebugLog class
-    class DebugLog
+    /// DebugLog namespace
+    namespace DebugLog
     {
-    public:
         /// log error
-        static void Error(const std::string &error);
+        void Error(const std::string &error);
 
         /// log warning
-        static void Warning(const std::string &warning);
+        void Warning(const std::string &warning);
 
         /// log info
-        static void Info(const std::string &info);
+        void Info(const std::string &info);
     };
 }

@@ -20,13 +20,15 @@ namespace Lumen
     /// creates a D3D12 device and provides a game loop
     class EngineWindows final : public Engine, public DX::IDeviceNotify
     {
+        CLASS_NO_DEFAULT_CTOR(EngineWindows);
+        CLASS_NO_COPY_MOVE(EngineWindows);
 
     public:
-        EngineWindows(ApplicationPtr application) noexcept(false);
+        EngineWindows(const ApplicationPtr &application) noexcept(false);
         ~EngineWindows();
 
         // initialization and management
-        bool Initialize(std::any config) override;
+        bool Initialize(const std::any &config) override;
 
         // basic game loop
         bool Tick() override;
@@ -55,9 +57,6 @@ namespace Lumen
 
         void CreateDeviceDependentResources();
         void CreateWindowSizeDependentResources();
-
-        // application
-        ApplicationPtr mApplication;
 
         // device resources
         std::unique_ptr<DX::DeviceResources> mDeviceResources;

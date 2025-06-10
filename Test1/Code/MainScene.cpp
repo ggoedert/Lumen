@@ -6,23 +6,26 @@
 
 #include "MainScene.h"
 
-#include "lDebugLog.h"
 #include "lCamera.h"
-#include "lApplication.h"
 
 bool MainScene::Load()
 {
+    mPlayer = Lumen::GameObject::MakePtr();
     Lumen::DebugLog::Info("MainScene::Load");
 
-    mPlayer = Lumen::GameObject::MakePtr(mApplication.GetSceneManager());
+    mPlayer = Lumen::GameObject::MakePtr();
 
-    mCamera = Lumen::GameObject::MakePtr(mApplication.GetSceneManager());
+    mCamera = Lumen::GameObject::MakePtr();
     Lumen::AddCamera(mCamera, {0.4509f, 0.8431f, 1.f, 1.f});
 
-    Lumen::Math::Vector col = mCamera->GetApplication().GetBackgroundColor();
+    Lumen::Math::Vector col = mApplication.GetBackgroundColor();
 
     Lumen::DebugLog::Info("static Camera Component name: " + Lumen::Camera::ComponentName());
-    Lumen::DebugLog::Info("polymorphic Component instance name: " + mCamera->GetComponent(Lumen::Camera::ComponentType())->ComponentName());
+    auto cameraComponent = mCamera.lock().get()->GetComponent(Lumen::Camera::ComponentType()).lock();
+    if (cameraComponent)
+    {
+        Lumen::DebugLog::Info("polymorphic Component instance name: " + cameraComponent->ComponentName());
+    }
     return true;
 }
 

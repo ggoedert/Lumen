@@ -9,67 +9,41 @@
 #include "lComponent.h"
 #include "lGameObject.h"
 #include "lScene.h"
-#include "lApplication.h"
-
-#include <vector>
-#include <map>
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEFS(SceneManager);
-
-    /// SceneManager class
-    class SceneManager
+    /// SceneManager namespace
+    namespace SceneManager
     {
-        CLASS_NO_DEFAULT_CTOR(SceneManager);
-        CLASS_NO_COPY_MOVE(SceneManager);
+        /// initialize scene manager namespace
+        void Initialize();
 
-    public:
-        /// constructs a scene manager with a application
-        SceneManager(Application &application) : mApplication(application) {}
+        /// shutdown scene manager namespace
+        void Shutdown();
 
         /// load scene
-        bool Load(ScenePtr scene);
+        bool Load(const ScenePtr &scene);
 
         /// unload current scene
         void Unload();
 
         /// register game object in the current scene
-        void RegisterGameObject(GameObject *gameObject);
+        [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
 
         /// unregister game object from the current scene
-        void UnregisterGameObject(GameObject *gameObject);
+        bool UnregisterGameObject(const GameObjectWeakPtr &gameObject);
 
         /// register component
-        void RegisterComponent(Type componentType, Component *component);
+        [[nodiscard]] ComponentWeakPtr RegisterComponent(const ComponentPtr &component);
 
         /// unregister component
-        void UnregisterComponent(Type componentType, Component *component);
+        bool UnregisterComponent(const ComponentWeakPtr &component);
 
         /// get all components of type
-        std::vector<Component *> &GetComponents(Type componentType);
+        [[nodiscard]] Components GetComponents(Type componentType);
 
-        /// run current scene
+        /// run application
         void Run();
-
-        /// get application
-        [[nodiscard]] Application &GetApplication() { return mApplication; }
-
-    private:
-        /// application
-        Application &mApplication;
-
-        /// current loaded scene
-        ScenePtr mCurrentScene;
-
-        /// game objects in the scene
-        std::vector<GameObject *> mGameObjects;
-
-        /// components that need to be started
-        std::vector<Component *> mNewComponents;
-
-        /// map of components
-        std::map<Type, std::vector<Component *>> mComponentsMap;
     };
 }

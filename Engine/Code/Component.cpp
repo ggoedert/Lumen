@@ -10,7 +10,7 @@
 using namespace Lumen;
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(Type componentType, const std::string &componentName, GameObjectPtr parent) : Object(parent.get()), mComponentType(componentType), mComponentName(componentName)
+Component::Component(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) :
+    Object(), mComponentType(componentType), mComponentName(componentName), mGameObject(gameObject)
 {
-    parent->AddComponent(this);
 }

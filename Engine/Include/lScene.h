@@ -10,26 +10,24 @@
 /// Lumen namespace
 namespace Lumen
 {
-    class Application;
-    CLASS_PTR_DEFS(Scene);
+    CLASS_PTR_DEF(Scene);
 
     /// Scene class
     class Scene
     {
-        CLASS_PTR_MAKERS(Scene);
+        CLASS_NO_COPY_MOVE(Scene);
 
     public:
+        /// constructor
+        Scene() = default;
+
+        /// virtual destructor
+        virtual ~Scene() = default;
+
         /// load scene
         virtual bool Load() = 0;
 
         /// unload scene
         virtual void Unload() = 0;
-
-    protected:
-        /// constructor
-        Scene(Application &application) : mApplication(application) {}
-
-        /// application
-        Application &mApplication;
     };
 }

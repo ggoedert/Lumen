@@ -9,7 +9,13 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <vector>
+#include <map>
+#include <ranges>
+#include <algorithm>
 #include <any>
+
+#include "lDebugLog.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -44,7 +50,18 @@ namespace Lumen
         return HashStringRange(string, 0, std::string_view(string).size());
     }
 
-#ifdef _DEBUG
+#ifdef NDEBUG
+    /// lean version of Type
+    using Type = Hash;
+
+    /// hash (FNV-1a) class name from current function name evaluated at compile time
+    consteval Type ClassNameType(const char *currentFunction)
+    {
+        size_t end = std::string_view(currentFunction).find_last_of('(');
+        end = std::string_view(currentFunction, end).find_last_of(':') - 1;
+        return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
+    }
+#else
     /// debug version of Type
     struct Type
     {
@@ -57,17 +74,6 @@ namespace Lumen
 
     /// hash (FNV-1a) class name from current function name, debug version
     Type ClassNameType(const char *currentFunction);
-#else
-    /// lean version of Type
-    using Type = Hash;
-
-    /// hash (FNV-1a) class name from current function name evaluated at compile time
-    consteval Type ClassNameType(const char *currentFunction)
-    {
-        size_t end = std::string_view(currentFunction).find_last_of('(');
-        end = std::string_view(currentFunction, end).find_last_of(':') - 1;
-        return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
-    }
 #endif
 
     /// class name from current function name evaluated at compile time
@@ -91,6 +97,40 @@ namespace Lumen
 #error Unable to determine the current function.
 #endif
 
+#define LUMEN_STRINGIZE_HELPER(EXPRESSION) #EXPRESSION
+#define LUMEN_STRINGIZE(EXPRESSION) LUMEN_STRINGIZE_HELPER(EXPRESSION)
+
+#ifdef NDEBUG
+#define LUMEN_ASSERT(EXPRESSION) ((void)0)
+#else
+#define LUMEN_ASSERT(EXPRESSION)                                                                              \
+do                                                                                                            \
+{                                                                                                             \
+    if (!(EXPRESSION))                                                                                        \
+    {                                                                                                         \
+        Lumen::DebugLog::Error("Assertion failed: " #EXPRESSION ", " __FILE__ ":" LUMEN_STRINGIZE(__LINE__)); \
+        std::abort();                                                                                         \
+    }                                                                                                         \
+} while (false)
+#endif
+#define LUMEN_CHECK(EXPRESSION)                                                                           \
+do                                                                                                        \
+{                                                                                                         \
+    if (!(EXPRESSION))                                                                                    \
+    {                                                                                                     \
+        Lumen::DebugLog::Error("Check failed: " #EXPRESSION ", " __FILE__ ":" LUMEN_STRINGIZE(__LINE__)); \
+        std::abort();                                                                                     \
+    }                                                                                                     \
+} while (false)
+#define LUMEN_VERIFY(EXPRESSION)                                                                             \
+do                                                                                                           \
+{                                                                                                            \
+    if (!(EXPRESSION))                                                                                       \
+    {                                                                                                        \
+        Lumen::DebugLog::Warning("Verify failed: " #EXPRESSION ", " __FILE__ ":" LUMEN_STRINGIZE(__LINE__)); \
+    }                                                                                                        \
+} while (false)
+
 #define CLASS_NO_DEFAULT_CTOR(TYPE) \
 public:                             \
 TYPE() = delete
@@ -102,36 +142,68 @@ TYPE &operator=(const TYPE &) = delete; \
 TYPE(TYPE &&) = delete;                 \
 TYPE &operator=(TYPE &&) = delete
 
-#define CLASS_PTR_DEFS(TYPE)                   \
-class TYPE;                                    \
-using TYPE##Ptr = std::shared_ptr<TYPE>;       \
-using TYPE##WeakPtr = std::weak_ptr<TYPE>;     \
+#define CLASS_PTR_DEF(TYPE)             \
+class TYPE;                             \
+using TYPE##Ptr = std::shared_ptr<TYPE>
+
+#define CLASS_WEAK_PTR_DEF(TYPE)          \
+class TYPE;                               \
+using TYPE##WeakPtr = std::weak_ptr<TYPE>
+
+#define CLASS_UNIQUE_PTR_DEF(TYPE)            \
+class TYPE;                                   \
 using TYPE##UniquePtr = std::unique_ptr<TYPE>
 
-#define CLASS_PTR_MAKERS(TYPE)                                                                                            \
+#define CLASS_PIMPL_DEF(TYPE) \
+CLASS_UNIQUE_PTR_DEF(TYPE);   \
+TYPE##UniquePtr m##TYPE
+
+#define CLASS_PTR_MAKER(TYPE)                                                                                  \
+public:                                                                                                        \
+template <typename...Args>                                                                                     \
+inline static TYPE##Ptr MakePtr(Args&&...args) { return std::make_shared<TYPE>(std::forward<Args>(args)...); }
+
+#define CLASS_PTR_UNIQUEMAKER(TYPE)                                                                                        \
+public:                                                                                                                    \
+template <typename...Args>                                                                                                 \
+inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
+
+#define CLASS_PIMPL_MAKER(TYPE)                                                                                           \
 public:                                                                                                                   \
-template <typename...Args>                                                                                                \
-inline static TYPE##Ptr MakePtr(Args&&...args) { return std::make_shared<TYPE>(std::forward<Args>(args)...); }            \
 template <typename...Args>                                                                                                \
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
-#ifdef _DEBUG
-#define COMPONENTTYPE_METHOD static const Lumen::Type ComponentType() { return Lumen::ClassNameType(CURRENT_FUNCTION); }
+#ifdef NDEBUG
+#define COMPONENTTYPE_METHOD static constexpr Type ComponentType() { return ClassNameType(CURRENT_FUNCTION); }
 #else
-#define COMPONENTTYPE_METHOD static constexpr Lumen::Type ComponentType() { return Lumen::ClassNameType(CURRENT_FUNCTION); }
+#define COMPONENTTYPE_METHOD static const Type ComponentType() { return ClassNameType(CURRENT_FUNCTION); }
 #endif
 
-#define COMPONENT_TRAITS(TYPE)                                                                        \
-public:                                                                                               \
-COMPONENTTYPE_METHOD                                                                                  \
-static const std::string &ComponentName() { return mComponentName; }                                  \
-private:                                                                                              \
-static consteval std::string_view CacheComponentName() { return Lumen::ClassName(CURRENT_FUNCTION); } \
+#define COMPONENT_TRAITS(TYPE)                                                                 \
+public:                                                                                        \
+COMPONENTTYPE_METHOD                                                                           \
+static const std::string &ComponentName() { return mComponentName; }                           \
+private:                                                                                       \
+static consteval std::string_view CacheComponentName() { return ClassName(CURRENT_FUNCTION); } \
 static const std::string mComponentName
 
 #define DEFINE_COMPONENT_TRAITS(TYPE)                                             \
 const std::string TYPE::mComponentName = std::string(TYPE::CacheComponentName())
 
-#define COMPONENT_UTILS(TYPE) \
-CLASS_PTR_MAKERS(TYPE)        \
-COMPONENT_TRAITS(TYPE)
+template<typename T, typename Predicate>
+bool RemoveFromVectorIf(std::vector<T> &vec, Predicate pred)
+{
+    auto newEnd = std::remove_if(vec.begin(), vec.end(), pred);
+    bool wasRemoved = (newEnd != vec.end());
+    if (wasRemoved)
+    {
+        vec.erase(newEnd, vec.end());
+    }
+    return wasRemoved;
+}
+
+template<typename T, typename U>
+bool RemoveFromVector(std::vector<T> &vec, const U &value)
+{
+    return RemoveFromVectorIf(vec, [&value](const T &element) { return element == value; });
+}

@@ -24,13 +24,15 @@ using Microsoft::WRL::ComPtr;
 /// creates a D3D12 device and provides a game loop
 class EngineWindows final : public Engine, public DX::IDeviceNotify
 {
+    CLASS_NO_DEFAULT_CTOR(EngineWindows);
+    CLASS_NO_COPY_MOVE(EngineWindows);
 
 public:
-    EngineWindows(ApplicationPtr application) noexcept(false);
+    EngineWindows(const ApplicationPtr &application) noexcept(false);
     ~EngineWindows();
 
     // initialization and management
-    bool Initialize(std::any config) override;
+    bool Initialize(const std::any &config) override;
 
     // basic game loop
     bool Tick() override;
@@ -60,9 +62,6 @@ private:
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
 
-    // application
-    ApplicationPtr mApplication;
-
     // device resources
     std::unique_ptr<DX::DeviceResources> mDeviceResources;
 
@@ -90,15 +89,9 @@ private:
     };
 };
 
-// allocate smart pointer version of the engine, implemented at platform level
-Lumen::EnginePtr Engine::MakePtr(ApplicationPtr application)
-{
-    return std::make_shared<EngineWindows>(application);
-}
-
-EngineWindows::EngineWindows(ApplicationPtr application) noexcept(false) :
+EngineWindows::EngineWindows(const ApplicationPtr &application) noexcept(false) :
     mDeviceResources(std::make_unique<DeviceResources>()),
-    mApplication(application)
+    Engine(application)
 {
     // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
     //   Add DeviceResources::c_AllowTearing to opt-in to variable rate displays.
@@ -108,9 +101,6 @@ EngineWindows::EngineWindows(ApplicationPtr application) noexcept(false) :
 
 EngineWindows::~EngineWindows()
 {
-    // unload application
-    mApplication->Unload();
-
     if (mDeviceResources)
     {
         mDeviceResources->WaitForGpu();
@@ -118,14 +108,12 @@ EngineWindows::~EngineWindows()
 }
 
 /// initialize the Direct3D resources required to run
-bool EngineWindows::Initialize(std::any config)
+bool EngineWindows::Initialize(const std::any &config)
 {
     std::vector<std::any> args = std::any_cast<std::vector<std::any>>(config);
     HWND window = std::any_cast<HWND>(args[0]);
     LONG width = std::any_cast<LONG>(args[1]);
     LONG height = std::any_cast<LONG>(args[2]);
-
-    mApplication->SetEngine(shared_from_this());
 
     mDeviceResources->SetWindow(window, width, height);
 
@@ -142,8 +130,8 @@ bool EngineWindows::Initialize(std::any config)
     mTimer.SetTargetElapsedSeconds(1.0 / 60);
     */
 
-    // load application
-    return mApplication->Load();
+    // initialize base
+    return Engine::Initialize(config);
 }
 
 #pragma region Frame Update
@@ -466,3 +454,11 @@ void EngineWindows::OnDeviceRestored()
     CreateWindowSizeDependentResources();
 }
 #pragma endregion
+
+//==============================================================================================================================================================================
+
+// allocate smart pointer version of the engine, implemented at platform level
+Lumen::EnginePtr Engine::MakePtr(const ApplicationPtr &application)
+{
+    return std::make_shared<EngineWindows>(application);
+}

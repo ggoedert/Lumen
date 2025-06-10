@@ -8,82 +8,153 @@
 
 using namespace Lumen;
 
-/// load scene
-bool SceneManager::Load(ScenePtr scene)
+struct SceneManagerState
 {
-    //unload last scene
-    Unload();
+    CLASS_NO_COPY_MOVE(SceneManagerState);
 
-    //load current scene
-    mCurrentScene = std::move(scene);
-    return mCurrentScene->Load();
+    /// default constructor
+    SceneManagerState() = default;
+
+    /// current loaded scene
+    ScenePtr mCurrentScene;
+
+    /// game objects in the scene
+    std::vector<GameObjectPtr> mGameObjects;
+
+    /// components that need to be started
+    std::vector<ComponentPtr> mNewComponents;
+
+    /// map of components
+    std::map<Type, std::vector<ComponentPtr>> mComponentsMap;
+};
+
+SceneManagerState *gSceneManagerState = nullptr;
+
+/// initialize scene manager namespace
+void SceneManager::Initialize()
+{
+    LUMEN_ASSERT(gSceneManagerState == nullptr);
+    gSceneManagerState = new SceneManagerState();
+}
+
+/// shutdown scene manager namespace
+void SceneManager::Shutdown()
+{
+    LUMEN_ASSERT(gSceneManagerState);
+    Unload();
+    delete gSceneManagerState;
+    gSceneManagerState = nullptr;
+}
+
+/// load scene
+bool SceneManager::Load(const ScenePtr &scene)
+{
+    LUMEN_ASSERT(gSceneManagerState);
+    Unload();
+    gSceneManagerState->mCurrentScene = std::move(scene);
+    return gSceneManagerState->mCurrentScene->Load();
 }
 
 /// unload current scene
 void SceneManager::Unload()
 {
-    if (mCurrentScene)
+    LUMEN_ASSERT(gSceneManagerState);
+    if (gSceneManagerState->mCurrentScene)
     {
-        mCurrentScene->Unload();
-        mCurrentScene.reset();
+        gSceneManagerState->mCurrentScene->Unload();
+        gSceneManagerState->mNewComponents.clear();
+        gSceneManagerState->mGameObjects.clear();
+        gSceneManagerState->mComponentsMap.clear();
+        gSceneManagerState->mCurrentScene.reset();
+
     }
 }
 
 /// register game object in the current scene
-void SceneManager::RegisterGameObject(GameObject *gameObject)
+GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObject)
 {
-    mGameObjects.push_back(gameObject);
+    LUMEN_ASSERT(gSceneManagerState);
+
+    gSceneManagerState->mGameObjects.push_back(gameObject);
+    return gameObject;
 }
 
 /// unregister game object from the current scene
-void SceneManager::UnregisterGameObject(GameObject *gameObject)
+/// the passed GameObjectWeakPtr must have been originally created from a shared GameObjectPtr stored in the SceneManager
+bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
 {
-    mGameObjects.erase(std::remove(mGameObjects.begin(), mGameObjects.end(), gameObject), mGameObjects.end());
+    LUMEN_ASSERT(gSceneManagerState);
+
+    auto lockedGameObject = gameObject.lock();
+    if (!lockedGameObject)
+    {
+        return false;
+    }
+    return RemoveFromVector(gSceneManagerState->mGameObjects, lockedGameObject);
 }
 
 /// register component
-void SceneManager::RegisterComponent(Type componentType, Component *component)
+ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 {
-    std::map<Type, std::vector<Component *>>::iterator componentsMapIterator = mComponentsMap.find(componentType);
-    if (componentsMapIterator == mComponentsMap.end())
-    {
-        componentsMapIterator = mComponentsMap.insert({ componentType, std::vector<Component *>() }).first;
-    }
-    std::vector<Component *> &componentVector = componentsMapIterator->second;
-    componentVector.push_back(component);
-    mNewComponents.push_back(component);
+    LUMEN_ASSERT(gSceneManagerState);
+
+    gSceneManagerState->mComponentsMap[component->ComponentType()].push_back(component);
+    gSceneManagerState->mNewComponents.push_back(component);
+    return component;
 }
 
 /// unregister component
-void SceneManager::UnregisterComponent(Type componentType, Component *component)
+bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 {
-    std::map<Type, std::vector<Component *>>::iterator componentsMapIterator = mComponentsMap.find(componentType);
-    assert(componentsMapIterator != mComponentsMap.end());
-    std::vector<Component *> &componentVector = componentsMapIterator->second;
-    componentVector.erase(std::remove(componentVector.begin(), componentVector.end(), component), componentVector.end());
+    LUMEN_ASSERT(gSceneManagerState);
+
+    auto lockedComponent = component.lock();
+    if (!lockedComponent)
+    {
+        return false;
+    }
+
+    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->ComponentType());
+    LUMEN_ASSERT(it != gSceneManagerState->mComponentsMap.end());
+
+    return RemoveFromVector(it->second, lockedComponent);
 }
 
 /// get all components of type
-std::vector<Component *> &SceneManager::GetComponents(Type componentType)
+Components SceneManager::GetComponents(Type componentType)
 {
-    std::map<Type, std::vector<Component *>>::iterator componentsMapIterator = mComponentsMap.find(componentType);
-    if (componentsMapIterator == mComponentsMap.end())
+    LUMEN_ASSERT(gSceneManagerState);
+    Components result;
+
+    auto it = gSceneManagerState->mComponentsMap.find(componentType);
+    if (it == gSceneManagerState->mComponentsMap.end())
     {
-        componentsMapIterator = mComponentsMap.insert({ componentType, std::vector<Component *>() }).first;
+        return result;
     }
-    return componentsMapIterator->second;
+
+    const auto &components = it->second;
+    result.reserve(components.size());
+    std::transform(components.begin(), components.end(), std::back_inserter(result),
+        [](const ComponentPtr &comp) { return comp; });
+
+    return result;
 }
 
-/// run current scene
+/// run application
 void SceneManager::Run()
 {
-    for (Component *component : mNewComponents)
-    {
-        component->Start();
-    }
-    mNewComponents.clear();
+    LUMEN_ASSERT(gSceneManagerState);
 
-    for (GameObject *gameObject : mGameObjects)
+    if (!gSceneManagerState->mNewComponents.empty())
+    {
+        for (const ComponentPtr &component : gSceneManagerState->mNewComponents)
+        {
+            component->Start();
+        }
+        gSceneManagerState->mNewComponents.clear();
+    }
+
+    for (const GameObjectPtr &gameObject : gSceneManagerState->mGameObjects)
     {
         gameObject->Run();
     }

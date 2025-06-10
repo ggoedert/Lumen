@@ -18,7 +18,7 @@ namespace Lumen
 
     public:
         /// constructor
-        Behavior(Type componentType, const std::string &componentName, GameObjectPtr parent) : Component(componentType, componentName, parent), mEnabled(true) {}
+        Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) : Component(componentType, componentName, gameObject), mEnabled(true) {}
 
         /// control enabled
         [[nodiscard]] void Enable(bool enable) { mEnabled = enable; }

@@ -4,11 +4,34 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#ifdef _DEBUG
 #include "lDefs.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
+// initialization and management
+bool Engine::Initialize(const std::any &config)
+{
+    Lumen::SceneManager::Initialize();
+
+    mApplication->SetEngine(shared_from_this());
+
+    // load application
+    return mApplication->Load();
+}
+
+/// shutdown
+void Engine::Shutdown()
+{
+    // unload application
+    mApplication->Unload();
+
+    Lumen::SceneManager::Shutdown();
+}
+
+//==============================================================================================================================================================================
+
+#ifdef _DEBUG
 /// hash (FNV-1a) class name from current function name, debug version
 Type Lumen::ClassNameType(const char *currentFunction)
 {

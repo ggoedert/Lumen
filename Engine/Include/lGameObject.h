@@ -5,54 +5,48 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lTransform.h"
+#include "lDefs.h"
+#include "lObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    class Component;
-    class Application;
-    CLASS_PTR_DEFS(GameObject);
+    CLASS_PTR_DEF(GameObject);
+    CLASS_WEAK_PTR_DEF(GameObject);
+    CLASS_WEAK_PTR_DEF(Transform);
+    CLASS_WEAK_PTR_DEF(Component);
+    namespace SceneManager { void Run(); }
 
     /// GameObject class
     class GameObject : public Object
     {
-        friend class SceneManager;
-        CLASS_NO_DEFAULT_CTOR(GameObject);
         CLASS_NO_COPY_MOVE(GameObject);
-        CLASS_PTR_MAKERS(GameObject);
+        friend void SceneManager::Run();
 
     public:
-        /// constructs a game object with a scene manager
-        GameObject(SceneManager &sceneManager);
+        /// custom smart pointer maker, self registers into scene manager
+        static GameObjectWeakPtr MakePtr();
 
         /// destroys game object
         ~GameObject();
 
         /// get transform
-        [[nodiscard]] Transform &GetTransform() { return mTransform; }
+        [[nodiscard]] const Transform &GetTransform() const;
 
         /// get component
-        Component *GetComponent(Type componentType);
+        [[nodiscard]] ComponentWeakPtr GetComponent(Type componentType) const;
 
         /// add a component
-        void AddComponent(Component *component);
-
-        /// get application
-        [[nodiscard]] Application &GetApplication();
+        void AddComponent(const ComponentWeakPtr &component);
 
     protected:
+        /// constructs a game object
+        GameObject();
+
         /// run game object
         void Run();
 
     private:
-        // Scene manager reference
-        SceneManager &mSceneManager;
-
-        /// transform
-        Transform mTransform;
-
-        /// components
-        std::vector<Component *> mComponents;
+        CLASS_PIMPL_DEF(Impl);
     };
 }
