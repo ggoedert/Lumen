@@ -31,7 +31,7 @@ namespace Lumen
         ~GameObject();
 
         /// get transform
-        [[nodiscard]] const Transform &GetTransform() const;
+        [[nodiscard]] TransformWeakPtr GetTransform() const;
 
         /// get component
         [[nodiscard]] ComponentWeakPtr GetComponent(Type componentType) const;

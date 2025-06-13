@@ -21,7 +21,7 @@ namespace Lumen
         Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) : Component(componentType, componentName, gameObject), mEnabled(true) {}
 
         /// control enabled
-        [[nodiscard]] void Enable(bool enable) { mEnabled = enable; }
+        void Enable(bool enable) { mEnabled = enable; }
 
         /// return enabled
         [[nodiscard]] bool Enabled() { return mEnabled; }

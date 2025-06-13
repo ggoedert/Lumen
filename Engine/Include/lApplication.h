@@ -18,11 +18,12 @@ namespace Lumen
     /// Application class
     class Application
     {
+        friend class Engine;
         CLASS_NO_COPY_MOVE(Application);
 
     public:
         /// set engine
-        [[nodiscard]] void SetEngine(const EnginePtr &engine) { mEngine = engine; }
+        void SetEngine(const EnginePtr &engine);
 
         /// load application
         virtual bool Load() = 0;
@@ -31,13 +32,13 @@ namespace Lumen
         virtual void Unload() = 0;
 
         /// get delta time
-        [[nodiscard]] float GetDeltaTime() const { return mDeltaTime; }
+        [[nodiscard]] float GetDeltaTime() const;
 
         /// get time
-        [[nodiscard]] float GetTime() const { return mTime; }
+        [[nodiscard]] float GetTime() const;
 
         /// get background color
-        const Math::Vector &GetBackgroundColor() const;
+        [[nodiscard]] Math::Vector GetBackgroundColor() const;
 
     protected:
         /// constructs application
@@ -53,19 +54,6 @@ namespace Lumen
         void Quit();
 
     private:
-        /// default background color
-        static constexpr Math::Vector cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
-
-        /// application running
-        bool mRunning { true };
-
-        /// engine pointer
-        EngineWeakPtr mEngine;
-
-        /// interval in seconds from the last frame to the current one
-        float mDeltaTime { 0.f };
-
-        /// time at the beginning of the current frame
-        float mTime { 0.f };
+        CLASS_PIMPL_DEF(Impl);
     };
 }

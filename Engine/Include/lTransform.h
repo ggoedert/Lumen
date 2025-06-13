@@ -12,19 +12,22 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_PTR_DEF(Transform);
+    CLASS_WEAK_PTR_DEF(Transform);
     CLASS_WEAK_PTR_DEF(GameObject);
 
     /// Transform class
     class Transform : public Object
     {
         CLASS_NO_DEFAULT_CTOR(Transform);
+        CLASS_PTR_MAKER(Transform);
 
     public:
         /// constructor
         Transform(const GameObjectWeakPtr &gameObject) : Object(), mGameObject(gameObject) {}
 
         /// get owning game object
-        [[nodiscard]] const GameObjectWeakPtr &GetGameObject() const { return mGameObject; }
+        [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
 
         /// set parent
         void SetParent(Transform *parent)
@@ -40,7 +43,7 @@ namespace Lumen
         void SetPosition(const Math::Vector3 &position) { mPosition = position; }
 
         /// get position
-        [[nodiscard]] const Math::Vector3 &GetPosition() const { return mPosition; }
+        [[nodiscard]] Math::Vector3 GetPosition() const { return mPosition; }
 
     private:
         /// owning game object

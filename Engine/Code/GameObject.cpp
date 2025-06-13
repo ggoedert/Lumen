@@ -26,13 +26,13 @@ public:
     ~Impl();
 
     /// get transform
-    [[nodiscard]] const Transform &GetTransform() const { return mTransform; }
+    [[nodiscard]] TransformWeakPtr GetTransform() const noexcept { return mTransform; }
 
     /// get component
-    [[nodiscard]] ComponentWeakPtr GetComponent(Type componentType);
+    [[nodiscard]] ComponentWeakPtr GetComponent(Type componentType) const noexcept;
 
     /// add a component
-    void AddComponent(const ComponentWeakPtr &component);
+    void AddComponent(const ComponentWeakPtr &component) noexcept;
 
 protected:
     /// run game object
@@ -43,14 +43,14 @@ private:
     GameObjectWeakPtr mGameObject;
 
     /// transform
-    Transform mTransform;
+    TransformPtr mTransform;
 
     /// components
     std::vector<ComponentWeakPtr> mComponents;
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mGameObject(gameObject), mTransform(gameObject)
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mGameObject(gameObject), mTransform(Transform::MakePtr(gameObject))
 {
 }
 
@@ -65,22 +65,22 @@ GameObject::Impl::~Impl()
 }
 
 /// get component
-ComponentWeakPtr GameObject::Impl::GetComponent(Type componentType)
+ComponentWeakPtr GameObject::Impl::GetComponent(Type componentType) const noexcept
 {
-    for (const ComponentWeakPtr component : mComponents)
+    for (const ComponentWeakPtr &component : mComponents)
     {
         ComponentPtr c = component.lock();
         LUMEN_ASSERT(c);
         if (c->ComponentType() == componentType)
         {
-            return c;
+            return component;
         }
     }
     return {};
 }
 
 /// add a component
-void GameObject::Impl::AddComponent(const ComponentWeakPtr &component)
+void GameObject::Impl::AddComponent(const ComponentWeakPtr &component) noexcept
 {
     auto componentPtr = component.lock();
     if (componentPtr)
@@ -95,10 +95,9 @@ void GameObject::Impl::Run()
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
-        auto componentPtr = component.lock();
-        if (componentPtr)
+        if (auto componentPtr = component.lock())
         {
-            componentPtr.get()->Run();
+            componentPtr->Run();
         }
     }
 }
@@ -122,6 +121,12 @@ GameObject::GameObject()
 /// destroys game object
 GameObject::~GameObject()
 {
+}
+
+/// get transform
+TransformWeakPtr GameObject::GetTransform() const
+{
+    return mImpl->GetTransform();
 }
 
 /// get component

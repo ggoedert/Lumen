@@ -28,13 +28,13 @@ struct SceneManagerState
     std::map<Type, std::vector<ComponentPtr>> mComponentsMap;
 };
 
-SceneManagerState *gSceneManagerState = nullptr;
+static std::unique_ptr<SceneManagerState> gSceneManagerState;
 
 /// initialize scene manager namespace
 void SceneManager::Initialize()
 {
-    LUMEN_ASSERT(gSceneManagerState == nullptr);
-    gSceneManagerState = new SceneManagerState();
+    LUMEN_ASSERT(!gSceneManagerState);
+    gSceneManagerState = std::make_unique<SceneManagerState>();
 }
 
 /// shutdown scene manager namespace
@@ -42,12 +42,11 @@ void SceneManager::Shutdown()
 {
     LUMEN_ASSERT(gSceneManagerState);
     Unload();
-    delete gSceneManagerState;
-    gSceneManagerState = nullptr;
+    gSceneManagerState.reset();
 }
 
 /// load scene
-bool SceneManager::Load(const ScenePtr &scene)
+bool SceneManager::Load(ScenePtr scene)
 {
     LUMEN_ASSERT(gSceneManagerState);
     Unload();

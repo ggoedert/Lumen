@@ -23,7 +23,7 @@ namespace Lumen
         void Shutdown();
 
         /// load scene
-        bool Load(const ScenePtr &scene);
+        bool Load(ScenePtr scene);
 
         /// unload current scene
         void Unload();
@@ -42,6 +42,15 @@ namespace Lumen
 
         /// get all components of type
         [[nodiscard]] Components GetComponents(Type componentType);
+
+        /// get the current scene
+        [[nodiscard]] ScenePtr GetCurrentScene();
+
+        /// get the count of game objects
+        [[nodiscard]] size_t GetGameObjectCount();
+
+        /// get the count of components of a specific type
+        [[nodiscard]] size_t GetComponentCount(Type componentType);
 
         /// run application
         void Run();

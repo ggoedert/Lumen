@@ -12,6 +12,11 @@ namespace Lumen
     class Object
     {
     public:
+        CLASS_NO_COPY_MOVE(Object);
+
+        /// default constructor
+        Object() = default;
+
         /// virtual destructor
         virtual ~Object() noexcept = default;
     };

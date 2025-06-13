@@ -12,6 +12,9 @@ using namespace Lumen;
 // initialization and management
 bool Engine::Initialize(const std::any &config)
 {
+    if (!mApplication)
+        return false;
+
     Lumen::SceneManager::Initialize();
 
     mApplication->SetEngine(shared_from_this());
@@ -24,9 +27,20 @@ bool Engine::Initialize(const std::any &config)
 void Engine::Shutdown()
 {
     // unload application
-    mApplication->Unload();
+    if (mApplication)
+        mApplication->Unload();
 
     Lumen::SceneManager::Shutdown();
+}
+
+/// run engine
+bool Engine::Run(float deltaTime)
+{
+    if (!mApplication)
+        return false;
+
+    // run application
+    return mApplication->Run(deltaTime);
 }
 
 //==============================================================================================================================================================================

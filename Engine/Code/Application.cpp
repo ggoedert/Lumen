@@ -9,14 +9,64 @@
 
 using namespace Lumen;
 
+/// Application::Impl class
+class Application::Impl
+{
+    CLASS_NO_COPY_MOVE(Application::Impl);
+    CLASS_PTR_UNIQUEMAKER(Application::Impl);
+    friend class Application;
+
+public:
+    /// constructs application
+    Impl();
+
+    /// destructor
+    ~Impl() noexcept;
+
+    /// set engine
+    void SetEngine(const EnginePtr &engine) { mEngine = engine; }
+
+    /// get delta time
+    [[nodiscard]] float GetDeltaTime() const { return mDeltaTime; }
+
+    /// get time
+    [[nodiscard]] float GetTime() const { return mTime; }
+
+    /// get background color
+    const Math::Vector GetBackgroundColor() const;
+
+protected:
+    /// run application
+    bool Run(float deltaTime);
+
+    /// quit application
+    void Quit();
+
+private:
+    /// default background color
+    static constexpr Math::Vector cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
+
+    /// application running
+    bool mRunning { true };
+
+    /// engine pointer
+    EngineWeakPtr mEngine;
+
+    /// interval in seconds from the last frame to the current one
+    float mDeltaTime { 0.f };
+
+    /// time at the beginning of the current frame
+    float mTime { 0.f };
+};
+
 /// constructs application
-Application::Application() {}
+Application::Impl::Impl() {}
 
 /// destroys application
-Application::~Application() noexcept {}
+Application::Impl::~Impl() noexcept {}
 
 /// run application
-bool Application::Run(float deltaTime)
+bool Application::Impl::Run(float deltaTime)
 {
     if (mRunning)
     {
@@ -29,21 +79,69 @@ bool Application::Run(float deltaTime)
 }
 
 /// quit application
-void Application::Quit()
+void Application::Impl::Quit()
 {
     mRunning = false;
 }
 
 /// get background color
-const Math::Vector &Application::GetBackgroundColor() const
+const Math::Vector Application::Impl::GetBackgroundColor() const
 {
     Components cameras = SceneManager::GetComponents(Camera::ComponentType());
     if (!cameras.empty())
     {
         if (ComponentPtr cameraPtr = cameras.front().lock())
         {
-            return static_cast<Camera *>(cameraPtr.get())->BackgroundColor();
+            return static_cast<Camera *>(cameraPtr.get())->GetBackgroundColor();
         }
     }
     return cDefaultBackgroundColor;
+}
+
+//==============================================================================================================================================================================
+
+/// constructs application
+Application::Application() : mImpl(std::make_unique<Application::Impl>())
+{
+}
+
+/// virtual destructor
+Application::~Application() noexcept
+{
+}
+
+/// set engine
+void Application::SetEngine(const EnginePtr &engine)
+{
+    mImpl->SetEngine(engine);
+}
+
+/// get delta time
+float Application::GetDeltaTime() const
+{
+    return mImpl->GetDeltaTime();
+}
+
+/// get time
+float Application::GetTime() const
+{
+    return mImpl->GetTime();
+}
+
+/// get background color
+Math::Vector Application::GetBackgroundColor() const
+{
+    return mImpl->GetBackgroundColor();
+}
+
+/// run application
+bool Application::Run(float deltaTime)
+{
+    return mImpl->Run(deltaTime);
+}
+
+/// quit application
+void Application::Quit()
+{
+    return mImpl->Quit();
 }

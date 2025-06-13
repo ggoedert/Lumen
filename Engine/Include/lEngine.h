@@ -53,6 +53,9 @@ namespace Lumen
         /// protected constructor
         Engine(const ApplicationPtr &application) : mApplication(application) {}
 
+        /// run engine
+        bool Run(float deltaTime);
+
         // application
         ApplicationPtr mApplication;
     };

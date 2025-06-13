@@ -26,10 +26,10 @@ namespace Lumen
         Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) : Behavior(ComponentType(), ComponentName(), gameObject), mBackgroundColor(backgroundColor) {}
 
         /// set background color
-        [[nodiscard]] void BackgroundColor(Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
+        void SetBackgroundColor(Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
 
-        /// return background color
-        [[nodiscard]] Math::Vector &BackgroundColor() { return mBackgroundColor; }
+        /// get background color
+        [[nodiscard]] Math::Vector GetBackgroundColor() const { return mBackgroundColor; }
 
     private:
         /// run component

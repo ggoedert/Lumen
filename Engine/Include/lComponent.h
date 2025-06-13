@@ -28,10 +28,10 @@ namespace Lumen
         [[nodiscard]] Type ComponentType() const noexcept { return mComponentType; }
 
         /// get component name
-        [[nodiscard]] const std::string &ComponentName() const noexcept { return mComponentName; }
+        [[nodiscard]] std::string ComponentName() const noexcept { return mComponentName; }
 
         /// get owning game object
-        [[nodiscard]] const GameObjectWeakPtr &GetGameObject() const { return mGameObject; }
+        [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes

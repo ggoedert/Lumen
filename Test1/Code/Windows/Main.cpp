@@ -81,10 +81,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             return 1;
 
         // create window
-        int w, h;
-        engine->GetDefaultSize(w, h);
+        int width = 800;
+        int height = 600;
+        engine->GetDefaultSize(width, height);
 
-        RECT rc = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
+        RECT rc = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
 #ifdef _DEBUG
         AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);

@@ -140,6 +140,8 @@ bool EngineWindows::Tick()
 {
     bool updateResult = true;
 
+    Engine::Run(static_cast<float>(mTimer.GetElapsedSeconds()));
+
     mTimer.Tick([&]()
     {
         if (updateResult)
