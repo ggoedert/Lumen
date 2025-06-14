@@ -21,7 +21,7 @@ bool MainScene::Load()
     Lumen::Math::Vector col = mApplication.GetBackgroundColor();
 
     Lumen::DebugLog::Info("static Camera Component name: " + Lumen::Camera::ComponentName());
-    auto cameraComponent = mCamera.lock().get()->GetComponent(Lumen::Camera::ComponentType()).lock();
+    auto cameraComponent = mCamera.lock()->GetComponent(Lumen::Camera::ComponentType()).lock();
     if (cameraComponent)
     {
         Lumen::DebugLog::Info("polymorphic Component instance name: " + cameraComponent->ComponentName());

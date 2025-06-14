@@ -92,7 +92,7 @@ const Math::Vector Application::Impl::GetBackgroundColor() const
     {
         if (ComponentPtr cameraPtr = cameras.front().lock())
         {
-            return static_cast<Camera *>(cameraPtr.get())->GetBackgroundColor();
+            return std::dynamic_pointer_cast<Camera>(cameraPtr)->GetBackgroundColor();
         }
     }
     return cDefaultBackgroundColor;

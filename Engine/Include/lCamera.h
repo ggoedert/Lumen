@@ -45,8 +45,8 @@ namespace Lumen
         auto lockedGameObject = gameObject.lock();
         if (lockedGameObject)
         {
-            auto component = SceneManager::RegisterComponent(ComponentPtr(new Camera(gameObject, backgroundColor)));
-            lockedGameObject.get()->AddComponent(component);
+            auto component = ComponentPtr(new Camera(gameObject, backgroundColor));
+            lockedGameObject->AddComponent(component);
             return component;
         }
         return {};
