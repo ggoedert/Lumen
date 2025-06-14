@@ -11,23 +11,23 @@ using namespace Lumen;
 // initialization and management
 bool Engine::Initialize(const std::any &config)
 {
+    Lumen::SceneManager::Initialize();
+
     if (!mApplication)
         return false;
 
-    Lumen::SceneManager::Initialize();
-
     mApplication->SetEngine(shared_from_this());
 
-    // load application
-    return mApplication->Load();
+    // initialize application
+    return mApplication->Initialize();
 }
 
 /// shutdown
 void Engine::Shutdown()
 {
-    // unload application
+    // shutdown application
     if (mApplication)
-        mApplication->Unload();
+        mApplication->Shutdown();
 
     Lumen::SceneManager::Shutdown();
 }

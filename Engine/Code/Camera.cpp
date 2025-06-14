@@ -50,3 +50,15 @@ void Camera::SetBackgroundColor(Math::Vector &backgroundColor) { mImpl->SetBackg
 
 /// run component
 void Camera::Run() { mImpl->Run(); }
+
+/// creates a camera
+ComponentPtr Camera::Create(const std::any &params)
+{
+    if (params.type() == typeid(Params))
+    {
+        const auto &createParams = std::any_cast<const Params &>(params);
+        return ComponentPtr(new Camera(createParams.gameObject, createParams.backgroundColor));
+    }
+    DebugLog::Error("Create component, unknown parameter type: " + std::string(params.type().name()));
+    return ComponentPtr();
+}

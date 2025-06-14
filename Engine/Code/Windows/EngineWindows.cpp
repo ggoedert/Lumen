@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lApplication.h"
+#include "lEnginePlatform.h"
 #include "lEngine.h"
 
 // helpers headers
@@ -110,12 +111,14 @@ EngineWindows::~EngineWindows()
 /// initialize the Direct3D resources required to run
 bool EngineWindows::Initialize(const std::any &config)
 {
-    std::vector<std::any> args = std::any_cast<std::vector<std::any>>(config);
-    HWND window = std::any_cast<HWND>(args[0]);
-    LONG width = std::any_cast<LONG>(args[1]);
-    LONG height = std::any_cast<LONG>(args[2]);
+    if (config.type() != typeid(Config))
+    {
+        DebugLog::Error("Initialize engine, unknown config type: " + std::string(config.type().name()));
+        return false;
+    }
 
-    mDeviceResources->SetWindow(window, width, height);
+    const auto &initializeConfig = std::any_cast<const Config &>(config);
+    mDeviceResources->SetWindow(initializeConfig.window, initializeConfig.width, initializeConfig.height);
 
     mDeviceResources->CreateDeviceResources();
     CreateDeviceDependentResources();

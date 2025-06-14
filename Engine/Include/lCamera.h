@@ -20,10 +20,11 @@ namespace Lumen
         CLASS_NO_DEFAULT_CTOR(Camera);
         CLASS_NO_COPY_MOVE(Camera);
         COMPONENT_TRAITS(Camera);
+        friend void SceneManager::Initialize();
 
     public:
-        /// constructs a camera with name and background color
-        Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
+        /// camera creation parameters
+        struct Params { const GameObjectWeakPtr &gameObject; Math::Vector backgroundColor; };
 
         /// get background color
         [[nodiscard]] Math::Vector GetBackgroundColor() const;
@@ -31,24 +32,19 @@ namespace Lumen
         /// set background color
         void SetBackgroundColor(Math::Vector &backgroundColor);
 
+
     private:
+
         /// run component
         void Run() override;
+
+        /// constructs a camera with name and background color
+        Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
+
+        /// creates a camera
+        static ComponentPtr Create(const std::any &params);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };
-
-    /// creator helper
-    inline ComponentWeakPtr AddCamera(const GameObjectWeakPtr &gameObject, const Math::Vector &backgroundColor)
-    {
-        auto lockedGameObject = gameObject.lock();
-        if (lockedGameObject)
-        {
-            auto component = ComponentPtr(new Camera(gameObject, backgroundColor));
-            lockedGameObject->AddComponent(component);
-            return component;
-        }
-        return {};
-    }
 }

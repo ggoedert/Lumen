@@ -34,10 +34,10 @@ namespace Lumen
         [[nodiscard]] TransformWeakPtr Transform() const;
 
         /// get component
-        [[nodiscard]] ComponentWeakPtr Component(Type type) const;
+        [[nodiscard]] ComponentWeakPtr Component(const Type type) const;
 
         /// add a component
-        void AddComponent(const ComponentWeakPtr &component);
+        void AddComponent(const Type type, const std::any &params);
 
     protected:
         /// constructs a game object

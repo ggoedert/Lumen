@@ -18,7 +18,7 @@ class Component::Impl
 
 public:
     /// constructs a component
-    Impl(Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+    Impl(const Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
         mType(type), mName(name), mGameObject(gameObject) {}
 
     /// destroys component
@@ -51,7 +51,7 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+Component::Component(const Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
     Object(), mImpl(Component::Impl::MakeUniquePtr(type, name, gameObject)) {}
 
 /// destructor

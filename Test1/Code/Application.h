@@ -26,15 +26,15 @@ public:
     /// constructor
     Application(const std::string &name, const int version) : Lumen::Application() {}
 
-    /// load our test scene
-    bool Load() override
+    /// initialize and load our test scene
+    bool Initialize() override
     {
         mMainScene = MainScene::MakePtr(*this);
         return Lumen::SceneManager::Load(mMainScene);
     }
 
-    /// unload our test scene
-    void Unload() override
+    /// shutdown and unload our test scene
+    void Shutdown() override
     {
         Lumen::SceneManager::Unload();
     }

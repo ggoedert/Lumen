@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lSceneManager.h"
+#include "lCamera.h"
 
 using namespace Lumen;
 
@@ -17,6 +18,9 @@ struct SceneManagerState
 
     /// current loaded scene
     ScenePtr mCurrentScene;
+
+    /// map of component creators
+    std::map<Type, SceneManager::ComponentCreator> mComponentCreators;
 
     /// game objects in the scene
     std::vector<GameObjectPtr> mGameObjects;
@@ -35,6 +39,8 @@ void SceneManager::Initialize()
 {
     LUMEN_ASSERT(!gSceneManagerState);
     gSceneManagerState = std::make_unique<SceneManagerState>();
+
+    SceneManager::RegisterComponentCreator(Camera::GetType(), Camera::Create);
 }
 
 /// shutdown scene manager namespace
@@ -69,6 +75,28 @@ void SceneManager::Unload()
     }
 }
 
+/// register component creator
+void SceneManager::RegisterComponentCreator(const Type type, const ComponentCreator &creator)
+{
+    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(!gSceneManagerState->mComponentCreators.contains(type));
+    gSceneManagerState->mComponentCreators[type] = creator;
+}
+
+/// create component of a specific type
+ComponentWeakPtr SceneManager::CreateComponent(const Type type, const std::any &params)
+{
+    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(gSceneManagerState->mComponentCreators.contains(type));
+
+    auto it = gSceneManagerState->mComponentCreators.find(type);
+    if (it == gSceneManagerState->mComponentCreators.end())
+    {
+        return ComponentWeakPtr();
+    }
+    return RegisterComponent(it->second(params));
+}
+
 /// register game object in the current scene
 GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObject)
 {
@@ -96,6 +124,7 @@ bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
 ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 {
     LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(component);
 
     gSceneManagerState->mComponentsMap[component->GetType()].push_back(component);
     gSceneManagerState->mNewComponents.push_back(component);
@@ -120,7 +149,7 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 }
 
 /// get all components of type
-Components SceneManager::GetComponents(Type type)
+Components SceneManager::GetComponents(const Type type)
 {
     LUMEN_ASSERT(gSceneManagerState);
     Components result;

@@ -6,10 +6,10 @@
 #pragma once
 
 #include "lApplication.h"
+#include "lEnginePlatform.h"
 #include "lEngine.h"
 
 // helpers headers
-#include "EngineFramework.h"
 #include "DeviceResources.h"
 #include "StepTimer.h"
 

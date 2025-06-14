@@ -13,6 +13,7 @@
 
 #include "Application.h"
 
+#include "lEnginePlatform.h"
 #include "lFramework.h"
 
 // misc app setup
@@ -115,7 +116,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         GetClientRect(hwnd, &rc);
 
-        if (!engine->Initialize(std::vector<std::any>{hwnd, rc.right - rc.left, rc.bottom - rc.top}))
+        if (!engine->Initialize(Lumen::Config({ hwnd, rc.right - rc.left, rc.bottom - rc.top })))
             return 1;
     }
 

@@ -10,12 +10,17 @@
 #include "lGameObject.h"
 #include "lScene.h"
 
+#include <functional>
+
 /// Lumen namespace
 namespace Lumen
 {
     /// SceneManager namespace
     namespace SceneManager
     {
+        /// component creator function type
+        using ComponentCreator = std::function<ComponentPtr(const std::any &params)>;
+
         /// initialize scene manager namespace
         void Initialize();
 
@@ -30,6 +35,12 @@ namespace Lumen
 
         /// get the current scene
         [[nodiscard]] ScenePtr CurrentScene();
+
+        /// register component creator
+        void RegisterComponentCreator(const Type type, const ComponentCreator &creator);
+
+        /// create component of a specific type
+        ComponentWeakPtr CreateComponent(const Type type, const std::any &params);
 
         /// register game object in the current scene
         [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
@@ -47,10 +58,10 @@ namespace Lumen
         bool UnregisterComponent(const ComponentWeakPtr &component);
 
         /// get the count of components of a specific type
-        [[nodiscard]] size_t ComponentCount(Type type);
+        [[nodiscard]] size_t ComponentCount(const Type type);
 
         /// get all components of type
-        [[nodiscard]] Components GetComponents(Type type);
+        [[nodiscard]] Components GetComponents(const Type type);
 
         /// run application
         void Run();

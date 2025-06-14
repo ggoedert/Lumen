@@ -170,6 +170,7 @@
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />
     <ClInclude Include="..\Include\lTransform.h" />
+    <ClInclude Include="..\Include\Windows\lEnginePlatform.h" />
     <ClInclude Include="..\Include\Windows\lFramework.h" />
     <ClInclude Include="..\Include\Windows\lMathPlatform.h" />
   </ItemGroup>

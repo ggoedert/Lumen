@@ -80,6 +80,9 @@
     <ClInclude Include="..\Include\Windows\lFramework.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\Windows\lEnginePlatform.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Windows\DeviceResources.cpp">
