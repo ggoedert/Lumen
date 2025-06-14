@@ -4,7 +4,6 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lDefs.h"
 #include "lEngine.h"
 
 using namespace Lumen;

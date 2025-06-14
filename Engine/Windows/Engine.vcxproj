@@ -175,11 +175,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Application.cpp" />
+    <ClCompile Include="..\Code\Behavior.cpp" />
     <ClCompile Include="..\Code\Camera.cpp" />
     <ClCompile Include="..\Code\Component.cpp" />
     <ClCompile Include="..\Code\Engine.cpp" />
     <ClCompile Include="..\Code\GameObject.cpp" />
     <ClCompile Include="..\Code\SceneManager.cpp" />
+    <ClCompile Include="..\Code\Transform.cpp" />
     <ClCompile Include="..\Code\Windows\DebugLogWindows.cpp" />
     <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />
     <ClCompile Include="..\Code\Windows\EngineWindows.cpp" />

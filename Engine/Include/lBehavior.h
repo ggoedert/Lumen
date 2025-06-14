@@ -10,6 +10,8 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Behavior);
+
     /// Behavior class
     class Behavior : public Component
     {
@@ -18,16 +20,19 @@ namespace Lumen
 
     public:
         /// constructor
-        Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) : Component(componentType, componentName, gameObject), mEnabled(true) {}
+        Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject);
+
+        /// destructor
+        ~Behavior();
 
         /// control enabled
-        void Enable(bool enable) { mEnabled = enable; }
+        void Enable(bool enable);
 
         /// return enabled
-        [[nodiscard]] bool Enabled() { return mEnabled; }
+        [[nodiscard]] bool Enabled();
 
     private:
-        /// behaviour enabled
-        bool mEnabled;
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

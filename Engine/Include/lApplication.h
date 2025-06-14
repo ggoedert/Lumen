@@ -54,6 +54,7 @@ namespace Lumen
         void Quit();
 
     private:
+        /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };
 }

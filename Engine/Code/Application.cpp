@@ -101,14 +101,10 @@ const Math::Vector Application::Impl::GetBackgroundColor() const
 //==============================================================================================================================================================================
 
 /// constructs application
-Application::Application() : mImpl(std::make_unique<Application::Impl>())
-{
-}
+Application::Application() : mImpl(Application::Impl::MakeUniquePtr()) {}
 
 /// virtual destructor
-Application::~Application() noexcept
-{
-}
+Application::~Application() noexcept {}
 
 /// set engine
 void Application::SetEngine(const EnginePtr &engine)

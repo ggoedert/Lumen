@@ -39,8 +39,8 @@ protected:
     void Run();
 
 private:
-    //game object parent
-    GameObjectWeakPtr mGameObject;
+    /// interface
+    GameObjectWeakPtr mInterface;
 
     /// transform
     TransformPtr mTransform;
@@ -50,9 +50,7 @@ private:
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mGameObject(gameObject), mTransform(Transform::MakePtr(gameObject))
-{
-}
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mInterface(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
 GameObject::Impl::~Impl()
@@ -61,7 +59,7 @@ GameObject::Impl::~Impl()
     {
         SceneManager::UnregisterComponent(component);
     }
-    SceneManager::UnregisterGameObject(mGameObject);
+    SceneManager::UnregisterGameObject(mInterface);
 }
 
 /// get component
@@ -114,14 +112,10 @@ GameObjectWeakPtr GameObject::MakePtr()
 }
 
 /// constructs a game object
-GameObject::GameObject()
-{
-}
+GameObject::GameObject() {}
 
 /// destroys game object
-GameObject::~GameObject()
-{
-}
+GameObject::~GameObject() {}
 
 /// get transform
 TransformWeakPtr GameObject::GetTransform() const

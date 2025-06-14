@@ -24,35 +24,28 @@ namespace Lumen
 
     public:
         /// constructor
-        Transform(const GameObjectWeakPtr &gameObject) : Object(), mGameObject(gameObject) {}
+        Transform(const GameObjectWeakPtr &gameObject);
+
+        /// destructor
+        ~Transform();
 
         /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
+        [[nodiscard]] GameObjectWeakPtr GetGameObject() const;
 
         /// set parent
-        void SetParent(Transform *parent)
-        {
-            LUMEN_ASSERT(parent != this);
-            mParent = parent;
-        }
+        void SetParent(TransformWeakPtr parent);
 
         /// get parent
-        [[nodiscard]] Transform *GetParent() const { return mParent; }
+        [[nodiscard]] TransformWeakPtr GetParent() const;
 
         /// set position
-        void SetPosition(const Math::Vector3 &position) { mPosition = position; }
+        void SetPosition(const Math::Vector3 &position);
 
         /// get position
-        [[nodiscard]] Math::Vector3 GetPosition() const { return mPosition; }
+        [[nodiscard]] Math::Vector3 GetPosition() const;
 
     private:
-        /// owning game object
-        GameObjectWeakPtr mGameObject;
-
-        /// parent transform
-        Transform *mParent = nullptr;
-
-        /// position
-        Math::Vector3 mPosition;
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

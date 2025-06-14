@@ -25,36 +25,30 @@ namespace Lumen
 
     public:
         /// get component type
-        [[nodiscard]] Type ComponentType() const noexcept { return mComponentType; }
+        [[nodiscard]] Type ComponentType() const noexcept;
 
         /// get component name
-        [[nodiscard]] std::string ComponentName() const noexcept { return mComponentName; }
+        [[nodiscard]] std::string ComponentName() const noexcept;
 
         /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
+        [[nodiscard]] GameObjectWeakPtr GetGameObject() const;
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
         Component(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
-        virtual ~Component() noexcept override = default;
+        virtual ~Component() noexcept override;
 
     private:
         /// start component
-        virtual void Start() {}
+        virtual void Start();
 
         /// run component
         virtual void Run() = 0;
 
-        /// component type
-        const Type mComponentType;
-
-        /// component name
-        const std::string &mComponentName;
-
-        /// owning game object
-        GameObjectWeakPtr mGameObject;
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 
     /// alias for collection of components

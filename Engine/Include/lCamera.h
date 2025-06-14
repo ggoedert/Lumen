@@ -23,20 +23,20 @@ namespace Lumen
 
     public:
         /// constructs a camera with name and background color
-        Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) : Behavior(ComponentType(), ComponentName(), gameObject), mBackgroundColor(backgroundColor) {}
+        Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
         /// set background color
-        void SetBackgroundColor(Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
+        void SetBackgroundColor(Math::Vector &backgroundColor);
 
         /// get background color
-        [[nodiscard]] Math::Vector GetBackgroundColor() const { return mBackgroundColor; }
+        [[nodiscard]] Math::Vector GetBackgroundColor() const;
 
     private:
         /// run component
-        void Run() override {}
+        void Run() override;
 
-        /// background color
-        Math::Vector mBackgroundColor;
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 
     /// creator helper
