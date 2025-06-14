@@ -42,17 +42,8 @@ DEFINE_COMPONENT_TRAITS(Camera);
 Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) :
     Behavior(GetType(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
-/// get background color
-[[nodiscard]] Math::Vector Camera::GetBackgroundColor() const { return mImpl->GetBackgroundColor(); }
-
-/// set background color
-void Camera::SetBackgroundColor(Math::Vector &backgroundColor) { mImpl->SetBackgroundColor(backgroundColor); }
-
-/// run component
-void Camera::Run() { mImpl->Run(); }
-
-/// creates a camera
-ComponentPtr Camera::Create(const std::any &params)
+/// creates a smart pointer version of the camera component
+ComponentPtr Camera::MakePtr(const std::any &params)
 {
     if (params.type() == typeid(Params))
     {
@@ -62,3 +53,12 @@ ComponentPtr Camera::Create(const std::any &params)
     DebugLog::Error("Create component, unknown parameter type: " + std::string(params.type().name()));
     return ComponentPtr();
 }
+
+/// get background color
+[[nodiscard]] Math::Vector Camera::GetBackgroundColor() const { return mImpl->GetBackgroundColor(); }
+
+/// set background color
+void Camera::SetBackgroundColor(Math::Vector &backgroundColor) { mImpl->SetBackgroundColor(backgroundColor); }
+
+/// run component
+void Camera::Run() { mImpl->Run(); }

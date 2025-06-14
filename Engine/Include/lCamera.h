@@ -32,17 +32,16 @@ namespace Lumen
         /// set background color
         void SetBackgroundColor(Math::Vector &backgroundColor);
 
-
     private:
-
-        /// run component
-        void Run() override;
 
         /// constructs a camera with name and background color
         Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
-        /// creates a camera
-        static ComponentPtr Create(const std::any &params);
+        /// creates a smart pointer version of the camera component
+        static ComponentPtr MakePtr(const std::any &params);
+
+        /// run component
+        void Run() override;
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

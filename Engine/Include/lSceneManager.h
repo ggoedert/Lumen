@@ -18,8 +18,8 @@ namespace Lumen
     /// SceneManager namespace
     namespace SceneManager
     {
-        /// component creator function type
-        using ComponentCreator = std::function<ComponentPtr(const std::any &params)>;
+        /// component maker function type
+        using ComponentMaker = std::function<ComponentPtr(const std::any &params)>;
 
         /// initialize scene manager namespace
         void Initialize();
@@ -36,8 +36,8 @@ namespace Lumen
         /// get the current scene
         [[nodiscard]] ScenePtr CurrentScene();
 
-        /// register component creator
-        void RegisterComponentCreator(const Type type, const ComponentCreator &creator);
+        /// register component maker
+        void RegisterComponentMaker(const Type type, const ComponentMaker &maker);
 
         /// create component of a specific type
         ComponentWeakPtr CreateComponent(const Type type, const std::any &params);

@@ -19,8 +19,8 @@ struct SceneManagerState
     /// current loaded scene
     ScenePtr mCurrentScene;
 
-    /// map of component creators
-    std::map<Type, SceneManager::ComponentCreator> mComponentCreators;
+    /// map of component makers
+    std::map<Type, SceneManager::ComponentMaker> mComponentMakers;
 
     /// game objects in the scene
     std::vector<GameObjectPtr> mGameObjects;
@@ -40,7 +40,7 @@ void SceneManager::Initialize()
     LUMEN_ASSERT(!gSceneManagerState);
     gSceneManagerState = std::make_unique<SceneManagerState>();
 
-    SceneManager::RegisterComponentCreator(Camera::GetType(), Camera::Create);
+    SceneManager::RegisterComponentMaker(Camera::GetType(), Camera::MakePtr);
 }
 
 /// shutdown scene manager namespace
@@ -75,22 +75,22 @@ void SceneManager::Unload()
     }
 }
 
-/// register component creator
-void SceneManager::RegisterComponentCreator(const Type type, const ComponentCreator &creator)
+/// register component maker
+void SceneManager::RegisterComponentMaker(const Type type, const ComponentMaker &maker)
 {
     LUMEN_ASSERT(gSceneManagerState);
-    LUMEN_ASSERT(!gSceneManagerState->mComponentCreators.contains(type));
-    gSceneManagerState->mComponentCreators[type] = creator;
+    LUMEN_ASSERT(!gSceneManagerState->mComponentMakers.contains(type));
+    gSceneManagerState->mComponentMakers[type] = maker;
 }
 
 /// create component of a specific type
 ComponentWeakPtr SceneManager::CreateComponent(const Type type, const std::any &params)
 {
     LUMEN_ASSERT(gSceneManagerState);
-    LUMEN_ASSERT(gSceneManagerState->mComponentCreators.contains(type));
+    LUMEN_ASSERT(gSceneManagerState->mComponentMakers.contains(type));
 
-    auto it = gSceneManagerState->mComponentCreators.find(type);
-    if (it == gSceneManagerState->mComponentCreators.end())
+    auto it = gSceneManagerState->mComponentMakers.find(type);
+    if (it == gSceneManagerState->mComponentMakers.end())
     {
         return ComponentWeakPtr();
     }
