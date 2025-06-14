@@ -67,9 +67,9 @@ ComponentWeakPtr GameObject::Impl::GetComponent(Type componentType) const noexce
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
-        ComponentPtr c = component.lock();
-        LUMEN_ASSERT(c);
-        if (c->ComponentType() == componentType)
+        auto componentPtr = component.lock();
+        LUMEN_ASSERT(componentPtr);
+        if (componentPtr->ComponentType() == componentType)
         {
             return component;
         }
@@ -81,11 +81,9 @@ ComponentWeakPtr GameObject::Impl::GetComponent(Type componentType) const noexce
 void GameObject::Impl::AddComponent(const ComponentWeakPtr &component) noexcept
 {
     auto componentPtr = component.lock();
-    if (componentPtr)
-    {
-        SceneManager::RegisterComponent(componentPtr);
-        mComponents.push_back(component);
-    }
+    LUMEN_ASSERT(componentPtr);
+    SceneManager::RegisterComponent(componentPtr);
+    mComponents.push_back(component);
 }
 
 /// run game object
@@ -93,10 +91,9 @@ void GameObject::Impl::Run()
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
-        if (auto componentPtr = component.lock())
-        {
-            componentPtr->Run();
-        }
+        auto componentPtr = component.lock();
+        LUMEN_ASSERT(componentPtr);
+        componentPtr->Run();
     }
 }
 
