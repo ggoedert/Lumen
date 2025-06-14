@@ -18,31 +18,31 @@ class Component::Impl
 
 public:
     /// constructs a component
-    Impl(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) :
-        mComponentType(componentType), mComponentName(componentName), mGameObject(gameObject) {}
+    Impl(Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+        mType(type), mName(name), mGameObject(gameObject) {}
 
     /// destroys component
     ~Impl() = default;
 
 public:
-    /// get component type
-    [[nodiscard]] Type ComponentType() const noexcept { return mComponentType; }
+    /// get type
+    [[nodiscard]] Type GetType() const noexcept { return mType; }
 
-    /// get component name
-    [[nodiscard]] std::string ComponentName() const noexcept { return mComponentName; }
+    /// get name
+    [[nodiscard]] std::string Name() const noexcept { return mName; }
 
     /// get owning game object
-    [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
+    [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
 
 private:
     /// start component
     void Start() {}
 
-    /// component type
-    const Type mComponentType;
+    /// type
+    const Type mType;
 
-    /// component name
-    const std::string &mComponentName;
+    /// name
+    const std::string &mName;
 
     /// owning game object
     GameObjectWeakPtr mGameObject;
@@ -51,28 +51,28 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) :
-    Object(), mImpl(Component::Impl::MakeUniquePtr(componentType, componentName, gameObject)) {}
+Component::Component(Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+    Object(), mImpl(Component::Impl::MakeUniquePtr(type, name, gameObject)) {}
 
 /// destructor
 Component::~Component() noexcept = default;
 
-/// get component type
-Type Component::ComponentType() const noexcept
+/// get type
+Type Component::GetType() const noexcept
 {
-    return mImpl->ComponentType();
+    return mImpl->GetType();
 }
 
-/// get component name
-std::string Component::ComponentName() const noexcept
+/// get name
+std::string Component::Name() const noexcept
 {
-    return mImpl->ComponentName();
+    return mImpl->Name();
 }
 
 /// get owning game object
-GameObjectWeakPtr Component::GetGameObject() const
+GameObjectWeakPtr Component::GameObject() const
 {
-    return mImpl->GetGameObject();
+    return mImpl->GameObject();
 }
 
 /// start component

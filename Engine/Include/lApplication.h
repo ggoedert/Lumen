@@ -32,10 +32,10 @@ namespace Lumen
         virtual void Unload() = 0;
 
         /// get delta time
-        [[nodiscard]] float GetDeltaTime() const;
+        [[nodiscard]] float DeltaTime() const;
 
         /// get time
-        [[nodiscard]] float GetTime() const;
+        [[nodiscard]] float Time() const;
 
         /// get background color
         [[nodiscard]] Math::Vector GetBackgroundColor() const;

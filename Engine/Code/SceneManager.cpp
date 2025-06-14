@@ -97,7 +97,7 @@ ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 {
     LUMEN_ASSERT(gSceneManagerState);
 
-    gSceneManagerState->mComponentsMap[component->ComponentType()].push_back(component);
+    gSceneManagerState->mComponentsMap[component->GetType()].push_back(component);
     gSceneManagerState->mNewComponents.push_back(component);
     return component;
 }
@@ -113,19 +113,19 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
         return false;
     }
 
-    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->ComponentType());
+    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->GetType());
     LUMEN_ASSERT(it != gSceneManagerState->mComponentsMap.end());
 
     return RemoveFromVector(it->second, lockedComponent);
 }
 
 /// get all components of type
-Components SceneManager::GetComponents(Type componentType)
+Components SceneManager::GetComponents(Type type)
 {
     LUMEN_ASSERT(gSceneManagerState);
     Components result;
 
-    auto it = gSceneManagerState->mComponentsMap.find(componentType);
+    auto it = gSceneManagerState->mComponentsMap.find(type);
     if (it == gSceneManagerState->mComponentsMap.end())
     {
         return result;

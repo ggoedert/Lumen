@@ -28,11 +28,17 @@ namespace Lumen
         /// unload current scene
         void Unload();
 
+        /// get the current scene
+        [[nodiscard]] ScenePtr CurrentScene();
+
         /// register game object in the current scene
         [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
 
         /// unregister game object from the current scene
         bool UnregisterGameObject(const GameObjectWeakPtr &gameObject);
+
+        /// get the count of game objects
+        [[nodiscard]] size_t GameObjectCount();
 
         /// register component
         [[nodiscard]] ComponentWeakPtr RegisterComponent(const ComponentPtr &component);
@@ -40,17 +46,11 @@ namespace Lumen
         /// unregister component
         bool UnregisterComponent(const ComponentWeakPtr &component);
 
-        /// get all components of type
-        [[nodiscard]] Components GetComponents(Type componentType);
-
-        /// get the current scene
-        [[nodiscard]] ScenePtr GetCurrentScene();
-
-        /// get the count of game objects
-        [[nodiscard]] size_t GetGameObjectCount();
-
         /// get the count of components of a specific type
-        [[nodiscard]] size_t GetComponentCount(Type componentType);
+        [[nodiscard]] size_t ComponentCount(Type type);
+
+        /// get all components of type
+        [[nodiscard]] Components GetComponents(Type type);
 
         /// run application
         void Run();

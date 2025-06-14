@@ -26,10 +26,10 @@ public:
     ~Impl();
 
     /// get transform
-    [[nodiscard]] TransformWeakPtr GetTransform() const noexcept { return mTransform; }
+    [[nodiscard]] TransformWeakPtr Transform() const noexcept { return mTransform; }
 
     /// get component
-    [[nodiscard]] ComponentWeakPtr GetComponent(Type componentType) const noexcept;
+    [[nodiscard]] ComponentWeakPtr Component(Type type) const noexcept;
 
     /// add a component
     void AddComponent(const ComponentWeakPtr &component) noexcept;
@@ -63,13 +63,13 @@ GameObject::Impl::~Impl()
 }
 
 /// get component
-ComponentWeakPtr GameObject::Impl::GetComponent(Type componentType) const noexcept
+ComponentWeakPtr GameObject::Impl::Component(Type type) const noexcept
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
         LUMEN_ASSERT(componentPtr);
-        if (componentPtr->ComponentType() == componentType)
+        if (componentPtr->GetType() == type)
         {
             return component;
         }
@@ -115,15 +115,15 @@ GameObject::GameObject() {}
 GameObject::~GameObject() {}
 
 /// get transform
-TransformWeakPtr GameObject::GetTransform() const
+TransformWeakPtr GameObject::Transform() const
 {
-    return mImpl->GetTransform();
+    return mImpl->Transform();
 }
 
 /// get component
-ComponentWeakPtr GameObject::GetComponent(Type componentType) const
+ComponentWeakPtr GameObject::Component(Type type) const
 {
-    return mImpl->GetComponent(componentType);
+    return mImpl->Component(type);
 }
 
 /// add a component

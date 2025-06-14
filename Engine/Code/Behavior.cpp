@@ -36,8 +36,8 @@ private:
 //==============================================================================================================================================================================
 
 /// constructor
-Behavior::Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject) :
-    Component(componentType, componentName, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
+Behavior::Behavior(Type type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+    Component(type, name, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
 
 /// destructor
 Behavior::~Behavior() = default;

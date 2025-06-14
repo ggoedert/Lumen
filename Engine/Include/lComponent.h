@@ -24,18 +24,18 @@ namespace Lumen
         friend void SceneManager::Run();
 
     public:
-        /// get component type
-        [[nodiscard]] Type ComponentType() const noexcept;
+        /// get type
+        [[nodiscard]] Type GetType() const noexcept;
 
-        /// get component name
-        [[nodiscard]] std::string ComponentName() const noexcept;
+        /// get name
+        [[nodiscard]] std::string Name() const noexcept;
 
         /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GetGameObject() const;
+        [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        Component(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject);
+        Component(Type type, const std::string &name, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
         virtual ~Component() noexcept override;

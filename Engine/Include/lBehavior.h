@@ -20,7 +20,7 @@ namespace Lumen
 
     public:
         /// constructor
-        Behavior(Type componentType, const std::string &componentName, const GameObjectWeakPtr &gameObject);
+        Behavior(Type type, const std::string &name, const GameObjectWeakPtr &gameObject);
 
         /// destructor
         ~Behavior();

@@ -174,21 +174,21 @@ template <typename...Args>                                                      
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
 #ifdef NDEBUG
-#define COMPONENTTYPE_METHOD static constexpr Type ComponentType() { return ClassNameType(CURRENT_FUNCTION); }
+#define COMPONENTTYPE_METHOD static constexpr Type GetType() { return ClassNameType(CURRENT_FUNCTION); }
 #else
-#define COMPONENTTYPE_METHOD static const Type ComponentType() { return ClassNameType(CURRENT_FUNCTION); }
+#define COMPONENTTYPE_METHOD static const Type GetType() { return ClassNameType(CURRENT_FUNCTION); }
 #endif
 
-#define COMPONENT_TRAITS(TYPE)                                                                 \
-public:                                                                                        \
-COMPONENTTYPE_METHOD                                                                           \
-static const std::string &ComponentName() { return mComponentName; }                           \
-private:                                                                                       \
-static consteval std::string_view CacheComponentName() { return ClassName(CURRENT_FUNCTION); } \
-static const std::string mComponentName
+#define COMPONENT_TRAITS(TYPE)                                                        \
+public:                                                                               \
+COMPONENTTYPE_METHOD                                                                  \
+static const std::string &Name() { return mName; }                                    \
+private:                                                                              \
+static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \
+static const std::string mName
 
-#define DEFINE_COMPONENT_TRAITS(TYPE)                                             \
-const std::string TYPE::mComponentName = std::string(TYPE::CacheComponentName())
+#define DEFINE_COMPONENT_TRAITS(TYPE)                          \
+const std::string TYPE::mName = std::string(TYPE::CacheName())
 
 template<typename T, typename Predicate>
 bool RemoveFromVectorIf(std::vector<T> &vec, Predicate pred)

@@ -23,7 +23,10 @@ public:
     ~Impl() = default;
 
     /// get owning game object
-    [[nodiscard]] GameObjectWeakPtr GetGameObject() const { return mGameObject; }
+    [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
+
+    /// get parent
+    [[nodiscard]] TransformWeakPtr GetParent() const { return mParent; }
 
     /// set parent
     void SetParent(TransformWeakPtr parent)
@@ -32,14 +35,11 @@ public:
         mParent = parent;
     }
 
-    /// get parent
-    [[nodiscard]] TransformWeakPtr GetParent() const { return mParent; }
+    /// get position
+    [[nodiscard]] Math::Vector3 GetPosition() const { return mPosition; }
 
     /// set position
     void SetPosition(const Math::Vector3 &position) { mPosition = position; }
-
-    /// get position
-    [[nodiscard]] Math::Vector3 GetPosition() const { return mPosition; }
 
 private:
     /// interface
@@ -64,15 +64,9 @@ Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(), mImpl(Tran
 Transform::~Transform() = default;
 
 /// get owning game object
-[[nodiscard]] GameObjectWeakPtr Transform::GetGameObject() const
+[[nodiscard]] GameObjectWeakPtr Transform::GameObject() const
 {
-    return mImpl->GetGameObject();
-}
-
-/// set parent
-void Transform::SetParent(TransformWeakPtr parent)
-{
-    mImpl->SetParent(parent);
+    return mImpl->GameObject();
 }
 
 /// get parent
@@ -81,14 +75,20 @@ TransformWeakPtr Transform::GetParent() const
     return mImpl->GetParent();
 }
 
-/// set position
-void Transform::SetPosition(const Math::Vector3 &position)
+/// set parent
+void Transform::SetParent(TransformWeakPtr parent)
 {
-    mImpl->SetPosition(position);
+    mImpl->SetParent(parent);
 }
 
 /// get position
 [[nodiscard]] Math::Vector3 Transform::GetPosition() const
 {
     return mImpl->GetPosition();
+}
+
+/// set position
+void Transform::SetPosition(const Math::Vector3 &position)
+{
+    mImpl->SetPosition(position);
 }

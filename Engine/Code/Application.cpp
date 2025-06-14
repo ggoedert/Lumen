@@ -27,10 +27,10 @@ public:
     void SetEngine(const EnginePtr &engine) { mEngine = engine; }
 
     /// get delta time
-    [[nodiscard]] float GetDeltaTime() const { return mDeltaTime; }
+    [[nodiscard]] float DeltaTime() const { return mDeltaTime; }
 
     /// get time
-    [[nodiscard]] float GetTime() const { return mTime; }
+    [[nodiscard]] float Time() const { return mTime; }
 
     /// get background color
     const Math::Vector GetBackgroundColor() const;
@@ -87,7 +87,7 @@ void Application::Impl::Quit()
 /// get background color
 const Math::Vector Application::Impl::GetBackgroundColor() const
 {
-    Components cameras = SceneManager::GetComponents(Camera::ComponentType());
+    Components cameras = SceneManager::GetComponents(Camera::GetType());
     if (!cameras.empty())
     {
         if (ComponentPtr cameraPtr = cameras.front().lock())
@@ -113,15 +113,15 @@ void Application::SetEngine(const EnginePtr &engine)
 }
 
 /// get delta time
-float Application::GetDeltaTime() const
+float Application::DeltaTime() const
 {
-    return mImpl->GetDeltaTime();
+    return mImpl->DeltaTime();
 }
 
 /// get time
-float Application::GetTime() const
+float Application::Time() const
 {
-    return mImpl->GetTime();
+    return mImpl->Time();
 }
 
 /// get background color

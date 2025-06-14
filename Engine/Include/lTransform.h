@@ -30,19 +30,19 @@ namespace Lumen
         ~Transform();
 
         /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GetGameObject() const;
-
-        /// set parent
-        void SetParent(TransformWeakPtr parent);
+        [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
         /// get parent
         [[nodiscard]] TransformWeakPtr GetParent() const;
 
-        /// set position
-        void SetPosition(const Math::Vector3 &position);
+        /// set parent
+        void SetParent(TransformWeakPtr parent);
 
         /// get position
         [[nodiscard]] Math::Vector3 GetPosition() const;
+
+        /// set position
+        void SetPosition(const Math::Vector3 &position);
 
     private:
         /// private implementation

@@ -25,11 +25,11 @@ namespace Lumen
         /// constructs a camera with name and background color
         Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
-        /// set background color
-        void SetBackgroundColor(Math::Vector &backgroundColor);
-
         /// get background color
         [[nodiscard]] Math::Vector GetBackgroundColor() const;
+
+        /// set background color
+        void SetBackgroundColor(Math::Vector &backgroundColor);
 
     private:
         /// run component
