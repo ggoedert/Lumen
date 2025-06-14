@@ -40,7 +40,7 @@ DEFINE_COMPONENT_TRAITS(Camera);
 
 /// constructs a camera with name and background color
 Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) :
-    Behavior(GetType(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
+    Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
 /// creates a smart pointer version of the camera component
 ComponentPtr Camera::MakePtr(const std::any &params)

@@ -29,10 +29,10 @@ public:
     [[nodiscard]] TransformWeakPtr Transform() const noexcept { return mTransform; }
 
     /// get component
-    [[nodiscard]] ComponentWeakPtr Component(const Type type) const noexcept;
+    [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    void AddComponent(const Type type, const std::any &params);
+    void AddComponent(const HashType type, const std::any &params);
 
 protected:
     /// run game object
@@ -63,13 +63,13 @@ GameObject::Impl::~Impl()
 }
 
 /// get component
-ComponentWeakPtr GameObject::Impl::Component(const Type type) const noexcept
+ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
         LUMEN_ASSERT(componentPtr);
-        if (componentPtr->GetType() == type)
+        if (componentPtr->Type() == type)
         {
             return component;
         }
@@ -78,7 +78,7 @@ ComponentWeakPtr GameObject::Impl::Component(const Type type) const noexcept
 }
 
 /// add a component
-void GameObject::Impl::AddComponent(const Type type, const std::any &params)
+void GameObject::Impl::AddComponent(const HashType type, const std::any &params)
 {
     mComponents.push_back(Lumen::SceneManager::CreateComponent(type, params));
 }
@@ -118,13 +118,13 @@ TransformWeakPtr GameObject::Transform() const
 }
 
 /// get component
-ComponentWeakPtr GameObject::Component(const Type type) const
+ComponentWeakPtr GameObject::Component(const HashType type) const
 {
     return mImpl->Component(type);
 }
 
 /// add a component
-void GameObject::AddComponent(const Type type, const std::any &params)
+void GameObject::AddComponent(const HashType type, const std::any &params)
 {
     mImpl->AddComponent(type, params);
 }

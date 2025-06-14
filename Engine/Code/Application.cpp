@@ -87,7 +87,7 @@ void Application::Impl::Quit()
 /// get background color
 const Math::Vector Application::Impl::GetBackgroundColor() const
 {
-    Components cameras = SceneManager::GetComponents(Camera::GetType());
+    Components cameras = SceneManager::GetComponents(Camera::Type());
     if (!cameras.empty())
     {
         if (ComponentPtr cameraPtr = cameras.front().lock())

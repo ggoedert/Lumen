@@ -16,16 +16,17 @@ bool MainScene::Load()
     mPlayer = Lumen::GameObject::MakePtr();
     mCamera = Lumen::GameObject::MakePtr();
 
-    auto cameraLock = mCamera.lock();
-    cameraLock->AddComponent(Lumen::Camera::GetType(), Lumen::Camera::Params({mCamera, {0.4509f, 0.8431f, 1.f, 1.f}}));
-
-    Lumen::Math::Vector col = mApplication.GetBackgroundColor();
-
-    Lumen::DebugLog::Info("static Camera component name: " + Lumen::Camera::Name());
-    auto cameraComponent = cameraLock->Component(Lumen::Camera::GetType()).lock();
-    if (cameraComponent)
+    if (auto gameObjectLock = mCamera.lock())
     {
-        Lumen::DebugLog::Info("polymorphic Component instance name: " + cameraComponent->Name());
+        gameObjectLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ mCamera, {0.4509f, 0.8431f, 1.f, 1.f} }));
+
+        Lumen::Math::Vector col = mApplication.GetBackgroundColor();
+
+        Lumen::DebugLog::Info("Static component name: " + Lumen::Camera::Name());
+        if (auto cameraComponentLock = gameObjectLock->Component(Lumen::Camera::Type()).lock())
+        {
+            Lumen::DebugLog::Info("Polymorphic component instance name: " + cameraComponentLock->Name());
+        }
     }
     return true;
 }

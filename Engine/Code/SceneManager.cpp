@@ -20,7 +20,7 @@ struct SceneManagerState
     ScenePtr mCurrentScene;
 
     /// map of component makers
-    std::map<Type, SceneManager::ComponentMaker> mComponentMakers;
+    std::map<HashType, SceneManager::ComponentMaker> mComponentMakers;
 
     /// game objects in the scene
     std::vector<GameObjectPtr> mGameObjects;
@@ -29,7 +29,7 @@ struct SceneManagerState
     std::vector<ComponentPtr> mNewComponents;
 
     /// map of components
-    std::map<Type, std::vector<ComponentPtr>> mComponentsMap;
+    std::map<HashType, std::vector<ComponentPtr>> mComponentsMap;
 };
 
 static std::unique_ptr<SceneManagerState> gSceneManagerState;
@@ -40,7 +40,7 @@ void SceneManager::Initialize()
     LUMEN_ASSERT(!gSceneManagerState);
     gSceneManagerState = std::make_unique<SceneManagerState>();
 
-    SceneManager::RegisterComponentMaker(Camera::GetType(), Camera::MakePtr);
+    SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
 }
 
 /// shutdown scene manager namespace
@@ -76,7 +76,7 @@ void SceneManager::Unload()
 }
 
 /// register component maker
-void SceneManager::RegisterComponentMaker(const Type type, const ComponentMaker &maker)
+void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
 {
     LUMEN_ASSERT(gSceneManagerState);
     LUMEN_ASSERT(!gSceneManagerState->mComponentMakers.contains(type));
@@ -84,7 +84,7 @@ void SceneManager::RegisterComponentMaker(const Type type, const ComponentMaker 
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const Type type, const std::any &params)
+ComponentWeakPtr SceneManager::CreateComponent(const HashType type, const std::any &params)
 {
     LUMEN_ASSERT(gSceneManagerState);
     LUMEN_ASSERT(gSceneManagerState->mComponentMakers.contains(type));
@@ -126,7 +126,7 @@ ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
     LUMEN_ASSERT(gSceneManagerState);
     LUMEN_ASSERT(component);
 
-    gSceneManagerState->mComponentsMap[component->GetType()].push_back(component);
+    gSceneManagerState->mComponentsMap[component->Type()].push_back(component);
     gSceneManagerState->mNewComponents.push_back(component);
     return component;
 }
@@ -142,14 +142,14 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
         return false;
     }
 
-    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->GetType());
+    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->Type());
     LUMEN_ASSERT(it != gSceneManagerState->mComponentsMap.end());
 
     return RemoveFromVector(it->second, lockedComponent);
 }
 
 /// get all components of type
-Components SceneManager::GetComponents(const Type type)
+Components SceneManager::GetComponents(const HashType type)
 {
     LUMEN_ASSERT(gSceneManagerState);
     Components result;

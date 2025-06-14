@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         /// get type
-        [[nodiscard]] Type GetType() const noexcept;
+        [[nodiscard]] HashType Type() const noexcept;
 
         /// get name
         [[nodiscard]] std::string Name() const noexcept;
@@ -35,7 +35,7 @@ namespace Lumen
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        Component(const Type type, const std::string &name, const GameObjectWeakPtr &gameObject);
+        Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
         virtual ~Component() noexcept override;

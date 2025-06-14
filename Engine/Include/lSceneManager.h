@@ -37,10 +37,10 @@ namespace Lumen
         [[nodiscard]] ScenePtr CurrentScene();
 
         /// register component maker
-        void RegisterComponentMaker(const Type type, const ComponentMaker &maker);
+        void RegisterComponentMaker(const HashType type, const ComponentMaker &maker);
 
         /// create component of a specific type
-        ComponentWeakPtr CreateComponent(const Type type, const std::any &params);
+        ComponentWeakPtr CreateComponent(const HashType type, const std::any &params);
 
         /// register game object in the current scene
         [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
@@ -58,10 +58,10 @@ namespace Lumen
         bool UnregisterComponent(const ComponentWeakPtr &component);
 
         /// get the count of components of a specific type
-        [[nodiscard]] size_t ComponentCount(const Type type);
+        [[nodiscard]] size_t ComponentCount(const HashType type);
 
         /// get all components of type
-        [[nodiscard]] Components GetComponents(const Type type);
+        [[nodiscard]] Components GetComponents(const HashType type);
 
         /// run application
         void Run();

@@ -51,29 +51,29 @@ namespace Lumen
     }
 
 #ifdef NDEBUG
-    /// lean version of Type
-    using Type = Hash;
+    /// lean version of HashType
+    using HashType = Hash;
 
     /// hash (FNV-1a) class name from current function name evaluated at compile time
-    consteval Type ClassNameType(const char *currentFunction)
+    consteval HashType ClassNameType(const char *currentFunction)
     {
         size_t end = std::string_view(currentFunction).find_last_of('(');
         end = std::string_view(currentFunction, end).find_last_of(':') - 1;
         return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
     }
 #else
-    /// debug version of Type
-    struct Type
+    /// debug version of HashType
+    struct HashType
     {
-        Type(Hash hash, std::string_view label) : mHash(hash), mLabel(label) {}
+        HashType(Hash hash, std::string_view label) : mHash(hash), mLabel(label) {}
         operator Hash() const { return mHash; }
-        bool operator==(const Type &other) const { return mHash == other.mHash; }
+        bool operator==(const HashType &other) const { return mHash == other.mHash; }
         Hash mHash;
         std::string_view mLabel;
     };
 
     /// hash (FNV-1a) class name from current function name, debug version
-    Type ClassNameType(const char *currentFunction);
+    HashType ClassNameType(const char *currentFunction);
 #endif
 
     /// class name from current function name evaluated at compile time
@@ -88,7 +88,7 @@ namespace Lumen
 
 /// current enclosing function
 #if defined(__INTELLISENSE__)
-#define CURRENT_FUNCTION "Type Class::Method()"
+#define CURRENT_FUNCTION "HashType Class::Method()"
 #elif defined(__FUNCSIG__)
 #define CURRENT_FUNCTION __FUNCSIG__
 #elif defined(__PRETTY_FUNCTION__)
@@ -174,9 +174,9 @@ template <typename...Args>                                                      
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
 #ifdef NDEBUG
-#define COMPONENTTYPE_METHOD static constexpr Type GetType() { return ClassNameType(CURRENT_FUNCTION); }
+#define COMPONENTTYPE_METHOD static constexpr HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
 #else
-#define COMPONENTTYPE_METHOD static const Type GetType() { return ClassNameType(CURRENT_FUNCTION); }
+#define COMPONENTTYPE_METHOD static const HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
 #endif
 
 #define COMPONENT_TRAITS(TYPE)                                                        \

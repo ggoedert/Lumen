@@ -46,7 +46,7 @@ bool Engine::Run(float deltaTime)
 
 #ifdef _DEBUG
 /// hash (FNV-1a) class name from current function name, debug version
-Type Lumen::ClassNameType(const char *currentFunction)
+HashType Lumen::ClassNameType(const char *currentFunction)
 {
     size_t end = std::string_view(currentFunction).find_last_of('(');
     end = std::string_view(currentFunction, end).find_last_of(':') - 1;
@@ -59,6 +59,6 @@ Type Lumen::ClassNameType(const char *currentFunction)
         hash *= HASH_PRIME;
         hashPos++;
     }
-    return Type(hash, std::string_view(currentFunction + begin, end - begin));
+    return HashType(hash, std::string_view(currentFunction + begin, end - begin));
 }
 #endif
