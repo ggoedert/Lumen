@@ -19,10 +19,10 @@ namespace Lumen
 
     public:
         /// constructor
-        Scene() = default;
+        explicit Scene() = default;
 
         /// virtual destructor
-        virtual ~Scene() = default;
+        virtual ~Scene() noexcept = default;
 
         /// load scene
         virtual bool Load() = 0;

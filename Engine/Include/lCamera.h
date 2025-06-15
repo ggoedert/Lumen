@@ -35,7 +35,7 @@ namespace Lumen
     private:
 
         /// constructs a camera with name and background color
-        Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
+        explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
         /// creates a smart pointer version of the camera component
         static ComponentPtr MakePtr(const std::any &params);

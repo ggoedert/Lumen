@@ -18,7 +18,7 @@ class Component::Impl
 
 public:
     /// constructs a component
-    Impl(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+    explicit Impl(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
         mType(type), mName(name), mGameObject(gameObject) {}
 
     /// destroys component

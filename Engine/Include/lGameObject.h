@@ -28,7 +28,7 @@ namespace Lumen
         static GameObjectWeakPtr MakePtr();
 
         /// destroys game object
-        ~GameObject();
+        ~GameObject() noexcept override;
 
         /// get transform
         [[nodiscard]] TransformWeakPtr Transform() const;
@@ -40,13 +40,13 @@ namespace Lumen
         void AddComponent(const HashType type, const std::any &params);
 
     protected:
-        /// constructs a game object
-        GameObject();
-
         /// run game object
         void Run();
 
     private:
+        /// constructs a game object
+        explicit GameObject();
+
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

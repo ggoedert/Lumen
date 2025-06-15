@@ -15,7 +15,7 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Object);
 
         /// default constructor
-        Object() = default;
+        explicit Object() = default;
 
         /// virtual destructor
         virtual ~Object() noexcept = default;

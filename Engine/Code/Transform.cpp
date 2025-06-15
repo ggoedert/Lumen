@@ -17,7 +17,7 @@ class Transform::Impl
 
 public:
     /// constructs a transform
-    Impl(const GameObjectWeakPtr &gameObject) : mGameObject(gameObject) {}
+    explicit Impl(const GameObjectWeakPtr &gameObject) : mGameObject(gameObject) {}
 
     /// destroys transform
     ~Impl() = default;
@@ -61,7 +61,7 @@ private:
 Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(), mImpl(Transform::Impl::MakeUniquePtr(gameObject)) {}
 
 /// destructor
-Transform::~Transform() = default;
+Transform::~Transform() noexcept = default;
 
 /// get owning game object
 [[nodiscard]] GameObjectWeakPtr Transform::GameObject() const

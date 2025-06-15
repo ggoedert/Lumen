@@ -42,7 +42,7 @@ namespace Lumen
 
     protected:
         /// constructs application
-        Application();
+        explicit Application();
 
         /// virtual destructor
         virtual ~Application() noexcept;

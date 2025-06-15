@@ -18,7 +18,7 @@ class Camera::Impl
 
 public:
     /// constructs a camera
-    Impl(Math::Vector backgroundColor) : mBackgroundColor(backgroundColor) {}
+    explicit Impl(Math::Vector backgroundColor) : mBackgroundColor(backgroundColor) {}
 
     /// get background color
     [[nodiscard]] Math::Vector GetBackgroundColor() const { return mBackgroundColor; }

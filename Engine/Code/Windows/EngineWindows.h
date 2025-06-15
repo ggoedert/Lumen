@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         EngineWindows(const ApplicationPtr &application) noexcept(false);
-        ~EngineWindows();
+        ~EngineWindows() noexcept override;
 
         // initialization and management
         bool Initialize(const std::any &config) override;

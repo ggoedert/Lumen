@@ -20,10 +20,10 @@ namespace Lumen
 
     public:
         /// constructor
-        Behavior(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
+        explicit Behavior(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
 
         /// destructor
-        ~Behavior();
+        ~Behavior() noexcept override;
 
         /// control enabled
         void Enable(bool enable);

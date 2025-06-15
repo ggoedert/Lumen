@@ -35,7 +35,7 @@ namespace Lumen
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
+        explicit Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
         virtual ~Component() noexcept override;

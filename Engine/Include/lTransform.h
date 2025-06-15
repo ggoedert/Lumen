@@ -24,10 +24,10 @@ namespace Lumen
 
     public:
         /// constructor
-        Transform(const GameObjectWeakPtr &gameObject);
+        explicit Transform(const GameObjectWeakPtr &gameObject);
 
         /// destructor
-        ~Transform();
+        ~Transform() noexcept override;
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;

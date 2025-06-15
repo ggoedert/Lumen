@@ -14,7 +14,7 @@ struct SceneManagerState
     CLASS_NO_COPY_MOVE(SceneManagerState);
 
     /// default constructor
-    SceneManagerState() = default;
+    explicit SceneManagerState() = default;
 
     /// current loaded scene
     ScenePtr mCurrentScene;

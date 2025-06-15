@@ -16,7 +16,7 @@ class Behavior::Impl
 
 public:
     /// constructs a behavior
-    Impl() : mEnabled(true) {}
+    explicit Impl() : mEnabled(true) {}
 
     /// destroys behavior
     ~Impl() = default;
@@ -40,7 +40,7 @@ Behavior::Behavior(const HashType type, const std::string &name, const GameObjec
     Component(type, name, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
 
 /// destructor
-Behavior::~Behavior() = default;
+Behavior::~Behavior() noexcept = default;
 
 /// control enabled
 void Behavior::Enable(bool enable) { mImpl->Enable(enable); }

@@ -23,7 +23,7 @@ namespace Lumen
 
     public:
         /// virtual destructor
-        virtual ~Engine() = default;
+        virtual ~Engine() noexcept = default;
 
         // allocate smart pointer version of the engine, implemented at platform level
         static EnginePtr MakePtr(const ApplicationPtr &application);
@@ -51,7 +51,7 @@ namespace Lumen
 
     protected:
         /// protected constructor
-        Engine(const ApplicationPtr &application) : mApplication(application) {}
+        explicit Engine(const ApplicationPtr &application) : mApplication(application) {}
 
         /// run engine
         bool Run(float deltaTime);

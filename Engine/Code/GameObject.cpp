@@ -20,7 +20,7 @@ class GameObject::Impl
 
 public:
     /// constructs a game object
-    Impl(GameObjectWeakPtr &gameObject);
+    explicit Impl(GameObjectWeakPtr &gameObject);
 
     /// destroys game object
     ~Impl();
@@ -53,7 +53,7 @@ private:
 GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mInterface(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
-GameObject::Impl::~Impl()
+GameObject::Impl::~Impl() noexcept
 {
     for (const ComponentWeakPtr component : mComponents)
     {
@@ -109,7 +109,7 @@ GameObjectWeakPtr GameObject::MakePtr()
 GameObject::GameObject() {}
 
 /// destroys game object
-GameObject::~GameObject() {}
+GameObject::~GameObject() noexcept {}
 
 /// get transform
 TransformWeakPtr GameObject::Transform() const

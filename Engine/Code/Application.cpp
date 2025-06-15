@@ -18,7 +18,7 @@ class Application::Impl
 
 public:
     /// constructs application
-    Impl();
+    explicit Impl();
 
     /// destructor
     ~Impl() noexcept;

@@ -24,7 +24,7 @@ class Application : public Lumen::Application
 
 public:
     /// constructor
-    Application(const std::string &name, const int version) : Lumen::Application() {}
+    explicit Application(const std::string &name, const int version) : Lumen::Application() {}
 
     /// initialize and load our test scene
     bool Initialize() override
