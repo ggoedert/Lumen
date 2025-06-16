@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
 #include "lMath.h"
 #include "lObject.h"
 #include "lProperty.h"
@@ -21,11 +20,10 @@ namespace Lumen
     class Transform : public Object
     {
         CLASS_NO_DEFAULT_CTOR(Transform);
-        CLASS_PTR_MAKER(Transform);
 
     public:
-        /// constructor
-        explicit Transform(const GameObjectWeakPtr &gameObject);
+        /// creates a smart pointer version of the transform
+        static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
 
         /// destructor
         ~Transform() noexcept override;
@@ -40,6 +38,9 @@ namespace Lumen
         PROPERTY(Math::Vector3, Position);
 
     private:
+        /// constructor
+        explicit Transform(const GameObjectWeakPtr &gameObject);
+
         /// get parent
         [[nodiscard]] const TransformWeakPtr &GetParent() const;
 

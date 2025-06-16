@@ -5,6 +5,8 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lDefs.h"
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -17,7 +19,7 @@ namespace Lumen
         /// default constructor
         explicit Object() = default;
 
-        /// virtual destructor
-        virtual ~Object() noexcept = default;
+        /// pure virtual destructor
+        virtual ~Object() noexcept = 0;
     };
 }

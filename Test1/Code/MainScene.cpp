@@ -10,11 +10,7 @@
 
 bool MainScene::Load()
 {
-    mPlayer = Lumen::GameObject::MakePtr();
     Lumen::DebugLog::Info("MainScene::Load");
-
-    mPlayer = Lumen::GameObject::MakePtr();
-    mCamera = Lumen::GameObject::MakePtr();
 
     if (auto gameObjectLock = mCamera.lock())
     {

@@ -20,7 +20,8 @@ class MainScene : public Lumen::Scene
 
 public:
     /// constructor
-    explicit MainScene(const Lumen::Application &application) : Lumen::Scene(), mApplication(application) {}
+    explicit MainScene(const Lumen::Application &application) :
+        Lumen::Scene(), mApplication(application), mPlayer(Lumen::GameObject::MakePtr()), mCamera(Lumen::GameObject::MakePtr()) {}
 
     /// load scene
     bool Load() override;
