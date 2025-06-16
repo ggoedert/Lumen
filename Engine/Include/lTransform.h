@@ -8,6 +8,7 @@
 #include "lDefs.h"
 #include "lMath.h"
 #include "lObject.h"
+#include "lProperty.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -32,19 +33,25 @@ namespace Lumen
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
-        /// get parent
-        [[nodiscard]] TransformWeakPtr GetParent() const;
+        /// parent property
+        PROPERTY(TransformWeakPtr, Parent);
 
-        /// set parent
-        void SetParent(TransformWeakPtr parent);
-
-        /// get position
-        [[nodiscard]] Math::Vector3 GetPosition() const;
-
-        /// set position
-        void SetPosition(const Math::Vector3 &position);
+        /// position property
+        PROPERTY(Math::Vector3, Position);
 
     private:
+        /// get parent
+        [[nodiscard]] const TransformWeakPtr &GetParent() const;
+
+        /// set parent
+        const TransformWeakPtr SetParent(const TransformWeakPtr &parent);
+
+        /// get position
+        [[nodiscard]] const Math::Vector3 &GetPosition() const;
+
+        /// set position
+        const Math::Vector3 &SetPosition(const Math::Vector3 &position);
+
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

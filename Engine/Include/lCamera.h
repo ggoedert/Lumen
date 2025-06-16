@@ -10,6 +10,7 @@
 #include "lBehavior.h"
 #include "lSceneManager.h"
 #include "lGameObject.h"
+#include "lProperty.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -26,14 +27,10 @@ namespace Lumen
         /// camera creation parameters
         struct Params { const GameObjectWeakPtr &gameObject; Math::Vector backgroundColor; };
 
-        /// get background color
-        [[nodiscard]] Math::Vector GetBackgroundColor() const;
-
-        /// set background color
-        void SetBackgroundColor(Math::Vector &backgroundColor);
+        /// background color property
+        PROPERTY(Lumen::Math::Vector, BackgroundColor);
 
     private:
-
         /// constructs a camera with name and background color
         explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
@@ -42,6 +39,12 @@ namespace Lumen
 
         /// run component
         void Run() override;
+
+        /// get the camera's background color
+        [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
+
+        /// set the camera's background color
+        const Math::Vector &SetBackgroundColor(const Math::Vector &backgroundColor);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

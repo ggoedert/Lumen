@@ -21,10 +21,10 @@ public:
     explicit Impl(Math::Vector backgroundColor) : mBackgroundColor(backgroundColor) {}
 
     /// get background color
-    [[nodiscard]] Math::Vector GetBackgroundColor() const { return mBackgroundColor; }
+    [[nodiscard]] const Math::Vector &GetBackgroundColor() const { return mBackgroundColor; }
 
     /// set background color
-    void SetBackgroundColor(Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
+    const Math::Vector &SetBackgroundColor(const Math::Vector &backgroundColor) { return mBackgroundColor = backgroundColor; }
 
 private:
     /// run component
@@ -55,10 +55,16 @@ ComponentPtr Camera::MakePtr(const std::any &params)
 }
 
 /// get background color
-[[nodiscard]] Math::Vector Camera::GetBackgroundColor() const { return mImpl->GetBackgroundColor(); }
+const Math::Vector &Camera::GetBackgroundColor() const
+{
+    return mImpl->GetBackgroundColor();
+}
 
 /// set background color
-void Camera::SetBackgroundColor(Math::Vector &backgroundColor) { mImpl->SetBackgroundColor(backgroundColor); }
+const Math::Vector &Camera::SetBackgroundColor(const Math::Vector &backgroundColor)
+{
+    return mImpl->SetBackgroundColor(backgroundColor);
+}
 
 /// run component
 void Camera::Run() { mImpl->Run(); }

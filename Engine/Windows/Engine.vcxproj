@@ -167,6 +167,7 @@
     <ClInclude Include="..\Include\lGameObject.h" />
     <ClInclude Include="..\Include\lMath.h" />
     <ClInclude Include="..\Include\lObject.h" />
+    <ClInclude Include="..\Include\lProperty.h" />
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />
     <ClInclude Include="..\Include\lTransform.h" />

@@ -26,20 +26,20 @@ public:
     [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
 
     /// get parent
-    [[nodiscard]] TransformWeakPtr GetParent() const { return mParent; }
+    [[nodiscard]] const TransformWeakPtr &GetParent() const { return mParent; }
 
     /// set parent
-    void SetParent(TransformWeakPtr parent)
+    const TransformWeakPtr SetParent(const TransformWeakPtr &parent)
     {
         LUMEN_ASSERT(parent.lock() != mInterface.lock());
-        mParent = parent;
+        return mParent = parent;
     }
 
     /// get position
-    [[nodiscard]] Math::Vector3 GetPosition() const { return mPosition; }
+    [[nodiscard]] const Math::Vector3 &GetPosition() const { return mPosition; }
 
     /// set position
-    void SetPosition(const Math::Vector3 &position) { mPosition = position; }
+    const Math::Vector3 &SetPosition(const Math::Vector3 &position) { return mPosition = position; }
 
 private:
     /// interface
@@ -64,31 +64,31 @@ Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(), mImpl(Tran
 Transform::~Transform() noexcept = default;
 
 /// get owning game object
-[[nodiscard]] GameObjectWeakPtr Transform::GameObject() const
+GameObjectWeakPtr Transform::GameObject() const
 {
     return mImpl->GameObject();
 }
 
 /// get parent
-TransformWeakPtr Transform::GetParent() const
+const TransformWeakPtr &Transform::GetParent() const
 {
     return mImpl->GetParent();
 }
 
 /// set parent
-void Transform::SetParent(TransformWeakPtr parent)
+const TransformWeakPtr Transform::SetParent(const TransformWeakPtr &parent)
 {
-    mImpl->SetParent(parent);
+    return mImpl->SetParent(parent);
 }
 
 /// get position
-[[nodiscard]] Math::Vector3 Transform::GetPosition() const
+const Math::Vector3 &Transform::GetPosition() const
 {
     return mImpl->GetPosition();
 }
 
 /// set position
-void Transform::SetPosition(const Math::Vector3 &position)
+const Math::Vector3 &Transform::SetPosition(const Math::Vector3 &position)
 {
-    mImpl->SetPosition(position);
+    return mImpl->SetPosition(position);
 }

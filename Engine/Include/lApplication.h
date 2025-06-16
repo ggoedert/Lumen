@@ -38,7 +38,7 @@ namespace Lumen
         [[nodiscard]] float Time() const;
 
         /// get background color
-        [[nodiscard]] Math::Vector GetBackgroundColor() const;
+        [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
 
     protected:
         /// constructs application
