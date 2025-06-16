@@ -14,9 +14,9 @@ bool MainScene::Load()
 
     if (auto gameObjectLock = mCamera.lock())
     {
-        gameObjectLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ mCamera, {0.4509f, 0.8431f, 1.f, 1.f} }));
+        gameObjectLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
 
-        Lumen::Math::Vector col = mApplication.GetBackgroundColor();
+        Lumen::Math::Vector col = mApplication.BackgroundColor();
 
         Lumen::DebugLog::Info("Static component name: " + Lumen::Camera::Name());
         if (auto cameraComponentLock = gameObjectLock->Component(Lumen::Camera::Type()).lock())

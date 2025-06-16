@@ -32,7 +32,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    void AddComponent(const HashType type, const std::any &params);
+    void AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params);
 
 protected:
     /// run game object
@@ -78,9 +78,9 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 }
 
 /// add a component
-void GameObject::Impl::AddComponent(const HashType type, const std::any &params)
+void GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params)
 {
-    mComponents.push_back(Lumen::SceneManager::CreateComponent(type, params));
+    mComponents.push_back(Lumen::SceneManager::CreateComponent(gameObject, type, params));
 }
 
 /// run game object
@@ -126,7 +126,7 @@ ComponentWeakPtr GameObject::Component(const HashType type) const
 /// add a component
 void GameObject::AddComponent(const HashType type, const std::any &params)
 {
-    mImpl->AddComponent(type, params);
+    mImpl->AddComponent(shared_from_this(), type, params);
 }
 
 /// run game object

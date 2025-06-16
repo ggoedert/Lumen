@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         /// camera creation parameters
-        struct Params { const GameObjectWeakPtr &gameObject; Math::Vector backgroundColor; };
+        struct Params { Math::Vector backgroundColor; };
 
         /// background color property
         PROPERTY(Lumen::Math::Vector, BackgroundColor);
@@ -35,7 +35,7 @@ namespace Lumen
         explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
         /// creates a smart pointer version of the camera component
-        static ComponentPtr MakePtr(const std::any &params);
+        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const std::any &params);
 
         /// run component
         void Run() override;

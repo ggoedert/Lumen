@@ -125,7 +125,7 @@ float Application::Time() const
 }
 
 /// get background color
-const Math::Vector &Application::GetBackgroundColor() const
+const Math::Vector &Application::BackgroundColor() const
 {
     return mImpl->GetBackgroundColor();
 }

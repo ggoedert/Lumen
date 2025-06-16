@@ -43,12 +43,12 @@ Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor
     Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
 /// creates a smart pointer version of the camera component
-ComponentPtr Camera::MakePtr(const std::any &params)
+ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const std::any &params)
 {
     if (params.type() == typeid(Params))
     {
         const auto &createParams = std::any_cast<const Params &>(params);
-        return ComponentPtr(new Camera(createParams.gameObject, createParams.backgroundColor));
+        return ComponentPtr(new Camera(gameObject, createParams.backgroundColor));
     }
     DebugLog::Error("Create component, unknown parameter type: " + std::string(params.type().name()));
     return ComponentPtr();
