@@ -24,7 +24,7 @@ public:
     [[nodiscard]] const Math::Vector &GetBackgroundColor() const { return mBackgroundColor; }
 
     /// set background color
-    const Math::Vector &SetBackgroundColor(const Math::Vector &backgroundColor) { return mBackgroundColor = backgroundColor; }
+    void SetBackgroundColor(const Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
 
 private:
     /// run component
@@ -61,9 +61,9 @@ const Math::Vector &Camera::GetBackgroundColor() const
 }
 
 /// set background color
-const Math::Vector &Camera::SetBackgroundColor(const Math::Vector &backgroundColor)
+void Camera::SetBackgroundColor(const Math::Vector &backgroundColor)
 {
-    return mImpl->SetBackgroundColor(backgroundColor);
+    mImpl->SetBackgroundColor(backgroundColor);
 }
 
 /// run component

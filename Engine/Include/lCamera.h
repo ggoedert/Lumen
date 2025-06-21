@@ -28,7 +28,7 @@ namespace Lumen
         struct Params { Math::Vector backgroundColor; };
 
         /// background color property
-        PROPERTY(Lumen::Math::Vector, BackgroundColor);
+        PROPERTY(Math::Vector, BackgroundColor, GetBackgroundColor, SetBackgroundColor);
 
     private:
         /// constructs a camera with name and background color
@@ -44,7 +44,7 @@ namespace Lumen
         [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
 
         /// set the camera's background color
-        const Math::Vector &SetBackgroundColor(const Math::Vector &backgroundColor);
+        void SetBackgroundColor(const Math::Vector &backgroundColor);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

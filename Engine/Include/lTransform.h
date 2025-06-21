@@ -32,10 +32,10 @@ namespace Lumen
         [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
         /// parent property
-        PROPERTY(TransformWeakPtr, Parent);
+        PROPERTY(TransformWeakPtr, Parent, GetParent, SetParent);
 
         /// position property
-        PROPERTY(Math::Vector3, Position);
+        PROPERTY(Math::Vector3, Position, GetPosition, SetPosition);
 
     private:
         /// constructor
@@ -45,13 +45,13 @@ namespace Lumen
         [[nodiscard]] const TransformWeakPtr &GetParent() const;
 
         /// set parent
-        const TransformWeakPtr SetParent(const TransformWeakPtr &parent);
+        void SetParent(const TransformWeakPtr &parent);
 
         /// get position
         [[nodiscard]] const Math::Vector3 &GetPosition() const;
 
         /// set position
-        const Math::Vector3 &SetPosition(const Math::Vector3 &position);
+        void SetPosition(const Math::Vector3 &position);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

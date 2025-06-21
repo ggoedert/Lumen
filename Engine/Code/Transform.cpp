@@ -29,17 +29,17 @@ public:
     [[nodiscard]] const TransformWeakPtr &GetParent() const { return mParent; }
 
     /// set parent
-    const TransformWeakPtr SetParent(const TransformWeakPtr &parent)
+    void SetParent(const TransformWeakPtr &parent)
     {
         LUMEN_ASSERT(parent.lock() != mInterface.lock());
-        return mParent = parent;
+        mParent = parent;
     }
 
     /// get position
     [[nodiscard]] const Math::Vector3 &GetPosition() const { return mPosition; }
 
     /// set position
-    const Math::Vector3 &SetPosition(const Math::Vector3 &position) { return mPosition = position; }
+    void SetPosition(const Math::Vector3 &position) { mPosition = position; }
 
 private:
     /// interface
@@ -82,7 +82,7 @@ const TransformWeakPtr &Transform::GetParent() const
 }
 
 /// set parent
-const TransformWeakPtr Transform::SetParent(const TransformWeakPtr &parent)
+void Transform::SetParent(const TransformWeakPtr &parent)
 {
     return mImpl->SetParent(parent);
 }
@@ -94,7 +94,7 @@ const Math::Vector3 &Transform::GetPosition() const
 }
 
 /// set position
-const Math::Vector3 &Transform::SetPosition(const Math::Vector3 &position)
+void Transform::SetPosition(const Math::Vector3 &position)
 {
     return mImpl->SetPosition(position);
 }
