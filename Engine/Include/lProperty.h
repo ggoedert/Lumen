@@ -47,27 +47,35 @@ namespace Lumen
         /// default destructor
         virtual ~IProperty() = default;
 
+        /// checks if the property is of a specific type
+        virtual bool IsTypeId(const std::type_info &typeId) const = 0;
+
+        /// compile-time read mode check
+        static constexpr bool HasRead(Mode mode) { return (mode == Mode::Read) || (mode == Mode::ReadWrite); }
+
+        /// compile-time write mode check
+        static constexpr bool HasWrite(Mode mode) { return (mode == Mode::Write) || (mode == Mode::ReadWrite); }
+
+        /// compile-time read/write mode check
+        static constexpr bool HasReadWrite(Mode mode) { return (mode == Mode::ReadWrite); }
+
         /// mode check
         bool HasMode(Mode flag)
         {
             switch (flag)
             {
             case Mode::Read:
-                return (mMode == Mode::Read) || (mMode == Mode::ReadWrite);
+                return HasRead(mMode);
                 break;
             case Mode::Write:
-                return (mMode == Mode::Write) || (mMode == Mode::ReadWrite);
+                return HasWrite(mMode);
                 break;
             case Mode::ReadWrite:
-                return (mMode == Mode::ReadWrite);
+                return HasReadWrite(mMode);
                 break;
             }
             return false;
         }
-
-        /// interface for IProperty
-        IProperty &Interface() { return *this; }
-
         /// return property name
         std::string_view Name() const { return mName; }
 
@@ -77,19 +85,7 @@ namespace Lumen
         /// generic set
         virtual bool Set(const std::any &) = 0;
 
-        /// checks if the property is of a specific type
-        virtual bool IsTypeId(const std::type_info &typeId) const = 0;
-
     protected:
-        /// compile-time checks for read modes
-        static constexpr bool HasRead(Mode mode) { return (mode == Mode::Read) || (mode == Mode::ReadWrite); }
-
-        /// compile-time checks for write modes
-        static constexpr bool HasWrite(Mode mode) { return (mode == Mode::Write) || (mode == Mode::ReadWrite); }
-
-        /// compile-time checks for read/write mode
-        static constexpr bool HasReadWrite(Mode mode) { return (mode == Mode::ReadWrite); }
-
         /// property access mode
         Mode mMode;
 
@@ -106,6 +102,9 @@ namespace Lumen
     public:
         /// constructs a property
         Property(Getter get, Setter set, std::string name) : IProperty(StaticMode, std::move(name)), mGetter(std::move(get)), mSetter(std::move(set)) {}
+
+        /// returns the type id of the property
+        bool IsTypeId(const std::type_info &typeId) const override { return typeId == typeid(T); }
 
         /// generic get, only enabled if mode has read
         std::any Get() const override
@@ -142,9 +141,6 @@ namespace Lumen
                 throw std::logic_error("Set() called on non-writable property");
             }
         }
-
-        /// returns the type id of the property
-        bool IsTypeId(const std::type_info &typeId) const override { return typeId == typeid(T); }
 
         /// assignment (lvalue)
         template<typename Dummy = void, std::enable_if_t<HasWrite(StaticMode), int> = 0>
