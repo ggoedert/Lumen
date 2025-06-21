@@ -12,35 +12,29 @@
 /// Lumen namespace
 namespace Lumen
 {
-    /// detection idiom helper
-    template<typename, template<typename...> class, typename...>
-    struct is_detected : std::false_type {};
+    /// Property helper utilities
+    namespace PropertyDetail
+    {
+        /// access modes for properties
+        enum class Mode { Read, Write, ReadWrite };
 
-    /// detection idiom helper
-    template<template<typename...> class Op, typename... Args>
-    struct is_detected<std::void_t<Op<Args...>>, Op, Args...> : std::true_type {};
+        /// compile-time read mode check
+        template<Mode mode> inline constexpr bool HasRead = (mode == Mode::Read || mode == Mode::ReadWrite);
 
-    /// detection idiom helper
-    template<template<typename...> class Op, typename... Args>
-    inline constexpr bool is_detected_v = is_detected<void, Op, Args...>::value;
+        /// compile-time write mode check
+        template<Mode mode> inline constexpr bool HasWrite = (mode == Mode::Write || mode == Mode::ReadWrite);
 
-    /// check if T supports operator[]
-    template<typename T, typename Index>
-    using detect_subscript_t = decltype(std::declval<T>()[std::declval<Index>()]);
-
-    /// check if T supports operator[]
-    template<typename T, typename Index>
-    constexpr bool is_subscriptable_v = is_detected_v<detect_subscript_t, T, Index>;
+        /// compile-time read/write mode check
+        template<Mode mode> inline constexpr bool HasReadWrite = (mode == Mode::ReadWrite);
+    }
 
     /// IProperty base class
     class IProperty
     {
         CLASS_NO_COPY_MOVE(IProperty);
+        using Mode = PropertyDetail::Mode;
 
     public:
-        /// access modes for properties
-        enum class Mode { Read, Write, ReadWrite };
-
         /// constructs a IProperty
         IProperty(Mode mode, std::string name) : mMode(mode), mName(std::move(name)) {}
 
@@ -50,32 +44,6 @@ namespace Lumen
         /// checks if the property is of a specific type
         virtual bool IsTypeId(const std::type_info &typeId) const = 0;
 
-        /// compile-time read mode check
-        static constexpr bool HasRead(Mode mode) { return (mode == Mode::Read) || (mode == Mode::ReadWrite); }
-
-        /// compile-time write mode check
-        static constexpr bool HasWrite(Mode mode) { return (mode == Mode::Write) || (mode == Mode::ReadWrite); }
-
-        /// compile-time read/write mode check
-        static constexpr bool HasReadWrite(Mode mode) { return (mode == Mode::ReadWrite); }
-
-        /// mode check
-        bool HasMode(Mode flag)
-        {
-            switch (flag)
-            {
-            case Mode::Read:
-                return HasRead(mMode);
-                break;
-            case Mode::Write:
-                return HasWrite(mMode);
-                break;
-            case Mode::ReadWrite:
-                return HasReadWrite(mMode);
-                break;
-            }
-            return false;
-        }
         /// return property name
         std::string_view Name() const { return mName; }
 
@@ -94,14 +62,17 @@ namespace Lumen
     };
 
     /// Property template class
-    template<typename T, typename Getter, typename Setter, IProperty::Mode StaticMode>
+    template<typename T, PropertyDetail::Mode StaticMode = PropertyDetail::Mode::ReadWrite, typename Getter = std::monostate, typename Setter = std::monostate>
     class Property : public IProperty
     {
         CLASS_NO_DEFAULT_CTOR(Property);
+        using Mode = PropertyDetail::Mode;
 
     public:
         /// constructs a property
         Property(Getter get, Setter set, std::string name) : IProperty(StaticMode, std::move(name)), mGetter(std::move(get)), mSetter(std::move(set)) {}
+        Property(Getter get, std::string name) : IProperty(StaticMode, std::move(name)), mGetter(std::move(get)) {}
+        Property(Setter set, std::string name) : IProperty(StaticMode, std::move(name)), mSetter(std::move(set)) {}
 
         /// returns the type id of the property
         bool IsTypeId(const std::type_info &typeId) const override { return typeId == typeid(T); }
@@ -109,7 +80,7 @@ namespace Lumen
         /// generic get, only enabled if mode has read
         std::any Get() const override
         {
-            if constexpr (StaticMode == Mode::Read || StaticMode == Mode::ReadWrite)
+            if constexpr (StaticMode == PropertyDetail::Mode::Read || StaticMode == PropertyDetail::Mode::ReadWrite)
             {
                 return mGetter();
             }
@@ -123,7 +94,7 @@ namespace Lumen
         /// generic set, only enabled if mode has write
         bool Set(const std::any &value) override
         {
-            if constexpr (StaticMode == Mode::Write || StaticMode == Mode::ReadWrite)
+            if constexpr (StaticMode == PropertyDetail::Mode::Write || StaticMode == PropertyDetail::Mode::ReadWrite)
             {
                 try
                 {
@@ -143,7 +114,7 @@ namespace Lumen
         }
 
         /// assignment (lvalue)
-        template<typename Dummy = void, std::enable_if_t<HasWrite(StaticMode), int> = 0>
+        template<Mode mode = StaticMode, typename = std::enable_if_t<PropertyDetail::HasWrite<mode>>>
         Property &operator=(const T &val)
         {
             mSetter(val);
@@ -151,7 +122,7 @@ namespace Lumen
         }
 
         /// assignment (rvalue)
-        template<typename Dummy = void, std::enable_if_t<HasWrite(StaticMode), int> = 0>
+        template<Mode mode = StaticMode, typename = std::enable_if_t<PropertyDetail::HasWrite<mode>>>
         Property &operator=(T &&val)
         {
             mSetter(std::move(val));
@@ -159,36 +130,36 @@ namespace Lumen
         }
 
         /// operator-> for Read or ReadWrite, const version
-        template<IProperty::Mode mode = StaticMode,
+        template<Mode mode = StaticMode,
             typename U = Getter, typename R = decltype(std::declval<U>()()),
-            std::enable_if_t<HasRead(mode) && std::is_reference_v<R>, int> = 0>
+            std::enable_if_t<PropertyDetail::HasRead<mode> && std::is_reference_v<R>, int> = 0>
         const std::remove_reference_t<R> *operator->() const
         {
             return &mGetter();
         }
 
         /// operator-> for Read or ReadWrite, non-const version
-        template<IProperty::Mode mode = StaticMode,
+        template<Mode mode = StaticMode,
             typename U = Getter, typename R = decltype(std::declval<U>()()),
-            std::enable_if_t<HasRead(mode) && std::is_reference_v<R>, int> = 0>
+            std::enable_if_t<PropertyDetail::HasRead<mode> && std::is_reference_v<R>, int> = 0>
         std::remove_reference_t<R> *operator->()
         {
             return &mGetter();
         }
 
         /// operator* for Read or ReadWrite, getter returns a reference, const version
-        template<IProperty::Mode mode = StaticMode,
+        template<Mode mode = StaticMode,
             typename U = Getter, typename R = decltype(std::declval<U>()()),
-            std::enable_if_t<HasRead(mode) && std::is_reference_v<R>, int> = 0>
+            std::enable_if_t<PropertyDetail::HasRead<mode> && std::is_reference_v<R>, int> = 0>
         const std::remove_reference_t<R> &operator*() const
         {
             return mGetter();
         }
 
         /// operator* for Read or ReadWrite, getter returns a reference, non-const version
-        template<IProperty::Mode mode = StaticMode,
+        template<Mode mode = StaticMode,
             typename U = Getter, typename R = decltype(std::declval<U>()()),
-            std::enable_if_t<HasRead(mode) && std::is_reference_v<R>, int> = 0>
+            std::enable_if_t<PropertyDetail::HasRead<mode> && std::is_reference_v<R>, int> = 0>
         std::remove_reference_t<R> &operator*()
         {
             return mGetter();
@@ -216,7 +187,7 @@ namespace Lumen
 
         /// implicit conversion to const T
         template<typename U = Getter, typename R = decltype(std::declval<U>()()),
-            std::enable_if_t<std::is_convertible_v<R, T> && (StaticMode == IProperty::Mode::Read || StaticMode == IProperty::Mode::ReadWrite),
+            std::enable_if_t<std::is_convertible_v<R, T> && (StaticMode == PropertyDetail::Mode::Read || StaticMode == PropertyDetail::Mode::ReadWrite),
             int> = 0>
         operator const T() const
         {
@@ -224,7 +195,7 @@ namespace Lumen
         }
 
         /// operator+= (lvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator+=(const T &val)
         {
             mSetter(mGetter() + val);
@@ -232,7 +203,7 @@ namespace Lumen
         }
 
         /// operator+= (rvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator+=(T &&val)
         {
             mSetter(mGetter() + std::move(val));
@@ -240,7 +211,7 @@ namespace Lumen
         }
 
         /// operator-= (lvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator-=(const T &val)
         {
             mSetter(mGetter() - val);
@@ -248,7 +219,7 @@ namespace Lumen
         }
 
         /// operator-= (rvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator-=(T &&val)
         {
             mSetter(mGetter() - std::move(val));
@@ -256,7 +227,7 @@ namespace Lumen
         }
 
         /// operator*= (lvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator*=(const T &val)
         {
             mSetter(mGetter() * val);
@@ -264,7 +235,7 @@ namespace Lumen
         }
 
         /// operator*= (rvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator*=(T &&val)
         {
             mSetter(mGetter() * std::move(val));
@@ -272,7 +243,7 @@ namespace Lumen
         }
 
         /// operator/= (lvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator/=(const T &val)
         {
             mSetter(mGetter() / val);
@@ -280,7 +251,7 @@ namespace Lumen
         }
 
         /// operator/= (rvalue)
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator/=(T &&val)
         {
             mSetter(mGetter() / std::move(val));
@@ -288,7 +259,7 @@ namespace Lumen
         }
 
         /// pre increment
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator++()
         {
             mSetter(mGetter() + T(1));
@@ -296,7 +267,7 @@ namespace Lumen
         }
 
         /// pre decrement 
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         Property &operator--()
         {
             mSetter(mGetter() - T(1));
@@ -304,7 +275,7 @@ namespace Lumen
         }
 
         /// post increment
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         T operator++(int)
         {
             T tmp = mGetter();
@@ -313,7 +284,7 @@ namespace Lumen
         }
 
         /// post decrement 
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasReadWrite(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasReadWrite<mode>, int> = 0>
         T operator--(int)
         {
             T tmp = mGetter();
@@ -322,61 +293,63 @@ namespace Lumen
         }
 
         /// operator==
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasRead(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasRead<mode>, int> = 0>
         friend bool operator==(const Property &a, const T &b) { return a.mGetter() == b; }
 
         /// operator!=
-        template<IProperty::Mode mode = StaticMode, std::enable_if_t<HasRead(mode), int> = 0>
+        template<Mode mode = StaticMode, std::enable_if_t<PropertyDetail::HasRead<mode>, int> = 0>
         friend bool operator!=(const Property &a, const T &b) { return a.mGetter() != b; }
 
     private:
         /// getter method to retrieve the value
-        Getter mGetter;
+        [[no_unique_address]] Getter mGetter;
 
         /// setter method to set the value
-        Setter mSetter;
+        [[no_unique_address]] Setter mSetter;
     };
 
     /// helper function to create a property with getter and setter methods
-    template<typename T, IProperty::Mode mode, typename Getter, typename Setter>
+    template<typename T, PropertyDetail::Mode mode, typename Getter, typename Setter>
     auto MakeProperty(std::string name, Getter &&get, Setter &&set)
     {
-        // type of getter function call result
-        using GetterReturn = decltype(get());
-
-        // remove reference and cv-qualifiers from getter return type for checking
-        using GetterReturnDecay = std::decay_t<GetterReturn>;
-
-        // getter return must be convertible to T or const T&
-        static_assert(std::is_convertible_v<GetterReturn, T> || std::is_convertible_v<GetterReturn, const T &>,
-            "Getter must return a type convertible to T or const T&");
-
-        // setter must be callable with T&&
-        static_assert(std::is_invocable_v<Setter, T &&> || std::is_invocable_v<Setter, const T &>,
-            "Setter must be callable with T&& or const T&");
-
-        // enforce getter return type consistent with Mode
-        if constexpr (mode == IProperty::Mode::Write)
-        {
-            static_assert(std::is_void_v<GetterReturn> || std::is_same_v<GetterReturn, void>,
-                "Getter must not be used in write-only property");
-        }
-
-        // make the property
-        return Property<T, std::decay_t<Getter>, std::decay_t<Setter>, mode>(
-            std::forward<Getter>(get),
-            std::forward<Setter>(set),
-            std::move(name));
+        if constexpr (mode == PropertyDetail::Mode::ReadWrite)
+            return Property<T, mode, std::decay_t<Getter>, std::decay_t<Setter>>(std::forward<Getter>(get), std::forward<Setter>(set), std::move(name));
+        else if constexpr (mode == PropertyDetail::Mode::Read)
+            return Property<T, mode, std::decay_t<Getter>, std::monostate>(std::forward<Getter>(get), std::move(name));
+        else if constexpr (mode == PropertyDetail::Mode::Write)
+            return Property<T, mode, std::monostate, std::decay_t<Setter>>(std::forward<Setter>(set), std::move(name));
     }
 
     /// property macro to define a property with getter and setter methods
-    #define PROPERTY(TYPE, NAME, GETTER, SETTER)                                             \
+    #define PROPERTY(TYPE, NAME, GETTER, SETTER)                                                  \
+    auto &NAME()                                                                                  \
+    {                                                                                             \
+        static auto property = Lumen::MakeProperty<TYPE, Lumen::PropertyDetail::Mode::ReadWrite>( \
+            #NAME,                                                                                \
+            [this]() -> decltype(auto) { return this->GETTER(); },                                \
+            [this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); });                    \
+        return property;                                                                          \
+    }
+
+    /// read only property macro to define a property with getter method
+    #define PROPERTY_RO(TYPE, NAME, GETTER)                                                  \
     auto &NAME()                                                                             \
     {                                                                                        \
-        static auto property = Lumen::MakeProperty<TYPE, Lumen::IProperty::Mode::ReadWrite>( \
+        static auto property = Lumen::MakeProperty<TYPE, Lumen::PropertyDetail::Mode::Read>( \
             #NAME,                                                                           \
             [this]() -> decltype(auto) { return this->GETTER(); },                           \
-            [this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); });               \
+            std::monostate {});                                                              \
         return property;                                                                     \
+    }
+
+    /// write only property macro to define a property with setter method
+    #define PROPERTY_WO(TYPE, NAME, SETTER)                                                    \
+    auto &NAME()                                                                               \
+    {                                                                                          \
+        static auto property = Lumen::MakeProperty<TYPE, Lumen::PropertyDetail::Mode::Write>(  \
+            #NAME,                                                                             \
+            std::monostate {},                                                                 \
+            [this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); });                 \
+        return property;                                                                       \
     }
 }

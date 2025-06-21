@@ -9,6 +9,7 @@
 #include "lCamera.h"
 
 #include <lProperty.h>
+
 class Player
 {
 public:
@@ -33,6 +34,23 @@ public:
     std::string mStr;
 };
 
+class OtherPlayer
+{
+public:
+    OtherPlayer() = default;
+    ~OtherPlayer() = default;
+
+    PROPERTY(int, Test, GetInt, SetInt);
+    PROPERTY_RO(int, TestR, GetInt);
+    PROPERTY_WO(int, TestW, SetInt);
+
+    [[nodiscard]] const int GetInt() const { return 10/2; }
+    void SetInt(const int &val) { mInt = val; }
+
+private:
+    int mInt = 0;
+};
+
 bool MainScene::Load()
 {
     Lumen::DebugLog::Info("MainScene::Load");
@@ -53,9 +71,21 @@ bool MainScene::Load()
     bool isIntBase = testPlayer.Test().IsTypeId(typeid(int));
     std::string_view name = testPlayer.Test().Name();
 
-    Lumen::IProperty &iProperty = testPlayer.Test().Interface();
+    Lumen::IProperty &iProperty = static_cast<Lumen::IProperty &>(testPlayer.Test());
     bool isInt = iProperty.IsTypeId(typeid(int));
     bool isFloat = iProperty.IsTypeId(typeid(float));
+
+    OtherPlayer otherPlayer;
+
+    otherPlayer.Test() = 10;
+    int c = otherPlayer.Test();      // ok
+    c = otherPlayer.Test()++;        // increment
+    int d = otherPlayer.TestR();     // ok
+    otherPlayer.TestW() = 20;        // ok
+
+    // Uncommenting below lines will give compile-time errors with messages:
+    //int z = otherPlayer.TestW();   // error: read from write-only
+    //otherPlayer.TestR() = 42;      // error: write to read-only
 
     if (auto gameObjectLock = mCamera.lock())
     {
