@@ -56,7 +56,7 @@ bool MainScene::Load()
     Lumen::DebugLog::Info("MainScene::Load");
 
     Player testPlayer;
-    testPlayer.Test().Set(10);
+    testPlayer.Test() = 10;
     std::any a = testPlayer.Test().Get();
 
     auto &prop = testPlayer.Test();
@@ -66,8 +66,11 @@ bool MainScene::Load()
     testPlayer.Test() = 20;
     testPlayer.Test().Set(a);
     int b = testPlayer.Test();
-    testPlayer.VTest()[1] = 10;
-    testPlayer.VTest()[8] = 100;
+
+    std::vector<int> v = testPlayer.VTest();
+    v[1] = 10;
+    v[8] = 100;
+    testPlayer.VTest() = v;
     bool isIntBase = testPlayer.Test().IsTypeId(typeid(int));
     std::string_view name = testPlayer.Test().Name();
 
@@ -78,10 +81,9 @@ bool MainScene::Load()
     OtherPlayer otherPlayer;
 
     otherPlayer.Test() = 10;
-    int c = otherPlayer.Test();      // ok
-    c = otherPlayer.Test()++;        // increment
-    int d = otherPlayer.TestR();     // ok
-    otherPlayer.TestW() = 20;        // ok
+    int c = otherPlayer.Test();
+    int d = otherPlayer.TestR();
+    otherPlayer.TestW() = testPlayer.Test() = 42;
 
     // Uncommenting below lines will give compile-time errors with messages:
     //int z = otherPlayer.TestW();   // error: read from write-only
