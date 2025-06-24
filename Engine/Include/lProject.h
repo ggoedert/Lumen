@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lProjectSource.h"
+#include "lFileSource.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -24,10 +24,10 @@ namespace Lumen
         /// virtual destructor
         ~Project() noexcept = default;
 
-        /// add project source
-        bool AddSource(ProjectSourcePtr projectSource);
+        /// add file source
+        bool AddFileSource(FileSourcePtr fileSource);
 
-        /// open file
-        int OpenFile(int fileIndex);
+        /// import file
+        void ImportFile();
     };
 }

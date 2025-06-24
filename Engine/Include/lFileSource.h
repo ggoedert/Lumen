@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     project source interface
+/// \brief     file source interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -10,21 +10,21 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(ProjectSource);
+    CLASS_PTR_DEF(FileSource);
 
-    /// ProjectSource class
-    class ProjectSource
+    /// FileSource class
+    class FileSource
     {
-        CLASS_NO_COPY_MOVE(ProjectSource);
+        CLASS_NO_COPY_MOVE(FileSource);
 
     public:
         /// constructor
-        explicit ProjectSource() = default;
+        explicit FileSource() = default;
 
         /// virtual destructor
-        virtual ~ProjectSource() noexcept = 0;
+        virtual ~FileSource() noexcept = 0;
 
-        /// open file
-        int OpenFile(int fileIndex);
+        /// import file
+        virtual void ImportFile() = 0;
     };
 }

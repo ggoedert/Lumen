@@ -92,7 +92,7 @@
     <ClInclude Include="..\Include\lProject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\lProjectSource.h">
+    <ClInclude Include="..\Include\lFileSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

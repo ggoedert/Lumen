@@ -161,7 +161,7 @@
     <ClInclude Include="..\Include\lBehavior.h" />
     <ClInclude Include="..\Include\lCamera.h" />
     <ClInclude Include="..\Include\lComponent.h" />
-    <ClInclude Include="..\Include\lProjectSource.h" />
+    <ClInclude Include="..\Include\lFileSource.h" />
     <ClInclude Include="..\Include\lDebugLog.h" />
     <ClInclude Include="..\Include\lDefs.h" />
     <ClInclude Include="..\Include\lEngine.h" />

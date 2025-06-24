@@ -26,6 +26,9 @@ public:
     /// initialize and load our test scene
     bool Initialize() override
     {
+        //GetProject().AddFileSource();
+        //GetProject().ImportFile();
+
         mMainScene = MainScene::MakePtr(*this);
         return Lumen::SceneManager::Load(mMainScene);
     }
