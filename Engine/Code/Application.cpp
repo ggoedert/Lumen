@@ -26,6 +26,9 @@ public:
     /// set engine
     void SetEngine(const EnginePtr &engine) { mEngine = engine; }
 
+    /// get project manager
+    [[nodiscard]] Project &GetProject() { return mProject; }
+
     /// get delta time
     [[nodiscard]] float DeltaTime() const { return mDeltaTime; }
 
@@ -48,6 +51,9 @@ private:
 
     /// application running
     bool mRunning { true };
+
+    /// project manager
+    Project mProject;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -110,6 +116,12 @@ Application::~Application() noexcept {}
 void Application::SetEngine(const EnginePtr &engine)
 {
     mImpl->SetEngine(engine);
+}
+
+/// get project manager
+Project &Application::GetProject() const
+{
+    return mImpl->GetProject();
 }
 
 /// get delta time

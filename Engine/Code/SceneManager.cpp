@@ -6,6 +6,7 @@
 
 #include "lSceneManager.h"
 #include "lCamera.h"
+#include "lMeshFilter.h"
 
 using namespace Lumen;
 
@@ -41,6 +42,7 @@ void SceneManager::Initialize()
     gSceneManagerState = std::make_unique<SceneManagerState>();
 
     SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
+    SceneManager::RegisterComponentMaker(MeshFilter::Type(), MeshFilter::MakePtr);
 }
 
 /// shutdown scene manager namespace

@@ -6,9 +6,9 @@
 
 #include "MainScene.h"
 
-#include "lCamera.h"
-
-#include <lProperty.h>
+#include <lTransform.h>
+#include <lCamera.h>
+#include <lMeshFilter.h>
 
 class Player
 {
@@ -89,18 +89,23 @@ bool MainScene::Load()
     //int z = otherPlayer.TestW();   // error: read from write-only
     //otherPlayer.TestR() = 42;      // error: write to read-only
 
-    if (auto gameObjectLock = mCamera.lock())
+    // setup camera
+    if (auto cameraLock = mCamera.lock())
     {
-        gameObjectLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
+        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
 
-        Lumen::Math::Vector col = mApplication.BackgroundColor();
-
-        Lumen::DebugLog::Info("Static component name: " + Lumen::Camera::Name());
-        if (auto cameraComponentLock = gameObjectLock->Component(Lumen::Camera::Type()).lock())
+        if (auto transformLock = cameraLock->Transform().lock())
         {
-            Lumen::DebugLog::Info("Polymorphic component instance name: " + cameraComponentLock->Name());
+            transformLock->Position() = { 0.f, 0.f, -10.f };
         }
     }
+
+    // setup sphere
+    if (auto sphereLock = mSphere.lock())
+    {
+        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({}));
+    }
+
     return true;
 }
 
@@ -108,5 +113,5 @@ void MainScene::Unload()
 {
     Lumen::DebugLog::Info("MainScene::Unload");
     mCamera.reset();
-    mPlayer.reset();
+    mSphere.reset();
 }

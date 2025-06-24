@@ -10,21 +10,18 @@
 #include "lApplication.h"
 #include "lSceneManager.h"
 
-#include <memory>
-#include <string>
+CLASS_PTR_DEF(Test1);
 
-CLASS_PTR_DEF(Application);
-
-/// Application class
-class Application : public Lumen::Application
+/// Test1 class
+class Test1 : public Lumen::Application
 {
-    CLASS_NO_DEFAULT_CTOR(Application);
-    CLASS_NO_COPY_MOVE(Application);
-    CLASS_PTR_MAKER(Application);
+    CLASS_NO_DEFAULT_CTOR(Test1);
+    CLASS_NO_COPY_MOVE(Test1);
+    CLASS_PTR_MAKER(Test1);
 
 public:
     /// constructor
-    explicit Application(const std::string &name, const int version) : Lumen::Application() {}
+    explicit Test1(const std::string &name, const int version) : Lumen::Application() {}
 
     /// initialize and load our test scene
     bool Initialize() override

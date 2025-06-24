@@ -171,7 +171,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Code\Application.h" />
+    <ClInclude Include="..\Code\Test1.h" />
     <ClInclude Include="..\Code\MainScene.h" />
     <ClInclude Include="..\Code\Windows\Resource.h" />
     <ClInclude Include="..\Code\Windows\targetver.h" />

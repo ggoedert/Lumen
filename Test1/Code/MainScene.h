@@ -21,7 +21,7 @@ class MainScene : public Lumen::Scene
 public:
     /// constructor
     explicit MainScene(const Lumen::Application &application) :
-        Lumen::Scene(), mApplication(application), mPlayer(Lumen::GameObject::MakePtr()), mCamera(Lumen::GameObject::MakePtr()) {}
+        Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr()), mSphere(Lumen::GameObject::MakePtr()) {}
 
     /// load scene
     bool Load() override;
@@ -31,6 +31,6 @@ public:
 
 private:
     const Lumen::Application &mApplication;
-    Lumen::GameObjectWeakPtr mPlayer;
     Lumen::GameObjectWeakPtr mCamera;
+    Lumen::GameObjectWeakPtr mSphere;
 };

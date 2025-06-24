@@ -11,7 +11,7 @@
 #endif
 #include "resource.h"
 
-#include "Application.h"
+#include "Test1.h"
 
 #include "lEnginePlatform.h"
 #include "lFramework.h"
@@ -63,7 +63,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     LoadStringW(hInstance, IDC_LUMENAPPLICATION, szWindowClass, MAX_LOADSTRING);
 
     // start engine and application
-    auto engine = Lumen::Engine::MakePtr(Application::MakePtr("Test1", 1));
+    auto engine = Lumen::Engine::MakePtr(Test1::MakePtr("Test1", 1));
 
     // register class and create window
     {

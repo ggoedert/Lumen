@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lMath.h"
-#include "lSceneManager.h"
+#include "lProject.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -30,6 +30,9 @@ namespace Lumen
 
         /// shutdown application
         virtual void Shutdown() = 0;
+
+        /// get project manager
+        [[nodiscard]] Project &GetProject() const;
 
         /// get delta time
         [[nodiscard]] float DeltaTime() const;
