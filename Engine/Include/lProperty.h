@@ -34,7 +34,7 @@ namespace Lumen
         template<Mode mode> inline constexpr bool HasWrite = (mode == Mode::Write || mode == Mode::ReadWrite);
     }
 
-    /// IProperty base class
+    /// IProperty interface class
     class IProperty
     {
         CLASS_NO_COPY_MOVE(IProperty);

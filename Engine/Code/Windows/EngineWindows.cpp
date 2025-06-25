@@ -4,6 +4,7 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
+#include "lFolderFileSystem.h"
 #include "lApplication.h"
 #include "lEnginePlatform.h"
 #include "lEngine.h"
@@ -53,6 +54,12 @@ public:
 
     // properties
     void GetDefaultSize(int &width, int &height) const noexcept override;
+
+    /// create a folder file system
+    IFileSystemPtr FolderFileSystem(const std::string &name, const std::string &path) const override
+    {
+        return FolderFileSystem::MakePtr(name, path);
+    }
 
 private:
     bool Update(StepTimer const &timer);

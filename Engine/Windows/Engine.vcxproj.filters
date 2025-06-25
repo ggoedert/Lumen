@@ -74,9 +74,6 @@
     <ClInclude Include="..\Code\Windows\StepTimer.h">
       <Filter>Source Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\EngineWindows.h">
-      <Filter>Source Files\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\Windows\lFramework.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
@@ -89,10 +86,13 @@
     <ClInclude Include="..\Include\lMeshFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\lProject.h">
+    <ClInclude Include="..\Include\lResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\lFileSource.h">
+    <ClInclude Include="..\Include\lFolderFileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\lFileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,6 +134,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\MeshFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\Windows\FolderFileSystem.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\FileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

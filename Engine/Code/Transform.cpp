@@ -63,16 +63,16 @@ Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(), mImpl(Tran
 /// destructor
 Transform::~Transform() noexcept = default;
 
-/// get owning game object
-GameObjectWeakPtr Transform::GameObject() const
-{
-    return mImpl->GameObject();
-}
-
 /// creates a smart pointer version of the camera component
 TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
 {
     return TransformPtr(new Transform(gameObject));
+}
+
+/// get owning game object
+GameObjectWeakPtr Transform::GameObject() const
+{
+    return mImpl->GameObject();
 }
 
 /// get parent

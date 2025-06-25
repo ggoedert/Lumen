@@ -25,19 +25,19 @@ namespace Lumen
         /// virtual destructor
         virtual ~Engine() noexcept = default;
 
-        // allocate smart pointer version of the engine, implemented at platform level
+        /// allocate smart pointer version of the engine, implemented at platform level
         static EnginePtr MakePtr(const ApplicationPtr &application);
 
-        // initialization and management
+        /// initialization and management
         virtual bool Initialize(const std::any &config);
 
         /// shutdown
         virtual void Shutdown();
 
-        // basic game loop
+        /// basic game loop
         virtual bool Tick() = 0;
 
-        // messages
+        /// messages
         virtual void OnActivated() = 0;
         virtual void OnDeactivated() = 0;
         virtual void OnSuspending() = 0;
@@ -46,8 +46,11 @@ namespace Lumen
         virtual void OnDisplayChange() = 0;
         virtual void OnWindowSizeChanged(int width, int height) = 0;
 
-        // properties
+        /// properties
         virtual void GetDefaultSize(int &width, int &height) const noexcept = 0;
+
+        /// create a folder file system
+        virtual IFileSystemPtr FolderFileSystem(const std::string &name, const std::string &path) const = 0;
 
     protected:
         /// protected constructor

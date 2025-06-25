@@ -1,30 +1,30 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     file source interface
+/// \brief     resources interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "lFileSystem.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(FileSource);
+    CLASS_PTR_DEF(Resources);
 
-    /// FileSource class
-    class FileSource
+    /// Resources class
+    class Resources
     {
-        CLASS_NO_COPY_MOVE(FileSource);
+        CLASS_NO_COPY_MOVE(Resources);
 
     public:
         /// constructor
-        explicit FileSource() = default;
+        explicit Resources() = default;
 
         /// virtual destructor
-        virtual ~FileSource() noexcept = 0;
+        ~Resources() noexcept = default;
 
         /// import file
-        virtual void ImportFile() = 0;
+        void ImportFile();
     };
 }

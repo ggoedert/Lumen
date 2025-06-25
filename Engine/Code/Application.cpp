@@ -23,11 +23,14 @@ public:
     /// destructor
     ~Impl() noexcept;
 
-    /// set engine
-    void SetEngine(const EnginePtr &engine) { mEngine = engine; }
+    /// get engine
+    [[nodiscard]] EngineWeakPtr GetEngine() { return mEngine; }
 
-    /// get project manager
-    [[nodiscard]] Project &GetProject() { return mProject; }
+    /// set engine
+    void SetEngine(const EngineWeakPtr &engine) { mEngine = engine; }
+
+    /// get resources
+    [[nodiscard]] Lumen::Resources &Resources() { return mResources; }
 
     /// get delta time
     [[nodiscard]] float DeltaTime() const { return mDeltaTime; }
@@ -52,8 +55,8 @@ private:
     /// application running
     bool mRunning { true };
 
-    /// project manager
-    Project mProject;
+    /// resources
+    Lumen::Resources mResources;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -112,16 +115,22 @@ Application::Application() : mImpl(Application::Impl::MakeUniquePtr()) {}
 /// virtual destructor
 Application::~Application() noexcept {}
 
+/// get engine
+[[nodiscard]] EngineWeakPtr Application::GetEngine()
+{
+    return mImpl->GetEngine();
+}
+
 /// set engine
-void Application::SetEngine(const EnginePtr &engine)
+void Application::SetEngine(const EngineWeakPtr &engine)
 {
     mImpl->SetEngine(engine);
 }
 
-/// get project manager
-Project &Application::GetProject() const
+/// get resources
+Resources &Application::Resources() const
 {
-    return mImpl->GetProject();
+    return mImpl->Resources();
 }
 
 /// get delta time

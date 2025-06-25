@@ -9,6 +9,8 @@
 
 #include "lApplication.h"
 #include "lSceneManager.h"
+#include "lFileSystem.h"
+#include "lEngine.h"
 
 CLASS_PTR_DEF(Test1);
 
@@ -26,9 +28,10 @@ public:
     /// initialize and load our test scene
     bool Initialize() override
     {
-        //GetProject().AddFileSource();
-        //GetProject().ImportFile();
-
+        if (auto engineLock = GetEngine().lock())
+        {
+            Lumen::FileSystem::RegisterFileSystem(engineLock->FolderFileSystem("Assets", "Assets"));
+        }
         mMainScene = MainScene::MakePtr(*this);
         return Lumen::SceneManager::Load(mMainScene);
     }

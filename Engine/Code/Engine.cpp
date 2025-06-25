@@ -6,12 +6,14 @@
 
 #include "lEngine.h"
 #include "lSceneManager.h"
+#include "lFileSystem.h"
 
 using namespace Lumen;
 
 // initialization and management
 bool Engine::Initialize(const std::any &config)
 {
+    Lumen::FileSystem::Initialize();
     Lumen::SceneManager::Initialize();
 
     if (!mApplication)
@@ -31,6 +33,7 @@ void Engine::Shutdown()
         mApplication->Shutdown();
 
     Lumen::SceneManager::Shutdown();
+    Lumen::FileSystem::Shutdown();
 }
 
 /// run engine

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lMath.h"
-#include "lProject.h"
+#include "lResources.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -22,8 +22,11 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Application);
 
     public:
+        /// get engine
+        [[nodiscard]] EngineWeakPtr GetEngine();
+
         /// set engine
-        void SetEngine(const EnginePtr &engine);
+        void SetEngine(const EngineWeakPtr &engine);
 
         /// initialize application
         virtual bool Initialize() = 0;
@@ -31,8 +34,8 @@ namespace Lumen
         /// shutdown application
         virtual void Shutdown() = 0;
 
-        /// get project manager
-        [[nodiscard]] Project &GetProject() const;
+        /// get resources
+        [[nodiscard]] Resources &Resources() const;
 
         /// get delta time
         [[nodiscard]] float DeltaTime() const;
