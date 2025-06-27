@@ -10,36 +10,40 @@
 
 using namespace Lumen;
 
-struct SceneManagerState
+/// Lumen Hidden namespace
+namespace Lumen::Hidden
 {
-    CLASS_NO_COPY_MOVE(SceneManagerState);
+    struct SceneManagerState
+    {
+        CLASS_NO_COPY_MOVE(SceneManagerState);
 
-    /// default constructor
-    explicit SceneManagerState() = default;
+        /// default constructor
+        explicit SceneManagerState() = default;
 
-    /// current loaded scene
-    ScenePtr mCurrentScene;
+        /// current loaded scene
+        ScenePtr mCurrentScene;
 
-    /// map of component makers
-    std::map<HashType, SceneManager::ComponentMaker> mComponentMakers;
+        /// map of component makers
+        std::map<HashType, SceneManager::ComponentMaker> mComponentMakers;
 
-    /// game objects in the scene
-    std::vector<GameObjectPtr> mGameObjects;
+        /// game objects in the scene
+        std::vector<GameObjectPtr> mGameObjects;
 
-    /// components that need to be started
-    std::vector<ComponentPtr> mNewComponents;
+        /// components that need to be started
+        std::vector<ComponentPtr> mNewComponents;
 
-    /// map of components
-    std::map<HashType, std::vector<ComponentPtr>> mComponentsMap;
-};
+        /// map of components
+        std::map<HashType, std::vector<ComponentPtr>> mComponentsMap;
+    };
 
-static std::unique_ptr<SceneManagerState> gSceneManagerState;
+    static std::unique_ptr<SceneManagerState> gSceneManagerState;
+}
 
 /// initialize scene manager namespace
 void SceneManager::Initialize()
 {
-    LUMEN_ASSERT(!gSceneManagerState);
-    gSceneManagerState = std::make_unique<SceneManagerState>();
+    LUMEN_ASSERT(!Hidden::gSceneManagerState);
+    Hidden::gSceneManagerState = std::make_unique<Hidden::SceneManagerState>();
 
     SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
     SceneManager::RegisterComponentMaker(MeshFilter::Type(), MeshFilter::MakePtr);
@@ -48,31 +52,31 @@ void SceneManager::Initialize()
 /// shutdown scene manager namespace
 void SceneManager::Shutdown()
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
     Unload();
-    gSceneManagerState.reset();
+    Hidden::gSceneManagerState.reset();
 }
 
 /// load scene
 bool SceneManager::Load(ScenePtr scene)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
     Unload();
-    gSceneManagerState->mCurrentScene = std::move(scene);
-    return gSceneManagerState->mCurrentScene->Load();
+    Hidden::gSceneManagerState->mCurrentScene = std::move(scene);
+    return Hidden::gSceneManagerState->mCurrentScene->Load();
 }
 
 /// unload current scene
 void SceneManager::Unload()
 {
-    LUMEN_ASSERT(gSceneManagerState);
-    if (gSceneManagerState->mCurrentScene)
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    if (Hidden::gSceneManagerState->mCurrentScene)
     {
-        gSceneManagerState->mCurrentScene->Unload();
-        gSceneManagerState->mNewComponents.clear();
-        gSceneManagerState->mGameObjects.clear();
-        gSceneManagerState->mComponentsMap.clear();
-        gSceneManagerState->mCurrentScene.reset();
+        Hidden::gSceneManagerState->mCurrentScene->Unload();
+        Hidden::gSceneManagerState->mNewComponents.clear();
+        Hidden::gSceneManagerState->mGameObjects.clear();
+        Hidden::gSceneManagerState->mComponentsMap.clear();
+        Hidden::gSceneManagerState->mCurrentScene.reset();
 
     }
 }
@@ -80,19 +84,19 @@ void SceneManager::Unload()
 /// register component maker
 void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
 {
-    LUMEN_ASSERT(gSceneManagerState);
-    LUMEN_ASSERT(!gSceneManagerState->mComponentMakers.contains(type));
-    gSceneManagerState->mComponentMakers[type] = maker;
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    LUMEN_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
+    Hidden::gSceneManagerState->mComponentMakers[type] = maker;
 }
 
 /// create component of a specific type
 ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params)
 {
-    LUMEN_ASSERT(gSceneManagerState);
-    LUMEN_ASSERT(gSceneManagerState->mComponentMakers.contains(type));
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
 
-    auto it = gSceneManagerState->mComponentMakers.find(type);
-    if (it == gSceneManagerState->mComponentMakers.end())
+    auto it = Hidden::gSceneManagerState->mComponentMakers.find(type);
+    if (it == Hidden::gSceneManagerState->mComponentMakers.end())
     {
         return ComponentWeakPtr();
     }
@@ -102,9 +106,9 @@ ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObje
 /// register game object in the current scene
 GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObject)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
 
-    gSceneManagerState->mGameObjects.push_back(gameObject);
+    Hidden::gSceneManagerState->mGameObjects.push_back(gameObject);
     return gameObject;
 }
 
@@ -112,31 +116,31 @@ GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObje
 /// the passed GameObjectWeakPtr must have been originally created from a shared GameObjectPtr stored in the SceneManager
 bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
 
     auto lockedGameObject = gameObject.lock();
     if (!lockedGameObject)
     {
         return false;
     }
-    return RemoveFromVector(gSceneManagerState->mGameObjects, lockedGameObject);
+    return RemoveFromVector(Hidden::gSceneManagerState->mGameObjects, lockedGameObject);
 }
 
 /// register component
 ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
     LUMEN_ASSERT(component);
 
-    gSceneManagerState->mComponentsMap[component->Type()].push_back(component);
-    gSceneManagerState->mNewComponents.push_back(component);
+    Hidden::gSceneManagerState->mComponentsMap[component->Type()].push_back(component);
+    Hidden::gSceneManagerState->mNewComponents.push_back(component);
     return component;
 }
 
 /// unregister component
 bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
 
     auto lockedComponent = component.lock();
     if (!lockedComponent)
@@ -144,8 +148,8 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
         return false;
     }
 
-    auto it = gSceneManagerState->mComponentsMap.find(lockedComponent->Type());
-    LUMEN_ASSERT(it != gSceneManagerState->mComponentsMap.end());
+    auto it = Hidden::gSceneManagerState->mComponentsMap.find(lockedComponent->Type());
+    LUMEN_ASSERT(it != Hidden::gSceneManagerState->mComponentsMap.end());
 
     return RemoveFromVector(it->second, lockedComponent);
 }
@@ -153,11 +157,11 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 /// get all components of type
 Components SceneManager::GetComponents(const HashType type)
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
     Components result;
 
-    auto it = gSceneManagerState->mComponentsMap.find(type);
-    if (it == gSceneManagerState->mComponentsMap.end())
+    auto it = Hidden::gSceneManagerState->mComponentsMap.find(type);
+    if (it == Hidden::gSceneManagerState->mComponentsMap.end())
     {
         return result;
     }
@@ -173,18 +177,18 @@ Components SceneManager::GetComponents(const HashType type)
 /// run application
 void SceneManager::Run()
 {
-    LUMEN_ASSERT(gSceneManagerState);
+    LUMEN_ASSERT(Hidden::gSceneManagerState);
 
-    if (!gSceneManagerState->mNewComponents.empty())
+    if (!Hidden::gSceneManagerState->mNewComponents.empty())
     {
-        for (const ComponentPtr &component : gSceneManagerState->mNewComponents)
+        for (const ComponentPtr &component : Hidden::gSceneManagerState->mNewComponents)
         {
             component->Start();
         }
-        gSceneManagerState->mNewComponents.clear();
+        Hidden::gSceneManagerState->mNewComponents.clear();
     }
 
-    for (const GameObjectPtr &gameObject : gSceneManagerState->mGameObjects)
+    for (const GameObjectPtr &gameObject : Hidden::gSceneManagerState->mGameObjects)
     {
         gameObject->Run();
     }

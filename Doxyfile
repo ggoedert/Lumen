@@ -1096,7 +1096,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                =
+EXCLUDE                = External
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1120,12 +1120,14 @@ EXCLUDE_PATTERNS       =
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # ANamespace::AClass, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = std \
+EXCLUDE_SYMBOLS        = *::Impl \
+                         Lumen::com_exception \
+                         EffectTextureFactory \
+                         DirectX \
                          DX \
                          Xbox \
                          VBO \
-                         EffectTextureFactory \
-                         Lumen::com_exception
+                         std
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include

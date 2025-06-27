@@ -5,8 +5,8 @@
 //==============================================================================================================================================================================
 #pragma once
 
-/// Lumen namespace
-namespace Lumen
+/// Lumen Windows namespace
+namespace Lumen::Windows
 {
     /// engine initialize config
     struct Config { HWND window; int width; int height; };

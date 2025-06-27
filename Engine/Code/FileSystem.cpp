@@ -8,38 +8,42 @@
 
 using namespace Lumen;
 
-struct FileState
+/// Lumen Hidden namespace
+namespace Lumen::Hidden
 {
-    CLASS_NO_COPY_MOVE(FileState);
+    struct FileState
+    {
+        CLASS_NO_COPY_MOVE(FileState);
 
-    /// default constructor
-    explicit FileState() = default;
+        /// default constructor
+        explicit FileState() = default;
 
-    /// file systems
-    std::vector<IFileSystemPtr> mFileSystems;
-};
+        /// file systems
+        std::vector<IFileSystemPtr> mFileSystems;
+    };
 
-static std::unique_ptr<FileState> gFileState;
+    static std::unique_ptr<FileState> gFileState;
+}
 
 /// initialize file namespace
 void FileSystem::Initialize()
 {
-    LUMEN_ASSERT(!gFileState);
-    gFileState = std::make_unique<FileState>();
+    LUMEN_ASSERT(!Hidden::gFileState);
+    Hidden::gFileState = std::make_unique<Hidden::FileState>();
 }
 
 /// shutdown file namespace
 void FileSystem::Shutdown()
 {
-    LUMEN_ASSERT(gFileState);
-    gFileState.reset();
+    LUMEN_ASSERT(Hidden::gFileState);
+    Hidden::gFileState.reset();
 }
 
 /// register file system
 void FileSystem::RegisterFileSystem(const IFileSystemPtr &fileSystem)
 {
-    LUMEN_ASSERT(gFileState);
-    gFileState->mFileSystems.push_back(fileSystem);
+    LUMEN_ASSERT(Hidden::gFileState);
+    Hidden::gFileState->mFileSystems.push_back(fileSystem);
 }
 
 /// opens a file on the specified path
