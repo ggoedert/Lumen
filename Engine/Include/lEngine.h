@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lFileSystem.h"
 #include "lApplication.h"
 
 /// Lumen namespace

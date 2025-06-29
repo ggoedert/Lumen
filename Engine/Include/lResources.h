@@ -5,13 +5,11 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lFileSystem.h"
+#include "lObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(Resources);
-
     /// Resources class
     class Resources
     {
@@ -19,12 +17,16 @@ namespace Lumen
 
     public:
         /// constructor
-        explicit Resources() = default;
+        explicit Resources();
 
         /// virtual destructor
-        ~Resources() noexcept = default;
+        ~Resources() noexcept;
 
-        /// import file
-        void ImportFile();
+        /// import resource
+        ObjectPtr Import(const std::string &path, const HashType type, std::optional<const std::string> name = std::nullopt);
+
+    private:
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

@@ -8,6 +8,7 @@
 
 #include <lTransform.h>
 #include <lCamera.h>
+#include <lMesh.h>
 #include <lMeshFilter.h>
 
 class Player
@@ -92,18 +93,30 @@ bool MainScene::Load()
     // setup camera
     if (auto cameraLock = mCamera.lock())
     {
-        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
-
         if (auto transformLock = cameraLock->Transform().lock())
         {
             transformLock->Position() = { 0.f, 0.f, -10.f };
         }
+
+        WARNING_DISABLE_NODISCARD_PUSH();
+        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
+        WARNING_POP();
     }
 
     // setup sphere
     if (auto sphereLock = mSphere.lock())
     {
-        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({}));
+        Lumen::ObjectPtr objectPtr = mApplication.Resources().Import(
+            "Library/lumen default resources",
+            Lumen::Mesh::Type(),
+            "Sphere"
+        );
+        if (objectPtr)
+        {
+            WARNING_DISABLE_NODISCARD_PUSH();
+            sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(objectPtr) }));
+            WARNING_POP();
+        }
     }
 
     return true;

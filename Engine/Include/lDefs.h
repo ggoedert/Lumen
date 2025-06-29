@@ -14,6 +14,8 @@
 #include <ranges>
 #include <algorithm>
 #include <any>
+#include <optional>
+#include <assert.h>
 
 #include "lDebugLog.h"
 
@@ -85,6 +87,36 @@ namespace Lumen
         return std::string_view(currentFunction + begin, end - begin);
     }
 }
+
+/// disable warning helpers
+#if defined(_MSC_VER)
+#define WARNING_DISABLE_NODISCARD_PUSH() \
+do                                       \
+{                                        \
+    __pragma(warning(push))              \
+    __pragma(warning(disable: 4834))     \
+} while (false)
+#define WARNING_POP() do { __pragma(warning(pop)) } while (false)
+#elif defined(__GNUC__)
+#define WARNING_DISABLE_NODISCARD_PUSH()                  \
+do                                                        \
+{                                                         \
+    _Pragma("GCC diagnostic push")                        \
+    _Pragma("GCC diagnostic ignored \"-Wunused-result\"") \
+} while (false)
+#define WARNING_POP() do { _Pragma("GCC diagnostic pop") } while (false)
+#elif defined(__clang__)
+#define WARNING_DISABLE_NODISCARD_PUSH()                    \
+do                                                          \
+{                                                           \
+    _Pragma("clang diagnostic push")                        \
+    _Pragma("clang diagnostic ignored \"-Wunused-result\"") \
+} while (false)
+#define WARNING_POP() do { _Pragma("clang diagnostic pop") } while (false)
+#else
+#define WARNING_DISABLE_NODISCARD_PUSH() do {} while (false)
+#define WARNING_POP() do {} while (false)
+#endif
 
 /// current enclosing function
 #if defined(__INTELLISENSE__)
@@ -174,14 +206,18 @@ template <typename...Args>                                                      
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
 #ifdef NDEBUG
-#define COMPONENTTYPE_METHOD static constexpr HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
+#define TYPE_METHOD static constexpr HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
 #else
-#define COMPONENTTYPE_METHOD static const HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
+#define TYPE_METHOD static const HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
 #endif
 
-#define COMPONENT_TRAITS(TYPE)                                                        \
+#define RESOURCE_TRAITS \
+public:                 \
+TYPE_METHOD
+
+#define COMPONENT_TRAITS                                                              \
 public:                                                                               \
-COMPONENTTYPE_METHOD                                                                  \
+TYPE_METHOD                                                                           \
 static const std::string &Name() { return mName; }                                    \
 private:                                                                              \
 static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \

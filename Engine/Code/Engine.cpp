@@ -6,7 +6,6 @@
 
 #include "lEngine.h"
 #include "lSceneManager.h"
-#include "lFileSystem.h"
 
 using namespace Lumen;
 

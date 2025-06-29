@@ -167,6 +167,7 @@
     <ClInclude Include="..\Include\lFolderFileSystem.h" />
     <ClInclude Include="..\Include\lGameObject.h" />
     <ClInclude Include="..\Include\lMath.h" />
+    <ClInclude Include="..\Include\lMesh.h" />
     <ClInclude Include="..\Include\lMeshFilter.h" />
     <ClInclude Include="..\Include\lObject.h" />
     <ClInclude Include="..\Include\lProperty.h" />
@@ -186,8 +187,10 @@
     <ClCompile Include="..\Code\Engine.cpp" />
     <ClCompile Include="..\Code\FileSystem.cpp" />
     <ClCompile Include="..\Code\GameObject.cpp" />
+    <ClCompile Include="..\Code\Mesh.cpp" />
     <ClCompile Include="..\Code\MeshFilter.cpp" />
     <ClCompile Include="..\Code\Object.cpp" />
+    <ClCompile Include="..\Code\Resources.cpp" />
     <ClCompile Include="..\Code\SceneManager.cpp" />
     <ClCompile Include="..\Code\Transform.cpp" />
     <ClCompile Include="..\Code\Windows\DebugLogWindows.cpp" />

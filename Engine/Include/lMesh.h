@@ -1,27 +1,34 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Object interface
+/// \brief     Mesh interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
 #include "lDefs.h"
+#include "lObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(Object);
+    CLASS_PTR_DEF(Mesh);
 
-    /// Object class
-    class Object
+    /// Mesh class
+    class Mesh : public Object
     {
+        CLASS_NO_COPY_MOVE(Mesh);
+        CLASS_PTR_MAKER(Mesh);
+        RESOURCE_TRAITS;
+
     public:
-        CLASS_NO_COPY_MOVE(Object);
+        /// mesh creation parameters
+        struct Params {};
 
-        /// default constructor
-        explicit Object() = default;
+    private:
+        /// constructs a mesh
+        explicit Mesh();
 
-        /// pure virtual destructor
-        virtual ~Object() noexcept = 0;
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

@@ -20,7 +20,7 @@ namespace Lumen
     {
         CLASS_NO_DEFAULT_CTOR(Camera);
         CLASS_NO_COPY_MOVE(Camera);
-        COMPONENT_TRAITS(Camera);
+        COMPONENT_TRAITS;
         friend void SceneManager::Initialize();
 
     public:

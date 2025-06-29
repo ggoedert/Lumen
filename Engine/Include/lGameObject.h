@@ -36,7 +36,7 @@ namespace Lumen
         [[nodiscard]] ComponentWeakPtr Component(const HashType type) const;
 
         /// add a component
-        void AddComponent(const HashType type, const std::any &params);
+        [[nodiscard]] ComponentWeakPtr AddComponent(const HashType type, const std::any &params);
 
     protected:
         /// run game object
