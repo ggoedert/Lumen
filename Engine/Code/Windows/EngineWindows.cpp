@@ -59,7 +59,7 @@ namespace Lumen::Windows
         void GetDefaultSize(int &width, int &height) const noexcept override;
 
         /// create a folder file system
-        IFileSystemPtr FolderFileSystem(const std::string &name, const std::string &path) const override
+        IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const override
         {
             return FolderFileSystem::MakePtr(name, path);
         }

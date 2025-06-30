@@ -18,7 +18,7 @@ class Component::Impl
 
 public:
     /// constructs a component
-    explicit Impl(const std::string &name, const GameObjectWeakPtr &gameObject) :
+    explicit Impl(std::string_view name, const GameObjectWeakPtr &gameObject) :
         mName(name), mGameObject(gameObject) {}
 
     /// destroys component
@@ -26,7 +26,7 @@ public:
 
 public:
     /// get name
-    [[nodiscard]] std::string Name() const noexcept { return mName; }
+    [[nodiscard]] std::string_view Name() const noexcept { return mName; }
 
     /// get owning game object
     [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
@@ -36,7 +36,7 @@ private:
     void Start() {}
 
     /// name
-    const std::string &mName;
+    const std::string mName;
 
     /// owning game object
     GameObjectWeakPtr mGameObject;
@@ -45,14 +45,14 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+Component::Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
     Object(type), mImpl(Component::Impl::MakeUniquePtr(name, gameObject)) {}
 
 /// destructor
 Component::~Component() noexcept = default;
 
 /// get name
-std::string Component::Name() const noexcept
+std::string_view Component::Name() const noexcept
 {
     return mImpl->Name();
 }

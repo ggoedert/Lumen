@@ -59,10 +59,12 @@ bool MainScene::Load()
     Player testPlayer;
     testPlayer.Test() = 10;
     std::any a = testPlayer.Test().Get();
+    testPlayer.StrProp() = "my string prop";
 
     auto &prop = testPlayer.Test();
     using T = decltype(prop);  // What is T?
     static_assert(!std::is_const_v<T>, "Property returned should not be const");
+    std::string_view propName = prop.Name();
 
     testPlayer.Test() = 20;
     testPlayer.Test().Set(a);
@@ -73,7 +75,7 @@ bool MainScene::Load()
     v[8] = 100;
     testPlayer.VTest() = v;
     bool isIntBase = testPlayer.Test().IsTypeId(typeid(int));
-    std::string_view name = testPlayer.Test().Name();
+    std::string_view playerName = testPlayer.Test().Name();
 
     Lumen::IProperty &iProperty = static_cast<Lumen::IProperty &>(testPlayer.Test());
     bool isInt = iProperty.IsTypeId(typeid(int));

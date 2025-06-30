@@ -42,7 +42,7 @@ namespace Lumen
 
     public:
         /// constructs a IProperty
-        IProperty(Mode mode, std::string name) : mMode(mode), mName(std::move(name)) {}
+        IProperty(Mode mode, std::string_view name) : mMode(mode), mName(name) {}
 
         /// default destructor
         virtual ~IProperty() = default;
@@ -76,9 +76,9 @@ namespace Lumen
 
     public:
         /// constructs a property
-        Property(Getter get, Setter set, std::string name) : IProperty(StaticMode, std::move(name)), mGetter(std::move(get)), mSetter(std::move(set)) {}
-        Property(Getter get, std::string name) : IProperty(StaticMode, std::move(name)), mGetter(std::move(get)) {}
-        Property(Setter set, std::string name) : IProperty(StaticMode, std::move(name)), mSetter(std::move(set)) {}
+        Property(Getter get, Setter set, std::string_view name) : IProperty(StaticMode, name), mGetter(std::move(get)), mSetter(std::move(set)) {}
+        Property(Getter get, std::string_view name) : IProperty(StaticMode, name), mGetter(std::move(get)) {}
+        Property(Setter set, std::string_view name) : IProperty(StaticMode, name), mSetter(std::move(set)) {}
 
         /// returns the type id of the property
         bool IsTypeId(const std::type_info &typeId) const override { return typeId == typeid(T); }

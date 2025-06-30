@@ -33,7 +33,7 @@ Resources::Resources() : mImpl(Resources::Impl::MakeUniquePtr()) {}
 Resources::~Resources() {}
 
 /// import resource
-ObjectPtr Resources::Import(const std::string &path, const HashType type, std::optional<const std::string> name)
+ObjectPtr Resources::Import(std::string_view path, const HashType type, std::optional<std::string_view> name)
 {
     // WIP for now, only a test mesh construction
     return Mesh::MakePtr();

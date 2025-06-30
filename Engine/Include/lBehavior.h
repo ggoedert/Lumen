@@ -20,7 +20,7 @@ namespace Lumen
 
     public:
         /// constructor
-        explicit Behavior(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
+        explicit Behavior(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
         /// destructor
         ~Behavior() noexcept override;

@@ -9,17 +9,17 @@
 
 using namespace Lumen;
 
-void DebugLog::Error(const std::string &error)
+void DebugLog::Error(std::string_view error)
 {
-    OutputDebugStringA((std::string("[Error] ") + error + "\n").c_str());
+    OutputDebugStringA((std::string("[Error] ") + std::string(error) + "\n").c_str());
 }
 
-void DebugLog::Warning(const std::string &warning)
+void DebugLog::Warning(std::string_view warning)
 {
-    OutputDebugStringA((std::string("[Warning] ") + warning + "\n").c_str());
+    OutputDebugStringA((std::string("[Warning] ") + std::string(warning) + "\n").c_str());
 }
 
-void DebugLog::Info(const std::string &info)
+void DebugLog::Info(std::string_view info)
 {
-    OutputDebugStringA((std::string("[Info] ") + info + "\n").c_str());
+    OutputDebugStringA((std::string("[Info] ") + std::string(info) + "\n").c_str());
 }

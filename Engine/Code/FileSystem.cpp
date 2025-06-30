@@ -47,4 +47,4 @@ void FileSystem::RegisterFileSystem(const IFileSystemPtr &fileSystem)
 }
 
 /// opens a file on the specified path
-void FileSystem::Open(const std::string &path) {}
+void FileSystem::Open(std::string_view path) {}

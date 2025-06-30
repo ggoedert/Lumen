@@ -36,7 +36,7 @@ private:
 //==============================================================================================================================================================================
 
 /// constructor
-Behavior::Behavior(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
+Behavior::Behavior(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
     Component(type, name, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
 
 /// destructor

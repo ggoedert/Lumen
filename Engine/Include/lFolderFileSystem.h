@@ -18,14 +18,14 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the folder file system
-        static IFileSystemPtr MakePtr(const std::string &name, const std::string &path);
+        static IFileSystemPtr MakePtr(std::string_view name, std::string_view path);
 
         /// opens a file on the specified path
-        void Open(const std::string &path) const override;
+        void Open(std::string_view path) const override;
 
     private:
         /// constructs a folder file system
-        explicit FolderFileSystem(const std::string &name, const std::string &path);
+        explicit FolderFileSystem(std::string_view name, std::string_view path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

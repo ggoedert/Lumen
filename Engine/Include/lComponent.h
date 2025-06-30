@@ -24,14 +24,14 @@ namespace Lumen
 
     public:
         /// get name
-        [[nodiscard]] std::string Name() const noexcept;
+        [[nodiscard]] std::string_view Name() const noexcept;
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        explicit Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject);
+        explicit Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
         virtual ~Component() noexcept override;

@@ -14,12 +14,12 @@ namespace Lumen
     namespace DebugLog
     {
         /// log error
-        void Error(const std::string &error);
+        void Error(std::string_view error);
 
         /// log warning
-        void Warning(const std::string &warning);
+        void Warning(std::string_view warning);
 
         /// log info
-        void Info(const std::string &info);
+        void Info(std::string_view info);
     };
 }

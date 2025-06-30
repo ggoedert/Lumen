@@ -19,7 +19,7 @@ namespace Lumen
 
     public:
         /// opens a file on the specified path
-        virtual void Open(const std::string &path) const = 0;
+        virtual void Open(std::string_view path) const = 0;
 
     protected:
         /// default constructor
@@ -42,6 +42,6 @@ namespace Lumen
         void RegisterFileSystem(const IFileSystemPtr &fileSystem);
 
         /// opens a file on the specified path
-        void Open(const std::string &path);
+        void Open(std::string_view path);
     };
 }

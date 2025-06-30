@@ -41,7 +41,7 @@ public:
 
 private:
     /// constructor
-    explicit Test1(const std::string &name, const int version) : Lumen::Application() {}
+    explicit Test1(std::string_view name, const int version) : Lumen::Application() {}
 
     /// main scene
     MainScenePtr mMainScene;
