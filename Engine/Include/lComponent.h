@@ -23,9 +23,6 @@ namespace Lumen
         friend void SceneManager::Run();
 
     public:
-        /// get type
-        [[nodiscard]] HashType Type() const noexcept;
-
         /// get name
         [[nodiscard]] std::string Name() const noexcept;
 

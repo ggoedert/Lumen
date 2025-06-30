@@ -7,6 +7,7 @@
 
 #include "lDefs.h"
 #include "lObject.h"
+#include "lResources.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -18,11 +19,11 @@ namespace Lumen
     {
         CLASS_NO_COPY_MOVE(Mesh);
         CLASS_PTR_MAKER(Mesh);
-        RESOURCE_TRAITS;
+        OBJECT_TRAITS;
 
     public:
-        /// mesh creation parameters
-        struct Params {};
+        /// destroys mesh
+        ~Mesh() noexcept override;
 
     private:
         /// constructs a mesh

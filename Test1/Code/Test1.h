@@ -22,9 +22,6 @@ class Test1 : public Lumen::Application
     CLASS_PTR_MAKER(Test1);
 
 public:
-    /// constructor
-    explicit Test1(const std::string &name, const int version) : Lumen::Application() {}
-
     /// initialize and load our test scene
     bool Initialize() override
     {
@@ -43,5 +40,9 @@ public:
     }
 
 private:
+    /// constructor
+    explicit Test1(const std::string &name, const int version) : Lumen::Application() {}
+
+    /// main scene
     MainScenePtr mMainScene;
 };

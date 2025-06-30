@@ -15,13 +15,21 @@ namespace Lumen
     /// Object class
     class Object
     {
-    public:
+        CLASS_NO_DEFAULT_CTOR(Object);
         CLASS_NO_COPY_MOVE(Object);
 
-        /// default constructor
-        explicit Object() = default;
+        /// get type
+        [[nodiscard]] HashType Type() const noexcept;
 
-        /// pure virtual destructor
-        virtual ~Object() noexcept = 0;
+    protected:
+        /// constructs an object with type. called by derived classes
+        explicit Object(const HashType type);
+
+        /// virtual destructor
+        virtual ~Object() noexcept;
+
+    private:
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

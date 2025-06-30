@@ -58,7 +58,7 @@ private:
 //==============================================================================================================================================================================
 
 /// constructor
-Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(), mImpl(Transform::Impl::MakeUniquePtr(gameObject)) {}
+Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(gameObject)) {}
 
 /// destructor
 Transform::~Transform() noexcept = default;

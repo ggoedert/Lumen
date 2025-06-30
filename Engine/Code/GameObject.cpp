@@ -108,7 +108,7 @@ GameObjectWeakPtr GameObject::MakePtr()
 }
 
 /// constructs a game object
-GameObject::GameObject() {}
+GameObject::GameObject() : Object(Type()) {}
 
 /// destroys game object
 GameObject::~GameObject() noexcept {}

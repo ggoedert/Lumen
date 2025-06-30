@@ -111,7 +111,7 @@ bool MainScene::Load()
             Lumen::Mesh::Type(),
             "Sphere"
         );
-        if (objectPtr)
+        if (objectPtr && objectPtr->Type() == Lumen::Mesh::Type())
         {
             WARNING_DISABLE_NODISCARD_PUSH();
             sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(objectPtr) }));

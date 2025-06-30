@@ -23,4 +23,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh() : mImpl(Mesh::Impl::MakeUniquePtr()) {}
+Mesh::Mesh() : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr()) {}
+
+/// destroys mesh
+Mesh::~Mesh() noexcept {}

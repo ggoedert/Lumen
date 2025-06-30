@@ -18,16 +18,13 @@ class Component::Impl
 
 public:
     /// constructs a component
-    explicit Impl(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
-        mType(type), mName(name), mGameObject(gameObject) {}
+    explicit Impl(const std::string &name, const GameObjectWeakPtr &gameObject) :
+        mName(name), mGameObject(gameObject) {}
 
     /// destroys component
     ~Impl() = default;
 
 public:
-    /// get type
-    [[nodiscard]] HashType Type() const noexcept { return mType; }
-
     /// get name
     [[nodiscard]] std::string Name() const noexcept { return mName; }
 
@@ -37,9 +34,6 @@ public:
 private:
     /// start component
     void Start() {}
-
-    /// type
-    const HashType mType;
 
     /// name
     const std::string &mName;
@@ -52,16 +46,10 @@ private:
 
 /// constructs a component with type, name, and parent. called by derived classes
 Component::Component(const HashType type, const std::string &name, const GameObjectWeakPtr &gameObject) :
-    Object(), mImpl(Component::Impl::MakeUniquePtr(type, name, gameObject)) {}
+    Object(type), mImpl(Component::Impl::MakeUniquePtr(name, gameObject)) {}
 
 /// destructor
 Component::~Component() noexcept = default;
-
-/// get type
-HashType Component::Type() const noexcept
-{
-    return mImpl->Type();
-}
 
 /// get name
 std::string Component::Name() const noexcept

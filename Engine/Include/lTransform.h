@@ -20,6 +20,7 @@ namespace Lumen
     class Transform : public Object
     {
         CLASS_NO_DEFAULT_CTOR(Transform);
+        OBJECT_TRAITS;
 
     public:
         /// creates a smart pointer version of the transform

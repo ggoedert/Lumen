@@ -190,10 +190,10 @@ using TYPE##UniquePtr = std::unique_ptr<TYPE>
 CLASS_UNIQUE_PTR_DEF(TYPE);   \
 TYPE##UniquePtr m##TYPE
 
-#define CLASS_PTR_MAKER(TYPE)                                                                                  \
-public:                                                                                                        \
-template <typename...Args>                                                                                     \
-inline static TYPE##Ptr MakePtr(Args&&...args) { return std::make_shared<TYPE>(std::forward<Args>(args)...); }
+#define CLASS_PTR_MAKER(TYPE)                                                                                \
+public:                                                                                                      \
+template <typename...Args>                                                                                   \
+inline static TYPE##Ptr MakePtr(Args&&... args) { return TYPE##Ptr(new TYPE(std::forward<Args>(args)...)); }
 
 #define CLASS_PTR_UNIQUEMAKER(TYPE)                                                                                        \
 public:                                                                                                                    \
@@ -211,8 +211,8 @@ inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_un
 #define TYPE_METHOD static const HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
 #endif
 
-#define RESOURCE_TRAITS \
-public:                 \
+#define OBJECT_TRAITS \
+public:               \
 TYPE_METHOD
 
 #define COMPONENT_TRAITS                                                              \

@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lResources.h"
+#include "lMesh.h"
 
 using namespace Lumen;
 
@@ -28,12 +29,12 @@ public:
 /// constructor
 Resources::Resources() : mImpl(Resources::Impl::MakeUniquePtr()) {}
 
+/// destructor
 Resources::~Resources() {}
 
 /// import resource
 ObjectPtr Resources::Import(const std::string &path, const HashType type, std::optional<const std::string> name)
 {
-    // Implementation of resource import logic goes here
-    // For now, we return a null pointer as a placeholder
-    return ObjectPtr();
+    // WIP for now, only a test mesh construction
+    return Mesh::MakePtr();
 }

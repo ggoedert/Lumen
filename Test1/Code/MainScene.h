@@ -19,10 +19,6 @@ class MainScene : public Lumen::Scene
     CLASS_PTR_MAKER(MainScene);
 
 public:
-    /// constructor
-    explicit MainScene(const Lumen::Application &application) :
-        Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr()), mSphere(Lumen::GameObject::MakePtr()) {}
-
     /// load scene
     bool Load() override;
 
@@ -30,7 +26,14 @@ public:
     void Unload() override;
 
 private:
+    /// constructor
+    explicit MainScene(const Lumen::Application &application) :
+        Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr()), mSphere(Lumen::GameObject::MakePtr()) {}
+
+    /// application reference
     const Lumen::Application &mApplication;
+
+    /// components
     Lumen::GameObjectWeakPtr mCamera;
     Lumen::GameObjectWeakPtr mSphere;
 };
