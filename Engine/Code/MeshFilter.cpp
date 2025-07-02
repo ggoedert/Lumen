@@ -7,6 +7,8 @@
 #include "lDefs.h"
 #include "lMeshFilter.h"
 
+#include <format>
+
 using namespace Lumen;
 
 /// MeshFilter::Impl class
@@ -44,14 +46,18 @@ MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh) :
     Behavior(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr(mesh)) {}
 
 /// creates a smart pointer version of the mesh filter component
-ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const std::any &params)
+ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
 {
-    if (params.type() == typeid(Params))
+    if (params.Type() == MeshFilter::Params::Type())
     {
-        const auto &createParams = std::any_cast<const Params &>(params);
+        const auto &createParams = static_cast<const Params &>(params);
         return ComponentPtr(new MeshFilter(gameObject, createParams.mesh));
     }
-    DebugLog::Error("Create component, unknown parameter type: " + std::string(params.type().name()));
+#ifdef NDEBUG
+    DebugLog::Error(std::format("Create component, unknown parameter type: 0x{:08X}", (Hash)params.Type()));
+#else
+    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mLabel));
+#endif
     return ComponentPtr();
 }
 

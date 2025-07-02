@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <any>
 #include <optional>
-#include <assert.h>
 
 #include "lDebugLog.h"
 
@@ -56,6 +55,12 @@ namespace Lumen
     /// lean version of HashType
     using HashType = Hash;
 
+    /// hash (FNV-1a) name from current type evaluated at compile time
+    consteval HashType NameType(const char *currentType)
+    {
+        return HashType(HashString(currentType));
+    }
+
     /// hash (FNV-1a) class name from current function name evaluated at compile time
     consteval HashType ClassNameType(const char *currentFunction)
     {
@@ -73,6 +78,9 @@ namespace Lumen
         Hash mHash;
         std::string_view mLabel;
     };
+
+    /// hash (FNV-1a) name from current type, debug version
+    HashType NameType(const char *currentType);
 
     /// hash (FNV-1a) class name from current function name, debug version
     HashType ClassNameType(const char *currentFunction);
@@ -218,7 +226,7 @@ TYPE_METHOD
 #define COMPONENT_TRAITS                                                              \
 public:                                                                               \
 TYPE_METHOD                                                                           \
-static const std::string &Name() { return mName; }                                    \
+static std::string_view Name() { return mName; }                                      \
 private:                                                                              \
 static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \
 static const std::string mName

@@ -30,7 +30,7 @@ namespace Lumen
         static EnginePtr MakePtr(const ApplicationPtr &application);
 
         /// initialization and management
-        virtual bool Initialize(const std::any &config);
+        virtual bool Initialize(const Object &config);
 
         /// shutdown
         virtual void Shutdown();

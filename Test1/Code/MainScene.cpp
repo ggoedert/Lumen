@@ -58,12 +58,12 @@ bool MainScene::Load()
 
     Player testPlayer;
     testPlayer.Test() = 10;
-    std::any a = testPlayer.Test().Get();
+    int a = testPlayer.Test().Get();
     testPlayer.StrProp() = "my string prop";
 
     auto &prop = testPlayer.Test();
     using T = decltype(prop);  // What is T?
-    static_assert(!std::is_const_v<T>, "Property returned should not be const");
+    LUMEN_ASSERT(!std::is_const_v<T> && "Property returned should not be const");
     std::string_view propName = prop.Name();
 
     testPlayer.Test() = 20;
@@ -74,12 +74,12 @@ bool MainScene::Load()
     v[1] = 10;
     v[8] = 100;
     testPlayer.VTest() = v;
-    bool isIntBase = testPlayer.Test().IsTypeId(typeid(int));
+    bool isIntBase = testPlayer.Test().IsType(Lumen::NameType("int"));
     std::string_view playerName = testPlayer.Test().Name();
 
     Lumen::IProperty &iProperty = static_cast<Lumen::IProperty &>(testPlayer.Test());
-    bool isInt = iProperty.IsTypeId(typeid(int));
-    bool isFloat = iProperty.IsTypeId(typeid(float));
+    bool isInt = iProperty.IsType(Lumen::NameType("int"));
+    bool isFloat = iProperty.IsType(Lumen::NameType("float"));
 
     OtherPlayer otherPlayer;
 
@@ -101,22 +101,22 @@ bool MainScene::Load()
         }
 
         WARNING_DISABLE_NODISCARD_PUSH();
-        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ {0.4509f, 0.8431f, 1.f, 1.f} }));
+        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
         WARNING_POP();
     }
 
     // setup sphere
     if (auto sphereLock = mSphere.lock())
     {
-        Lumen::ObjectPtr objectPtr = mApplication.Resources().Import(
+        Lumen::ObjectPtr spherePtr = mApplication.Resources().Import(
             "Library/lumen default resources",
             Lumen::Mesh::Type(),
             "Sphere"
         );
-        if (objectPtr && objectPtr->Type() == Lumen::Mesh::Type())
+        if (spherePtr && spherePtr->Type() == Lumen::Mesh::Type())
         {
             WARNING_DISABLE_NODISCARD_PUSH();
-            sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(objectPtr) }));
+            sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(spherePtr) }));
             WARNING_POP();
         }
     }

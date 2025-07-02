@@ -5,9 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lDefs.h"
+
 #include <utility>
 #include <stdexcept>
-#include <typeinfo>
 
 /// Lumen namespace
 namespace Lumen
@@ -42,26 +43,23 @@ namespace Lumen
 
     public:
         /// constructs a IProperty
-        IProperty(Mode mode, std::string_view name) : mMode(mode), mName(name) {}
+        IProperty(Mode mode, HashType hash, std::string_view name) : mMode(mode), mHash(hash), mName(name) {}
 
         /// default destructor
         virtual ~IProperty() = default;
 
         /// checks if the property is of a specific type
-        virtual bool IsTypeId(const std::type_info &typeId) const = 0;
+        virtual bool IsType(const HashType &type) const = 0;
 
         /// return property name
         std::string_view Name() const { return mName; }
 
-        /// generic get
-        virtual std::any Get() const = 0;
-
-        /// generic set
-        virtual bool Set(const std::any &) = 0;
-
     protected:
         /// property access mode
         Mode mMode;
+
+        /// property hash
+        HashType mHash;
 
         /// property name
         std::string mName;
@@ -76,15 +74,15 @@ namespace Lumen
 
     public:
         /// constructs a property
-        Property(Getter get, Setter set, std::string_view name) : IProperty(StaticMode, name), mGetter(std::move(get)), mSetter(std::move(set)) {}
-        Property(Getter get, std::string_view name) : IProperty(StaticMode, name), mGetter(std::move(get)) {}
-        Property(Setter set, std::string_view name) : IProperty(StaticMode, name), mSetter(std::move(set)) {}
+        Property(Getter get, Setter set, HashType hash, std::string_view name) : IProperty(StaticMode, hash, name), mGetter(std::move(get)), mSetter(std::move(set)) {}
+        Property(Getter get, HashType hash, std::string_view name) : IProperty(StaticMode, hash, name), mGetter(std::move(get)) {}
+        Property(Setter set, HashType hash, std::string_view name) : IProperty(StaticMode, hash, name), mSetter(std::move(set)) {}
 
-        /// returns the type id of the property
-        bool IsTypeId(const std::type_info &typeId) const override { return typeId == typeid(T); }
+        /// returns the type of the property
+        bool IsType(const HashType &type) const override { return type == mHash; }
 
         /// generic get, only enabled if mode has read
-        std::any Get() const override
+        T Get() const
         {
             if constexpr (StaticMode == PropertyDetail::Mode::Read || StaticMode == PropertyDetail::Mode::ReadWrite)
             {
@@ -92,29 +90,21 @@ namespace Lumen
             }
             else
             {
-                assert(false && "Get() called on non-readable property");
+                LUMEN_ASSERT(false && "Get() called on non-readable property");
                 throw std::logic_error("Get() called on non-readable property");
             }
         }
 
         /// generic set, only enabled if mode has write
-        bool Set(const std::any &value) override
+        void Set(const T &value)
         {
             if constexpr (StaticMode == PropertyDetail::Mode::Write || StaticMode == PropertyDetail::Mode::ReadWrite)
             {
-                try
-                {
-                    mSetter(std::any_cast<const T &>(value));
-                    return true;
-                }
-                catch (const std::bad_any_cast &)
-                {
-                    return false;
-                }
+                mSetter(value);
             }
             else
             {
-                assert(false && "Set() called on non-writable property");
+                LUMEN_ASSERT(false && "Set() called on non-writable property");
                 throw std::logic_error("Set() called on non-writable property");
             }
         }
@@ -191,7 +181,7 @@ namespace Lumen
         static PropType property(                                                                                \
             std::function<const TYPE()>([this]() -> decltype(auto) { return this->GETTER(); }),                  \
             std::function<void(const TYPE &)>([this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); }), \
-            #NAME);                                                                                              \
+            Lumen::NameType(#TYPE), #NAME);                                                                      \
         return property;                                                                                         \
     }
 
@@ -203,7 +193,7 @@ namespace Lumen
             std::function<const TYPE()>, std::function<void(const TYPE &)>>;                    \
         static PropType property(                                                               \
             std::function<const TYPE()>([this]() -> decltype(auto) { return this->GETTER(); }), \
-            #NAME);                                                                             \
+            Lumen::NameType(#TYPE), #NAME);                                                     \
         return property;                                                                        \
     }
 
@@ -215,7 +205,7 @@ namespace Lumen
             std::function<const TYPE()>, std::function<void(const TYPE &)>>;                                     \
         static PropType property(                                                                                \
             std::function<void(const TYPE &)>([this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); }), \
-            #NAME);                                                                                              \
+            Lumen::NameType(#TYPE), #NAME);                                                                      \
         return property;                                                                                         \
     }
 }

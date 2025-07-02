@@ -26,7 +26,12 @@ namespace Lumen
 
     public:
         /// mesh filter creation parameters
-        struct Params { MeshPtr mesh; };
+        struct Params : Object
+        {
+            OBJECT_TRAITS;
+            explicit Params(MeshPtr mesh) : Object(Type()), mesh(mesh) {}
+            MeshPtr mesh;
+        };
 
         /// mesh property
         PROPERTY(MeshPtr, Mesh, GetMesh, SetMesh);
@@ -36,7 +41,7 @@ namespace Lumen
         explicit MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh);
 
         /// creates a smart pointer version of the mesh filter component
-        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const std::any &params);
+        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const Object &params);
 
         /// get mesh
         [[nodiscard]] const MeshPtr GetMesh() const;

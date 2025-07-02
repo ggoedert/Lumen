@@ -32,7 +32,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    [[nodiscard]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params);
+    [[nodiscard]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
 
 protected:
     /// run game object
@@ -78,7 +78,7 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params)
+ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
     ComponentWeakPtr component = Lumen::SceneManager::CreateComponent(gameObject, type, params);
     mComponents.push_back(component);
@@ -126,7 +126,7 @@ ComponentWeakPtr GameObject::Component(const HashType type) const
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(const HashType type, const std::any &params)
+ComponentWeakPtr GameObject::AddComponent(const HashType type, const Object &params)
 {
     return mImpl->AddComponent(shared_from_this(), type, params);
 }

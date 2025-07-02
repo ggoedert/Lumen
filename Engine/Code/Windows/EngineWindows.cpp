@@ -15,6 +15,8 @@
 #include "StepTimer.h"
 #include "DDS.h"
 
+#include <format>
+
 using namespace DX;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -37,7 +39,7 @@ namespace Lumen::Windows
         ~EngineWindows();
 
         // initialization and management
-        bool Initialize(const std::any &config) override;
+        bool Initialize(const Object &config) override;
 
         // basic game loop
         bool Tick() override;
@@ -119,15 +121,19 @@ namespace Lumen::Windows
     }
 
     /// initialize the Direct3D resources required to run
-    bool EngineWindows::Initialize(const std::any &config)
+    bool EngineWindows::Initialize(const Object &config)
     {
-        if (config.type() != typeid(Lumen::Windows::Config))
+        if (config.Type() != Lumen::Windows::Config::Type())
         {
-            DebugLog::Error("Initialize engine, unknown config type: " + std::string(config.type().name()));
+#ifdef NDEBUG
+            DebugLog::Error(std::format("Initialize engine, unknown config type: 0x{:08X}", (Hash)config.Type()));
+#else
+            DebugLog::Error(std::format("Initialize engine, unknown config type: {}", config.Type().mLabel));
+#endif
             return false;
         }
 
-        const auto &initializeConfig = std::any_cast<const Lumen::Windows::Config &>(config);
+        const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.window, initializeConfig.width, initializeConfig.height);
 
         mDeviceResources->CreateDeviceResources();

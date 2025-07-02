@@ -10,7 +10,7 @@
 using namespace Lumen;
 
 // initialization and management
-bool Engine::Initialize(const std::any &config)
+bool Engine::Initialize(const Object &config)
 {
     Lumen::FileSystem::Initialize();
     Lumen::SceneManager::Initialize();
@@ -48,6 +48,21 @@ bool Engine::Run(float deltaTime)
 //==============================================================================================================================================================================
 
 #ifdef _DEBUG
+/// hash (FNV-1a) name from current type, debug version
+HashType Lumen::NameType(const char *currentType)
+{
+    size_t end = std::string_view(currentType).size();
+    Hash hash = HASH_OFFSET;
+    size_t hashPos = 0;
+    while (hashPos < end)
+    {
+        hash ^= *(currentType + hashPos);
+        hash *= HASH_PRIME;
+        hashPos++;
+    }
+    return HashType(hash, std::string_view(currentType, end));
+}
+
 /// hash (FNV-1a) class name from current function name, debug version
 HashType Lumen::ClassNameType(const char *currentFunction)
 {

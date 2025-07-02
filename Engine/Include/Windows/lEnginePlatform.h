@@ -9,5 +9,10 @@
 namespace Lumen::Windows
 {
     /// engine initialize config
-    struct Config { HWND window; int width; int height; };
+    struct Config : Object
+    {
+        OBJECT_TRAITS;
+        explicit Config(HWND window, int width, int height) : Object(Type()), window(window), width(width), height(height) {}
+        HWND window; int width; int height;
+    };
 }

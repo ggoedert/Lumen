@@ -90,7 +90,7 @@ void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMa
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const std::any &params)
+ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
     LUMEN_ASSERT(Hidden::gSceneManagerState);
     LUMEN_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));

@@ -6,6 +6,8 @@
 
 #include "lCamera.h"
 
+#include <format>
+
 using namespace Lumen;
 
 /// Camera::Impl class
@@ -43,14 +45,18 @@ Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor
     Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
 /// creates a smart pointer version of the camera component
-ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const std::any &params)
+ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
 {
-    if (params.type() == typeid(Params))
+    if (params.Type() == Camera::Params::Type())
     {
-        const auto &createParams = std::any_cast<const Params &>(params);
+        const auto &createParams = static_cast<const Params &>(params);
         return ComponentPtr(new Camera(gameObject, createParams.backgroundColor));
     }
-    DebugLog::Error("Create component, unknown parameter type: " + std::string(params.type().name()));
+#ifdef NDEBUG
+    DebugLog::Error(std::format("Create component, unknown parameter type: 0x{:08X}", (Hash)params.Type()));
+#else
+    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mLabel));
+#endif
     return ComponentPtr();
 }
 
