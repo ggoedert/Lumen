@@ -19,7 +19,7 @@ namespace Lumen
     {
         CLASS_NO_COPY_MOVE(Mesh);
         CLASS_PTR_MAKER(Mesh);
-        OBJECT_TRAITS;
+        OBJECT_TYPEINFO;
 
     public:
         /// destroys mesh

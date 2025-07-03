@@ -38,7 +38,7 @@ private:
 
 //==============================================================================================================================================================================
 
-DEFINE_COMPONENT_TRAITS(Camera);
+DEFINE_COMPONENT_TYPEINFO(Camera);
 
 /// constructs a camera with name and background color
 Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) :
@@ -52,10 +52,10 @@ ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &
         const auto &createParams = static_cast<const Params &>(params);
         return ComponentPtr(new Camera(gameObject, createParams.backgroundColor));
     }
-#ifdef NDEBUG
-    DebugLog::Error(std::format("Create component, unknown parameter type: 0x{:08X}", (Hash)params.Type()));
+#ifdef TYPEINFO
+    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mName));
 #else
-    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mLabel));
+    DebugLog::Error(std::format("Create component, unknown parameter hash type: 0x{:08X}", (Hash)params.Type()));
 #endif
     return ComponentPtr();
 }

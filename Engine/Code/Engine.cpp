@@ -20,6 +20,10 @@ bool Engine::Initialize(const Object &config)
 
     mApplication->SetEngine(shared_from_this());
 
+#ifdef EDITOR
+    Lumen::DebugLog::Info("Engine initialized in editor mode");
+#endif
+
     // initialize application
     return mApplication->Initialize();
 }
@@ -48,8 +52,8 @@ bool Engine::Run(float deltaTime)
 //==============================================================================================================================================================================
 
 #ifdef _DEBUG
-/// hash (FNV-1a) name from current type, debug version
-HashType Lumen::NameType(const char *currentType)
+/// hash (FNV-1a) name from current type, typeinfo version
+HashType Lumen::PodType(const char *currentType)
 {
     size_t end = std::string_view(currentType).size();
     Hash hash = HASH_OFFSET;
@@ -63,8 +67,8 @@ HashType Lumen::NameType(const char *currentType)
     return HashType(hash, std::string_view(currentType, end));
 }
 
-/// hash (FNV-1a) class name from current function name, debug version
-HashType Lumen::ClassNameType(const char *currentFunction)
+/// hash (FNV-1a) class name from current function name, typeinfo version
+HashType Lumen::ClassType(const char *currentFunction)
 {
     size_t end = std::string_view(currentFunction).find_last_of('(');
     end = std::string_view(currentFunction, end).find_last_of(':') - 1;

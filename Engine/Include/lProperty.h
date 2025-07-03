@@ -181,7 +181,7 @@ namespace Lumen
         static PropType property(                                                                                \
             std::function<const TYPE()>([this]() -> decltype(auto) { return this->GETTER(); }),                  \
             std::function<void(const TYPE &)>([this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); }), \
-            Lumen::NameType(#TYPE), #NAME);                                                                      \
+            Lumen::PodType(#TYPE), #NAME);                                                                       \
         return property;                                                                                         \
     }
 
@@ -193,7 +193,7 @@ namespace Lumen
             std::function<const TYPE()>, std::function<void(const TYPE &)>>;                    \
         static PropType property(                                                               \
             std::function<const TYPE()>([this]() -> decltype(auto) { return this->GETTER(); }), \
-            Lumen::NameType(#TYPE), #NAME);                                                     \
+            Lumen::PodType(#TYPE), #NAME);                                                      \
         return property;                                                                        \
     }
 
@@ -205,7 +205,7 @@ namespace Lumen
             std::function<const TYPE()>, std::function<void(const TYPE &)>>;                                     \
         static PropType property(                                                                                \
             std::function<void(const TYPE &)>([this](auto &&v) { this->SETTER(std::forward<decltype(v)>(v)); }), \
-            Lumen::NameType(#TYPE), #NAME);                                                                      \
+            Lumen::PodType(#TYPE), #NAME);                                                                       \
         return property;                                                                                         \
     }
 }

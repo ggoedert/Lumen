@@ -74,12 +74,12 @@ bool MainScene::Load()
     v[1] = 10;
     v[8] = 100;
     testPlayer.VTest() = v;
-    bool isIntBase = testPlayer.Test().IsType(Lumen::NameType("int"));
+    bool isIntBase = testPlayer.Test().IsType(Lumen::PodType("int"));
     std::string_view playerName = testPlayer.Test().Name();
 
     Lumen::IProperty &iProperty = static_cast<Lumen::IProperty &>(testPlayer.Test());
-    bool isInt = iProperty.IsType(Lumen::NameType("int"));
-    bool isFloat = iProperty.IsType(Lumen::NameType("float"));
+    bool isInt = iProperty.IsType(Lumen::PodType("int"));
+    bool isFloat = iProperty.IsType(Lumen::PodType("float"));
 
     OtherPlayer otherPlayer;
 

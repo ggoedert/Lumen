@@ -18,6 +18,11 @@
 
 #include "lDebugLog.h"
 
+/// enable type info in debug or editor builds
+#if !defined(NDEBUG) || defined(EDITOR)
+#define TYPEINFO
+#endif
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -51,39 +56,39 @@ namespace Lumen
         return HashStringRange(string, 0, std::string_view(string).size());
     }
 
-#ifdef NDEBUG
+#ifdef TYPEINFO
+    /// typeinfo version of HashType
+    struct HashType
+    {
+        HashType(Hash hash, std::string_view name) : mHash(hash), mName(name) {}
+        operator Hash() const { return mHash; }
+        bool operator==(const HashType &other) const { return mHash == other.mHash; }
+        Hash mHash;
+        std::string_view mName;
+    };
+
+    /// hash (FNV-1a) name from current type, typeinfo version
+    HashType PodType(const char *currentType);
+
+    /// hash (FNV-1a) class name from current function name, typeinfo version
+    HashType ClassType(const char *currentFunction);
+#else
     /// lean version of HashType
     using HashType = Hash;
 
     /// hash (FNV-1a) name from current type evaluated at compile time
-    consteval HashType NameType(const char *currentType)
+    consteval HashType PodType(const char *currentType)
     {
         return HashType(HashString(currentType));
     }
 
     /// hash (FNV-1a) class name from current function name evaluated at compile time
-    consteval HashType ClassNameType(const char *currentFunction)
+    consteval HashType ClassType(const char *currentFunction)
     {
         size_t end = std::string_view(currentFunction).find_last_of('(');
         end = std::string_view(currentFunction, end).find_last_of(':') - 1;
         return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
     }
-#else
-    /// debug version of HashType
-    struct HashType
-    {
-        HashType(Hash hash, std::string_view label) : mHash(hash), mLabel(label) {}
-        operator Hash() const { return mHash; }
-        bool operator==(const HashType &other) const { return mHash == other.mHash; }
-        Hash mHash;
-        std::string_view mLabel;
-    };
-
-    /// hash (FNV-1a) name from current type, debug version
-    HashType NameType(const char *currentType);
-
-    /// hash (FNV-1a) class name from current function name, debug version
-    HashType ClassNameType(const char *currentFunction);
 #endif
 
     /// class name from current function name evaluated at compile time
@@ -213,17 +218,17 @@ public:                                                                         
 template <typename...Args>                                                                                                \
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
-#ifdef NDEBUG
-#define TYPE_METHOD static constexpr HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
+#ifdef TYPEINFO
+#define TYPE_METHOD static const HashType Type() { return ClassType(CURRENT_FUNCTION); }
 #else
-#define TYPE_METHOD static const HashType Type() { return ClassNameType(CURRENT_FUNCTION); }
+#define TYPE_METHOD static constexpr HashType Type() { return ClassType(CURRENT_FUNCTION); }
 #endif
 
-#define OBJECT_TRAITS \
-public:               \
+#define OBJECT_TYPEINFO \
+public:                 \
 TYPE_METHOD
 
-#define COMPONENT_TRAITS                                                              \
+#define COMPONENT_TYPEINFO                                                            \
 public:                                                                               \
 TYPE_METHOD                                                                           \
 static std::string_view Name() { return mName; }                                      \
@@ -231,7 +236,7 @@ private:                                                                        
 static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \
 static const std::string mName
 
-#define DEFINE_COMPONENT_TRAITS(TYPE)                          \
+#define DEFINE_COMPONENT_TYPEINFO(TYPE)                          \
 const std::string TYPE::mName = std::string(TYPE::CacheName())
 
 template<typename T, typename Predicate>

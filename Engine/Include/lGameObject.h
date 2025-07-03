@@ -20,7 +20,7 @@ namespace Lumen
     class GameObject : public Object, public std::enable_shared_from_this<GameObject>
     {
         CLASS_NO_COPY_MOVE(GameObject);
-        OBJECT_TRAITS;
+        OBJECT_TYPEINFO;
         friend void SceneManager::Run();
 
     public:

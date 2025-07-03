@@ -125,10 +125,10 @@ namespace Lumen::Windows
     {
         if (config.Type() != Lumen::Windows::Config::Type())
         {
-#ifdef NDEBUG
-            DebugLog::Error(std::format("Initialize engine, unknown config type: 0x{:08X}", (Hash)config.Type()));
+#ifdef TYPEINFO
+            DebugLog::Error(std::format("Initialize engine, unknown config type: {}", config.Type().mName));
 #else
-            DebugLog::Error(std::format("Initialize engine, unknown config type: {}", config.Type().mLabel));
+            DebugLog::Error(std::format("Initialize engine, unknown config hash type: 0x{:08X}", (Hash)config.Type()));
 #endif
             return false;
         }

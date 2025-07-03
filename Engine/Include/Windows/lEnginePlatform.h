@@ -11,7 +11,7 @@ namespace Lumen::Windows
     /// engine initialize config
     struct Config : Object
     {
-        OBJECT_TRAITS;
+        OBJECT_TYPEINFO;
         explicit Config(HWND window, int width, int height) : Object(Type()), window(window), width(width), height(height) {}
         HWND window; int width; int height;
     };

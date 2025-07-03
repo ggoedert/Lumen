@@ -39,7 +39,7 @@ private:
 
 //==============================================================================================================================================================================
 
-DEFINE_COMPONENT_TRAITS(MeshFilter);
+DEFINE_COMPONENT_TYPEINFO(MeshFilter);
 
 /// constructs a mesh filter with name and background color
 MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh) :
@@ -53,10 +53,10 @@ ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Obje
         const auto &createParams = static_cast<const Params &>(params);
         return ComponentPtr(new MeshFilter(gameObject, createParams.mesh));
     }
-#ifdef NDEBUG
-    DebugLog::Error(std::format("Create component, unknown parameter type: 0x{:08X}", (Hash)params.Type()));
+#ifdef TYPEINFO
+    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mName));
 #else
-    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mLabel));
+    DebugLog::Error(std::format("Create component, unknown parameter hash type: 0x{:08X}", (Hash)params.Type()));
 #endif
     return ComponentPtr();
 }
