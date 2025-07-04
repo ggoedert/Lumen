@@ -7,6 +7,8 @@
 #include "lEngine.h"
 #include "lSceneManager.h"
 
+#include <format>
+
 using namespace Lumen;
 
 // initialization and management
@@ -51,7 +53,28 @@ bool Engine::Run(float deltaTime)
 
 //==============================================================================================================================================================================
 
-#ifdef _DEBUG
+#ifdef TYPEINFO
+
+/// Lumen Hidden namespace
+namespace Lumen::Hidden
+{
+    static std::unordered_map<Hash, std::string> gTypeHashRegistry;
+
+    /// hash (FNV-1a) name from current type, typeinfo version
+    void RegisterTypeHash(Hash hash, std::string_view name)
+    {
+        auto it = gTypeHashRegistry.find(hash);
+        if (it != gTypeHashRegistry.end())
+        {
+            L_ASSERT_MSG(it->second == name, std::format("Hash collision detected for type names '{}' and '{}'", it->second, name));
+        }
+        else
+        {
+            gTypeHashRegistry[hash] = name;
+        }
+    }
+}
+
 /// hash (FNV-1a) name from current type, typeinfo version
 HashType Lumen::PodType(const char *currentType)
 {
@@ -64,7 +87,9 @@ HashType Lumen::PodType(const char *currentType)
         hash *= HASH_PRIME;
         hashPos++;
     }
-    return HashType(hash, std::string_view(currentType, end));
+    std::string_view name(currentType, end);
+    Hidden::RegisterTypeHash(hash, name);
+    return HashType(hash, name);
 }
 
 /// hash (FNV-1a) class name from current function name, typeinfo version
@@ -81,6 +106,8 @@ HashType Lumen::ClassType(const char *currentFunction)
         hash *= HASH_PRIME;
         hashPos++;
     }
-    return HashType(hash, std::string_view(currentFunction + begin, end - begin));
+    std::string_view name(currentFunction + begin, end - begin);
+    Hidden::RegisterTypeHash(hash, name);
+    return HashType(hash, name);
 }
 #endif

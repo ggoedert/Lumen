@@ -31,7 +31,7 @@ public:
     /// set parent
     void SetParent(const TransformWeakPtr &parent)
     {
-        LUMEN_ASSERT(parent.lock() != mInterface.lock());
+        L_ASSERT(parent.lock() != mInterface.lock());
         mParent = parent;
     }
 

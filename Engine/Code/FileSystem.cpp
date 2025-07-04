@@ -28,21 +28,21 @@ namespace Lumen::Hidden
 /// initialize file namespace
 void FileSystem::Initialize()
 {
-    LUMEN_ASSERT(!Hidden::gFileState);
+    L_ASSERT(!Hidden::gFileState);
     Hidden::gFileState = std::make_unique<Hidden::FileState>();
 }
 
 /// shutdown file namespace
 void FileSystem::Shutdown()
 {
-    LUMEN_ASSERT(Hidden::gFileState);
+    L_ASSERT(Hidden::gFileState);
     Hidden::gFileState.reset();
 }
 
 /// register file system
 void FileSystem::RegisterFileSystem(const IFileSystemPtr &fileSystem)
 {
-    LUMEN_ASSERT(Hidden::gFileState);
+    L_ASSERT(Hidden::gFileState);
     Hidden::gFileState->mFileSystems.push_back(fileSystem);
 }
 

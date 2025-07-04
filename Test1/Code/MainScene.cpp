@@ -63,7 +63,7 @@ bool MainScene::Load()
 
     auto &prop = testPlayer.Test();
     using T = decltype(prop);  // What is T?
-    LUMEN_ASSERT(!std::is_const_v<T> && "Property returned should not be const");
+    L_ASSERT_MSG(!std::is_const_v<T>, "Property returned should not be const");
     std::string_view propName = prop.Name();
 
     testPlayer.Test() = 20;
@@ -74,12 +74,12 @@ bool MainScene::Load()
     v[1] = 10;
     v[8] = 100;
     testPlayer.VTest() = v;
-    bool isIntBase = testPlayer.Test().IsType(Lumen::PodType("int"));
+    bool isIntBase = testPlayer.Test().Type() == Lumen::PodType("int");
     std::string_view playerName = testPlayer.Test().Name();
 
     Lumen::IProperty &iProperty = static_cast<Lumen::IProperty &>(testPlayer.Test());
-    bool isInt = iProperty.IsType(Lumen::PodType("int"));
-    bool isFloat = iProperty.IsType(Lumen::PodType("float"));
+    bool isInt = iProperty.Type() == Lumen::PodType("int");
+    bool isFloat = iProperty.Type() == Lumen::PodType("float");
 
     OtherPlayer otherPlayer;
 
@@ -87,6 +87,9 @@ bool MainScene::Load()
     int c = otherPlayer.Test();
     int d = otherPlayer.TestR();
     otherPlayer.TestW() = testPlayer.Test() = 42;
+
+    bool hasRead = otherPlayer.TestW().HasRead();
+    bool hasWrite = otherPlayer.TestW().HasWrite();
 
     // Uncommenting below lines will give compile-time errors with messages:
     //int z = otherPlayer.TestW();   // error: read from write-only

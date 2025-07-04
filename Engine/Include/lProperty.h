@@ -7,9 +7,6 @@
 
 #include "lDefs.h"
 
-#include <utility>
-#include <stdexcept>
-
 /// Lumen namespace
 namespace Lumen
 {
@@ -48,8 +45,23 @@ namespace Lumen
         /// default destructor
         virtual ~IProperty() = default;
 
-        /// checks if the property is of a specific type
-        virtual bool IsType(const HashType &type) const = 0;
+        /// read only mode check
+        bool IsReadOnly() { return mMode == Mode::Read; }
+
+        /// write only mode check
+        bool IsWriteOnly() { return mMode == Mode::Write; }
+
+        /// read/write mode check
+        bool IsReadWrite() { return mMode == Mode::ReadWrite; }
+
+        /// has read mode check
+        bool HasRead() { return mMode == Mode::Read || mMode == Mode::ReadWrite; }
+
+        /// has write mode check
+        bool HasWrite() { return mMode == Mode::Write || mMode == Mode::ReadWrite; }
+
+        /// return type
+        HashType Type() { return mHash; }
 
         /// return property name
         std::string_view Name() const { return mName; }
@@ -78,9 +90,6 @@ namespace Lumen
         Property(Getter get, HashType hash, std::string_view name) : IProperty(StaticMode, hash, name), mGetter(std::move(get)) {}
         Property(Setter set, HashType hash, std::string_view name) : IProperty(StaticMode, hash, name), mSetter(std::move(set)) {}
 
-        /// returns the type of the property
-        bool IsType(const HashType &type) const override { return type == mHash; }
-
         /// generic get, only enabled if mode has read
         T Get() const
         {
@@ -90,8 +99,7 @@ namespace Lumen
             }
             else
             {
-                LUMEN_ASSERT(false && "Get() called on non-readable property");
-                throw std::logic_error("Get() called on non-readable property");
+                L_ASSERT_MSG(false, "Get() called on non-readable property");
             }
         }
 
@@ -104,8 +112,7 @@ namespace Lumen
             }
             else
             {
-                LUMEN_ASSERT(false && "Set() called on non-writable property");
-                throw std::logic_error("Set() called on non-writable property");
+                L_ASSERT_MSG(false, "Set() called on non-writable property");
             }
         }
 

@@ -42,7 +42,7 @@ namespace Lumen::Hidden
 /// initialize scene manager namespace
 void SceneManager::Initialize()
 {
-    LUMEN_ASSERT(!Hidden::gSceneManagerState);
+    L_ASSERT(!Hidden::gSceneManagerState);
     Hidden::gSceneManagerState = std::make_unique<Hidden::SceneManagerState>();
 
     SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
@@ -52,7 +52,7 @@ void SceneManager::Initialize()
 /// shutdown scene manager namespace
 void SceneManager::Shutdown()
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
     Unload();
     Hidden::gSceneManagerState.reset();
 }
@@ -60,7 +60,7 @@ void SceneManager::Shutdown()
 /// load scene
 bool SceneManager::Load(ScenePtr scene)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
     Unload();
     Hidden::gSceneManagerState->mCurrentScene = std::move(scene);
     return Hidden::gSceneManagerState->mCurrentScene->Load();
@@ -69,7 +69,7 @@ bool SceneManager::Load(ScenePtr scene)
 /// unload current scene
 void SceneManager::Unload()
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
     if (Hidden::gSceneManagerState->mCurrentScene)
     {
         Hidden::gSceneManagerState->mCurrentScene->Unload();
@@ -84,16 +84,16 @@ void SceneManager::Unload()
 /// register component maker
 void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
-    LUMEN_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
+    L_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
     Hidden::gSceneManagerState->mComponentMakers[type] = maker;
 }
 
 /// create component of a specific type
 ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
-    LUMEN_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
+    L_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
 
     auto it = Hidden::gSceneManagerState->mComponentMakers.find(type);
     if (it == Hidden::gSceneManagerState->mComponentMakers.end())
@@ -106,7 +106,7 @@ ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObje
 /// register game object in the current scene
 GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObject)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
 
     Hidden::gSceneManagerState->mGameObjects.push_back(gameObject);
     return gameObject;
@@ -116,7 +116,7 @@ GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObje
 /// the passed GameObjectWeakPtr must have been originally created from a shared GameObjectPtr stored in the SceneManager
 bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
 
     auto lockedGameObject = gameObject.lock();
     if (!lockedGameObject)
@@ -129,8 +129,8 @@ bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
 /// register component
 ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
-    LUMEN_ASSERT(component);
+    L_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(component);
 
     Hidden::gSceneManagerState->mComponentsMap[component->Type()].push_back(component);
     Hidden::gSceneManagerState->mNewComponents.push_back(component);
@@ -140,7 +140,7 @@ ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
 /// unregister component
 bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
 
     auto lockedComponent = component.lock();
     if (!lockedComponent)
@@ -149,7 +149,7 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
     }
 
     auto it = Hidden::gSceneManagerState->mComponentsMap.find(lockedComponent->Type());
-    LUMEN_ASSERT(it != Hidden::gSceneManagerState->mComponentsMap.end());
+    L_ASSERT(it != Hidden::gSceneManagerState->mComponentsMap.end());
 
     return RemoveFromVector(it->second, lockedComponent);
 }
@@ -157,7 +157,7 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 /// get all components of type
 Components SceneManager::GetComponents(const HashType type)
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
     Components result;
 
     auto it = Hidden::gSceneManagerState->mComponentsMap.find(type);
@@ -177,7 +177,7 @@ Components SceneManager::GetComponents(const HashType type)
 /// run application
 void SceneManager::Run()
 {
-    LUMEN_ASSERT(Hidden::gSceneManagerState);
+    L_ASSERT(Hidden::gSceneManagerState);
 
     if (!Hidden::gSceneManagerState->mNewComponents.empty())
     {

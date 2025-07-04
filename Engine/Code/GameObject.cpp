@@ -68,7 +68,7 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
-        LUMEN_ASSERT(componentPtr);
+        L_ASSERT(componentPtr);
         if (componentPtr->Type() == type)
         {
             return component;
@@ -91,7 +91,7 @@ void GameObject::Impl::Run()
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
-        LUMEN_ASSERT(componentPtr);
+        L_ASSERT(componentPtr);
         componentPtr->Run();
     }
 }
