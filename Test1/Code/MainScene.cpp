@@ -102,10 +102,7 @@ bool MainScene::Load()
         {
             transformLock->Position() = { 0.f, 0.f, -10.f };
         }
-
-        WARNING_DISABLE_NODISCARD_PUSH();
         cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
-        WARNING_POP();
     }
 
     // setup sphere
@@ -118,9 +115,7 @@ bool MainScene::Load()
         );
         if (spherePtr && spherePtr->Type() == Lumen::Mesh::Type())
         {
-            WARNING_DISABLE_NODISCARD_PUSH();
             sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(spherePtr) }));
-            WARNING_POP();
         }
     }
 
