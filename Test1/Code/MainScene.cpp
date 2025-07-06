@@ -6,6 +6,7 @@
 
 #include "MainScene.h"
 
+#include <lArrayProperty.h>
 #include <lTransform.h>
 #include <lCamera.h>
 #include <lMesh.h>
@@ -18,21 +19,32 @@ public:
     ~Player() = default;
 
     PROPERTY(int, Test, GetInt, SetInt);
-    PROPERTY(std::vector<int>, VTest, GetVInt, SetVInt);
+    ARRAYPROPERTY(int, VTest, 3, GetVInt, SetVInt);
     PROPERTY(std::string, StrProp, GetStr, SetStr);
+
+    ARRAYPROPERTY_RO(int, RVTest, 3, GetVInt);
+    ARRAYPROPERTY_WO(int, WVTest, 3, SetVInt);
 
     [[nodiscard]] const int GetInt() const { return mInt; }
     void SetInt(const int &val) { mInt = val; }
 
-    [[nodiscard]] std::vector<int> &GetVInt() { return mVec; }
-    void SetVInt(const std::vector<int> &val) { mVec = val; }
+    [[nodiscard]] int &GetVInt(size_t i) {
+        return mVec[i];
+    }
+    void SetVInt(size_t i, const int &val) {
+        mVec[i] = val;
+    }
 
     [[nodiscard]] std::string &GetStr() { return mStr; }
     void SetStr(const std::string &val) { mStr = val; }
 
     int mInt = 0;
-    std::vector<int> mVec = std::vector<int>(10);
+    std::vector<int> mVec = std::vector<int>(3);
     std::string mStr;
+
+    ARRAYPROPERTY(int, A, 3, GetVInt, SetVInt);
+    ARRAYPROPERTY(int, B, 3, GetVInt, SetVInt);
+    ARRAYPROPERTY(int, C, 3, GetVInt, SetVInt);
 };
 
 class OtherPlayer
@@ -70,10 +82,23 @@ bool MainScene::Load()
     testPlayer.Test().Set(a);
     int b = testPlayer.Test();
 
-    std::vector<int> v = testPlayer.VTest();
-    v[1] = 10;
-    v[8] = 100;
-    testPlayer.VTest() = v;
+    testPlayer.VTest()[0] = 1;
+    testPlayer.VTest()[1] = 2;
+    testPlayer.VTest()[2] = 3;
+    int va = testPlayer.RVTest()[1];
+    testPlayer.WVTest()[0] = ++va;
+    va = testPlayer.VTest()[2] = 10;
+    size_t vsize = testPlayer.VTest().Size();
+
+    testPlayer.A() = { 1, 2, 3 };
+    testPlayer.B() = { 10, 20, 30 };
+    testPlayer.C() = { 100, 200, 300 };
+
+    std::vector<int> aVec = testPlayer.A();
+
+    int i = 0, j = 1, k = 2;
+    testPlayer.A()[i] = testPlayer.B()[j] = testPlayer.C()[k];
+
     bool isIntBase = testPlayer.Test().Type() == Lumen::PodType("int");
     std::string_view playerName = testPlayer.Test().Name();
 

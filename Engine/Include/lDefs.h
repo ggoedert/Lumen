@@ -99,6 +99,48 @@ namespace Lumen
         size_t begin = std::string_view(currentFunction, end).find_last_of(' ') + 1;
         return std::string_view(currentFunction + begin, end - begin);
     }
+
+    /// Property helper utilities
+    namespace PropertyDetail
+    {
+        /// access modes for properties
+        enum class Mode { Read, Write, ReadWrite };
+
+        /// compile-time read only mode check
+        template<Mode mode> concept IsReadOnly = (mode == Mode::Read);
+
+        /// compile-time write only mode check
+        template<Mode mode> concept IsWriteOnly = (mode == Mode::Write);
+
+        /// compile-time read/write mode check
+        template<Mode mode> concept IsReadWrite = (mode == Mode::ReadWrite);
+
+        /// compile-time has read mode check
+        template<Mode mode> concept HasRead = (mode == Mode::Read || mode == Mode::ReadWrite);
+
+        /// compile-time has write mode check
+        template<Mode mode> concept HasWrite = (mode == Mode::Write || mode == Mode::ReadWrite);
+    }
+
+    /// remove from vector if predicate is true
+    template<typename T, typename Predicate>
+    bool RemoveFromVectorIf(std::vector<T> &vec, Predicate pred)
+    {
+        auto newEnd = std::remove_if(vec.begin(), vec.end(), pred);
+        bool wasRemoved = (newEnd != vec.end());
+        if (wasRemoved)
+        {
+            vec.erase(newEnd, vec.end());
+        }
+        return wasRemoved;
+    }
+
+    /// remove from vector by value
+    template<typename T, typename U>
+    bool RemoveFromVector(std::vector<T> &vec, const U &value)
+    {
+        return RemoveFromVectorIf(vec, [&value](const T &element) { return element == value; });
+    }
 }
 
 /// disable warning helpers
@@ -253,21 +295,3 @@ static const std::string mName
 
 #define DEFINE_COMPONENT_TYPEINFO(TYPE)                          \
 const std::string TYPE::mName = std::string(TYPE::CacheName())
-
-template<typename T, typename Predicate>
-bool RemoveFromVectorIf(std::vector<T> &vec, Predicate pred)
-{
-    auto newEnd = std::remove_if(vec.begin(), vec.end(), pred);
-    bool wasRemoved = (newEnd != vec.end());
-    if (wasRemoved)
-    {
-        vec.erase(newEnd, vec.end());
-    }
-    return wasRemoved;
-}
-
-template<typename T, typename U>
-bool RemoveFromVector(std::vector<T> &vec, const U &value)
-{
-    return RemoveFromVectorIf(vec, [&value](const T &element) { return element == value; });
-}

@@ -19,7 +19,7 @@ namespace Lumen
         /// constructor
         explicit Resources();
 
-        /// virtual destructor
+        /// destructor
         ~Resources() noexcept;
 
         /// import resource
