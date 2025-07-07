@@ -116,6 +116,59 @@ bool MainScene::Load()
     bool hasRead = otherPlayer.TestW().HasRead();
     bool hasWrite = otherPlayer.TestW().HasWrite();
 
+    // assignment from lvalue
+    testPlayer.Test() = a;
+
+    // assignment from rvalue
+    testPlayer.Test() = 3;
+
+    // assignment from lvalue with return
+    a = testPlayer.Test() = 4;
+
+    // assignment from rvalue with return
+    a = testPlayer.Test() = int(5);
+
+    // assignment from moved rvalue
+    b = 6;
+    a = testPlayer.Test() = std::move(b);
+
+    // direct conversion
+    a = testPlayer.Test();
+
+    // chained assignment
+    testPlayer.Test() = a = 7;
+
+    // comparisons
+    if (testPlayer.Test() == 7) {}
+    if (testPlayer.Test() != 8) {}
+
+    // implicit read
+    a = testPlayer.Test();
+
+    // equality checks
+    if (testPlayer.Test() == 123) {}
+    if (testPlayer.Test() != 456) {}
+
+    // simple assignment
+    testPlayer.Test() = a;
+
+    // rvalue assignment
+    testPlayer.Test() = 11;
+
+    // chained assignment
+    testPlayer.Test() = a = 12;
+
+    // assignment from moved value
+    b = 13;
+    testPlayer.Test() = std::move(b);
+
+    int x = 15;
+    testPlayer.Test() = std::move(x);       // write-only or read-write T&& overload
+    x = testPlayer.Test() = std::move(x);   // read-write T&& with return
+
+    x = 5;
+    otherPlayer.TestW() = x;  // This hits the void operator=(const T&)
+
     // Uncommenting below lines will give compile-time errors with messages:
     //int z = otherPlayer.TestW();   // error: read from write-only
     //otherPlayer.TestR() = 42;      // error: write to read-only

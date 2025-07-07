@@ -61,92 +61,136 @@ namespace Lumen
         std::size_t mSize;
     };
 
+    /// Property empty base with no getter
+    template<typename T, PropertyDetail::Mode mode, typename Getter, bool HasRead = PropertyDetail::HasRead<mode>>
+    class PropertyGetter {
+        CLASS_NO_COPY_MOVE(PropertyGetter);
+
+    public:
+        /// default constructor
+        explicit PropertyGetter() = default;
+    };
+
+    /// Specialized Property base class with getter only if HasRead == true
+    template<typename T, PropertyDetail::Mode mode, typename Getter>
+    class PropertyGetter<T, mode, Getter, true>
+    {
+        CLASS_NO_COPY_MOVE(PropertyGetter);
+
+    public:
+        /// default constructor
+        explicit PropertyGetter() = default;
+
+        /// generic get, only enabled if mode has read
+        T Get() const
+        {
+            return mGetter();
+        }
+
+    protected:
+        /// getter method to retrieve the value
+        Getter mGetter;
+    };
+
+    /// Property empty base with no setter
+    template<typename T, PropertyDetail::Mode mode, typename Setter, bool HasWrite = PropertyDetail::HasWrite<mode>>
+    class PropertySetter {
+        CLASS_NO_COPY_MOVE(PropertySetter);
+
+    public:
+        /// default constructor
+        explicit PropertySetter() = default;
+    };
+
+    /// Specialized Property base class with setter only if HasWrite == true
+    template<typename T, PropertyDetail::Mode mode, typename Setter>
+    class PropertySetter<T, mode, Setter, true>
+    {
+        CLASS_NO_COPY_MOVE(PropertySetter);
+
+    public:
+        /// default constructor
+        explicit PropertySetter() = default;
+
+        /// generic set, only enabled if mode has write
+        void Set(const T &value)
+        {
+            mSetter(value);
+        }
+
+    protected:
+        /// setter method to set the value
+        Setter mSetter;
+    };
+
     /// Property template class
-    template<typename T, PropertyDetail::Mode StaticMode = PropertyDetail::Mode::ReadWrite, typename Getter = std::monostate, typename Setter = std::monostate>
-    class Property : public IProperty
+    template<typename T, PropertyDetail::Mode mode = PropertyDetail::Mode::ReadWrite, typename Getter = std::monostate, typename Setter = std::monostate>
+    class Property : public PropertyGetter<T, mode, Getter>, public PropertySetter<T, mode, Setter>, public IProperty
     {
         CLASS_NO_DEFAULT_CTOR(Property);
         CLASS_NO_COPY_MOVE(Property);
 
     public:
-        /// constructs a property
-        Property(Getter get, Setter set, HashType hash, std::string_view name) requires PropertyDetail::IsReadWrite<StaticMode> :
-            IProperty(StaticMode, hash, name, 1), mGetter(std::move(get)), mSetter(std::move(set)) {}
-        Property(Getter get, HashType hash, std::string_view name) requires PropertyDetail::IsReadOnly<StaticMode> :
-            IProperty(StaticMode, hash, name, 1), mGetter(std::move(get)) {}
-        Property(Setter set, HashType hash, std::string_view name) requires PropertyDetail::IsWriteOnly<StaticMode> :
-            IProperty(StaticMode, hash, name, 1), mSetter(std::move(set)) {}
-
-        /// generic get, only enabled if mode has read
-        T Get() const
+        /// constructs a read write property
+        Property(Getter get, Setter set, HashType hash, std::string_view name) requires PropertyDetail::IsReadWrite<mode> : IProperty(mode, hash, name, 1)
         {
-            if constexpr (StaticMode == Mode::Read || StaticMode == Mode::ReadWrite)
-            {
-                return mGetter();
-            }
-            else
-            {
-                L_ASSERT_MSG(false, "Get() called on non-readable property");
-            }
+            if constexpr (PropertyDetail::HasRead<mode>)
+                this->mGetter = std::move(get);
+            if constexpr (PropertyDetail::HasWrite<mode>)
+                this->mSetter = std::move(set);
         }
 
-        /// generic set, only enabled if mode has write
-        void Set(const T &value)
+        /// constructs a read only property
+        Property(Getter get, HashType hash, std::string_view name) requires PropertyDetail::IsReadOnly<mode> : IProperty(mode, hash, name, 1)
         {
-            if constexpr (StaticMode == Mode::Write || StaticMode == Mode::ReadWrite)
-            {
-                mSetter(value);
-            }
-            else
-            {
-                L_ASSERT_MSG(false, "Set() called on non-writable property");
-            }
+            if constexpr (PropertyDetail::HasRead<mode>)
+                this->mGetter = std::move(get);
+        }
+
+        /// constructs a write only property
+        Property(Setter set, HashType hash, std::string_view name) requires PropertyDetail::IsWriteOnly<mode> : IProperty(mode, hash, name, 1)
+        {
+            if constexpr (PropertyDetail::HasWrite<mode>)
+                this->mSetter = std::move(set);
         }
 
         /// conversion to T
-        operator T() const requires PropertyDetail::HasRead<StaticMode>
+        operator T() const requires PropertyDetail::HasRead<mode>
         {
-            return mGetter();
+            return PropertyGetter<T, mode, Getter>::Get();
         }
 
         /// assignment (lvalue)
-        void operator=(const T &val) requires PropertyDetail::IsWriteOnly<StaticMode>
+        void operator=(const T &val) requires PropertyDetail::IsWriteOnly<mode>
         {
-            mSetter(val);
+            PropertySetter<T, mode, Setter>::Set(val);
         }
 
         /// assignment (rvalue)
-        void operator=(T &&val) requires PropertyDetail::IsWriteOnly<StaticMode>
+        void operator=(T &&val) requires PropertyDetail::IsWriteOnly<mode>
         {
-            mSetter(std::move(val));
+            PropertySetter<T, mode, Setter>::Set(std::move(val));
         }
 
         /// assignment (lvalue) with return
-        T operator=(const T &val) requires PropertyDetail::IsReadWrite<StaticMode>
+        T operator=(const T &val) requires PropertyDetail::IsReadWrite<mode>
         {
-            mSetter(val);
-            return mGetter();
+            PropertySetter<T, mode, Setter>::Set(val);
+            return PropertyGetter<T, mode, Getter>::Get();
         }
 
         /// assignment (rvalue) with return
-        T operator=(T &&val) requires PropertyDetail::IsReadWrite<StaticMode>
+        T operator=(T &&val) requires PropertyDetail::IsReadWrite<mode>
         {
-            mSetter(std::move(val));
-            return mGetter();
+            PropertySetter<T, mode, Setter>::Set(std::move(val));
+            return PropertyGetter<T, mode, Getter>::Get();
         }
 
         /// operator==
-        friend bool operator==(const Property &a, const T &b)  requires PropertyDetail::HasRead<StaticMode> { return a.mGetter() == b; }
+        friend bool operator==(const Property &a, const T &b)  requires PropertyDetail::HasRead<mode> { return a.PropertyGetter<T, mode, Getter>::Get() == b; }
 
         /// operator!=
-        friend bool operator!=(const Property &a, const T &b)  requires PropertyDetail::HasRead<StaticMode> { return a.mGetter() != b; }
-
-    private:
-        /// getter method to retrieve the value
-        [[no_unique_address]] Getter mGetter;
-
-        /// setter method to set the value
-        [[no_unique_address]] Setter mSetter;
+        friend bool operator!=(const Property &a, const T &b)  requires PropertyDetail::HasRead<mode> { return a.PropertyGetter<T, mode, Getter>::Get() != b; }
     };
 
     /// property macro to define a property with getter and setter methods
