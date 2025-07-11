@@ -299,7 +299,6 @@
     <ClInclude Include="..\Code\Windows\EngineFramework.h" />
     <ClInclude Include="..\Code\Windows\StepTimer.h" />
     <ClInclude Include="..\Include\lApplication.h" />
-    <ClInclude Include="..\Include\lArrayProperty.h" />
     <ClInclude Include="..\Include\lBehavior.h" />
     <ClInclude Include="..\Include\lCamera.h" />
     <ClInclude Include="..\Include\lComponent.h" />
@@ -314,6 +313,8 @@
     <ClInclude Include="..\Include\lMeshFilter.h" />
     <ClInclude Include="..\Include\lObject.h" />
     <ClInclude Include="..\Include\lProperty.h" />
+    <ClInclude Include="..\Include\lPropertyArray.h" />
+    <ClInclude Include="..\Include\lPropertyBase.h" />
     <ClInclude Include="..\Include\lResources.h" />
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />

@@ -98,7 +98,10 @@
     <ClInclude Include="..\Include\lMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\lArrayProperty.h">
+    <ClInclude Include="..\Include\lPropertyBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\lPropertyArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
