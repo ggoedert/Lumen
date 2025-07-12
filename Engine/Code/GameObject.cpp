@@ -32,7 +32,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
 
 protected:
     /// run game object

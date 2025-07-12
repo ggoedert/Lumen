@@ -6,7 +6,7 @@
 
 #include "MainScene.h"
 
-#include <lArrayProperty.h>
+#include <lPropertyArray.h>
 #include <lTransform.h>
 #include <lCamera.h>
 #include <lMesh.h>
@@ -19,19 +19,21 @@ public:
     ~Player() = default;
 
     PROPERTY(int, Test, GetInt, SetInt);
-    ARRAYPROPERTY(int, VTest, 3, GetVInt, SetVInt);
+    PROPERTYARRAY(int, VTest, 3, GetVInt, SetVInt);
     PROPERTY(std::string, StrProp, GetStr, SetStr);
 
-    ARRAYPROPERTY_RO(int, RVTest, 3, GetVInt);
-    ARRAYPROPERTY_WO(int, WVTest, 3, SetVInt);
+    PROPERTYARRAY_RO(int, RVTest, 3, GetVInt);
+    PROPERTYARRAY_WO(int, WVTest, 3, SetVInt);
 
     [[nodiscard]] const int GetInt() const { return mInt; }
     void SetInt(const int &val) { mInt = val; }
 
-    [[nodiscard]] int &GetVInt(size_t i) {
+    [[nodiscard]] int &GetVInt(size_t i)
+    {
         return mVec[i];
     }
-    void SetVInt(size_t i, const int &val) {
+    void SetVInt(size_t i, const int &val)
+    {
         mVec[i] = val;
     }
 
@@ -42,9 +44,9 @@ public:
     std::vector<int> mVec = std::vector<int>(3);
     std::string mStr;
 
-    ARRAYPROPERTY(int, A, 3, GetVInt, SetVInt);
-    ARRAYPROPERTY(int, B, 3, GetVInt, SetVInt);
-    ARRAYPROPERTY(int, C, 3, GetVInt, SetVInt);
+    PROPERTYARRAY(int, A, 3, GetVInt, SetVInt);
+    PROPERTYARRAY(int, B, 3, GetVInt, SetVInt);
+    PROPERTYARRAY(int, C, 3, GetVInt, SetVInt);
 };
 
 class OtherPlayer
@@ -111,7 +113,7 @@ bool MainScene::Load()
     otherPlayer.Test() = 10;
     int c = otherPlayer.Test();
     int d = otherPlayer.TestR();
-    otherPlayer.TestW() = testPlayer.Test() = 42;
+    otherPlayer.TestW() = testPlayer.Test() = otherPlayer.TestR();
 
     bool hasRead = otherPlayer.TestW().HasRead();
     bool hasWrite = otherPlayer.TestW().HasWrite();
@@ -139,6 +141,11 @@ bool MainScene::Load()
     testPlayer.Test() = a = 7;
 
     // comparisons
+    bool isTest = false;
+    isTest = testPlayer.Test() == 7;
+    isTest = testPlayer.Test() != 7;
+    isTest = testPlayer.Test() == 8;
+    isTest = testPlayer.Test() != 8;
     if (testPlayer.Test() == 7) {}
     if (testPlayer.Test() != 8) {}
 

@@ -35,39 +35,25 @@ namespace Lumen
             return this->Get();
         }
 
-        /// assignment (lvalue)
-        Property &operator=(const T &val) requires PropertyDetail::HasWrite<mode>
+        /// assignment from T
+        Property &operator=(const T &value) requires PropertyDetail::HasWrite<mode>
         {
-            this->Set(val);
+            this->Set(value);
             return *this;
         }
 
-        /// assignment (rvalue)
-        Property &operator=(T &&val) requires PropertyDetail::HasWrite<mode>
-        {
-            this->Set(std::move(val));
-            return *this;
-        }
-
-        /// assignment from another Property (lvalue)
+        /// assignment from Property
         Property &operator=(const Property &other) requires PropertyDetail::HasWrite<mode>
         {
             this->Set(static_cast<T>(other));
             return *this;
         }
 
-        /// assignment from another Property (rvalue)
-        Property &operator=(Property &&other) requires PropertyDetail::HasWrite<mode>
-        {
-            this->Set(std::move(static_cast<T>(other)));
-            return *this;
-        }
-
-        /// operator==
+        /// operator== (Property/T)
         friend bool operator==(const Property &a, const T &b) requires PropertyDetail::HasRead<mode> { return a.Get() == b; }
 
-        /// operator!=
-        friend bool operator!=(const Property &a, const T &b) requires PropertyDetail::HasRead<mode> { return a.Get() != b; }
+        /// operator== (T/Property)
+        friend bool operator!=(const T &a, const Property &b) requires PropertyDetail::HasRead<mode> { return a == b.Get(); }
     };
 
     /// property macro to define a property with getter and setter methods

@@ -31,39 +31,25 @@ namespace Lumen
                 return mParent->Get(mIndex);
             }
 
-            /// assignment (lvalue)
-            Proxy &operator=(const T &val) requires PropertyDetail::HasWrite<mode>
+            /// assignment from T
+            Proxy &operator=(const T &value) requires PropertyDetail::HasWrite<mode>
             {
-                mParent->Set(mIndex, val);
+                mParent->Set(mIndex, value);
                 return *this;
             }
 
-            /// assignment (rvalue)
-            Proxy &operator=(T &&val) requires PropertyDetail::HasWrite<mode>
-            {
-                mParent->Set(mIndex, std::move(val));
-                return *this;
-            }
-
-            /// assignment from another Proxy (lvalue)
+            /// assignment from Proxy
             Proxy &operator=(const Proxy &other) requires PropertyDetail::HasWrite<mode>
             {
                 mParent->Set(mIndex, static_cast<T>(other));
                 return *this;
             }
 
-            /// assignment from another Proxy (rvalue)
-            Proxy &operator=(Proxy &&other) requires PropertyDetail::HasWrite<mode>
-            {
-                mParent->Set(mIndex, std::move(static_cast<T>(other)));
-                return *this;
-            }
-
-            /// operator==
+            /// operator== (Proxy/T)
             friend bool operator==(const Proxy &a, const T &b) requires PropertyDetail::HasRead<mode> { return a.mParent->Get(a.mIndex) == b; }
 
-            /// operator!=
-            friend bool operator!=(const Proxy &a, const T &b) requires PropertyDetail::HasRead<mode> { return a.mParent->Get(a.mIndex) != b; }
+            /// operator== (T/Proxy)
+            friend bool operator!=(const T &a, const Proxy &b) requires PropertyDetail::HasRead<mode> { return a == b.mParent->Get(b.mIndex); }
 
         private:
             /// parent array property
@@ -105,10 +91,10 @@ namespace Lumen
         PropertyArray &operator=(std::initializer_list<T> list) requires PropertyDetail::HasWrite<mode>
         {
             std::size_t i = 0;
-            for (const auto &val : list)
+            for (const auto &value : list)
             {
                 if (i >= this->Size()) break;  // Prevent out-of-bounds
-                this->Set(i, val);
+                this->Set(i, value);
                 ++i;
             }
             return *this;
@@ -123,7 +109,8 @@ namespace Lumen
 
     /// array property macro to define a array property with getter and setter methods
     #define PROPERTYARRAY(TYPE, NAME, SIZE, GETTER, SETTER)                                   \
-    auto& NAME() {                                                                            \
+    auto& NAME()                                                                              \
+    {                                                                                         \
         using PropType = Lumen::PropertyArray<TYPE, Lumen::PropertyDetail::Mode::ReadWrite,   \
             std::function<TYPE(std::size_t)>, std::function<void(std::size_t, const TYPE&)>>; \
         static PropType arrayProperty(                                                        \
@@ -135,7 +122,8 @@ namespace Lumen
 
     /// read only array property macro to define a array property with getter method
     #define PROPERTYARRAY_RO(TYPE, NAME, SIZE, GETTER)                                        \
-    auto& NAME() {                                                                            \
+    auto& NAME()                                                                              \
+    {                                                                                         \
         using PropType = Lumen::PropertyArray<TYPE, Lumen::PropertyDetail::Mode::Read,        \
             std::function<TYPE(std::size_t)>, std::function<void(std::size_t, const TYPE&)>>; \
         static PropType arrayProperty(                                                        \
@@ -146,7 +134,8 @@ namespace Lumen
 
     /// write only array property macro to define a array property with setter method
     #define PROPERTYARRAY_WO(TYPE, NAME, SIZE, SETTER)                                        \
-    auto& NAME() {                                                                            \
+    auto& NAME()                                                                              \
+    {                                                                                         \
         using PropType = Lumen::PropertyArray<TYPE, Lumen::PropertyDetail::Mode::Write,       \
             std::function<TYPE(std::size_t)>, std::function<void(std::size_t, const TYPE&)>>; \
         static PropType arrayProperty(                                                        \
