@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     resources interface
+/// \brief     assets interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -10,19 +10,19 @@
 /// Lumen namespace
 namespace Lumen
 {
-    /// Resources class
-    class Resources
+    /// Assets class
+    class Assets
     {
-        CLASS_NO_COPY_MOVE(Resources);
+        CLASS_NO_COPY_MOVE(Assets);
 
     public:
         /// constructor
-        explicit Resources();
+        explicit Assets();
 
         /// destructor
-        ~Resources() noexcept;
+        ~Assets() noexcept;
 
-        /// import resource
+        /// import asset
         ObjectPtr Import(std::string_view path, const HashType type, std::string_view name);
 
     private:

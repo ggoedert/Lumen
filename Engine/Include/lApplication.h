@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lMath.h"
-#include "lResources.h"
+#include "lAssets.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -34,8 +34,8 @@ namespace Lumen
         /// shutdown application
         virtual void Shutdown() = 0;
 
-        /// get resources
-        [[nodiscard]] Resources &Resources() const;
+        /// get assets
+        [[nodiscard]] Assets &Assets() const;
 
         /// get delta time
         [[nodiscard]] float DeltaTime() const;

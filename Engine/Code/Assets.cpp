@@ -1,10 +1,10 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Resources
+/// \brief     Assets
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lResources.h"
+#include "lAssets.h"
 #include "lStringMap.h"
 #include "lMesh.h"
 
@@ -13,11 +13,11 @@
 using namespace Lumen;
 namespace fs = std::filesystem;
 
-class ResourceInfo
+class AssetInfo
 {
 public:
-    /// type of resource
-    ResourceInfo(HashType type, std::string_view name) : mType(type), mName(name) {}
+    /// type of asset
+    AssetInfo(HashType type, std::string_view name) : mType(type), mName(name) {}
 
     /// get type
     [[nodiscard]] HashType Type() const { return mType; }
@@ -44,12 +44,12 @@ private:
 class ContainerHandler
 {
 public:
-    std::vector<ResourceInfo> GetResources()
+    std::vector<AssetInfo> GetAssets()
     {
         //TEST REMOVE THIS!!!
-        std::vector<ResourceInfo> resourceInfos;
-        resourceInfos.emplace_back(Lumen::Mesh::Type(), "Sphere");
-        return resourceInfos;
+        std::vector<AssetInfo> assetInfos;
+        assetInfos.emplace_back(Lumen::Mesh::Type(), "Sphere");
+        return assetInfos;
         //TEST REMOVE THIS!!!
     }
 
@@ -59,15 +59,15 @@ public:
 */
 };
 
-/// Resources::Impl class
-class Resources::Impl
+/// Assets::Impl class
+class Assets::Impl
 {
-    CLASS_NO_COPY_MOVE(Resources::Impl);
-    CLASS_PTR_UNIQUEMAKER(Resources::Impl);
-    friend class Resources;
+    CLASS_NO_COPY_MOVE(Assets::Impl);
+    CLASS_PTR_UNIQUEMAKER(Assets::Impl);
+    friend class Assets;
 
 public:
-    /// constructs a resources
+    /// constructs a assets
     explicit Impl()
     {
         //TEST REMOVE THIS!!!
@@ -80,16 +80,16 @@ public:
 
     std::optional<ContainerHandler> GetContainerHandler(std::string_view path);
 
-    std::vector<ResourceInfo> ListResourceInfo(std::string_view path);
+    std::vector<AssetInfo> ListAssetInfo(std::string_view path);
 
-    /// import resource
+    /// import asset
     ObjectPtr Import(std::string_view path, const HashType type, std::string_view name);
 
 private:
     Lumen::StringMap<ContainerHandler> mContainerHandlers;
 };
 
-std::optional<ContainerHandler> Resources::Impl::GetContainerHandler(std::string_view path)
+std::optional<ContainerHandler> Assets::Impl::GetContainerHandler(std::string_view path)
 {
     // find handler and return it
     auto it = mContainerHandlers.find(path);
@@ -102,7 +102,7 @@ std::optional<ContainerHandler> Resources::Impl::GetContainerHandler(std::string
     return {};
 }
 
-std::vector<ResourceInfo> Resources::Impl::ListResourceInfo(std::string_view path)
+std::vector<AssetInfo> Assets::Impl::ListAssetInfo(std::string_view path)
 {
     // get the container handler for the given path
     std::optional<ContainerHandler> containerHandlerOpt = GetContainerHandler(path);
@@ -112,18 +112,18 @@ std::vector<ResourceInfo> Resources::Impl::ListResourceInfo(std::string_view pat
         return {};
     }
 
-    // use the container handler to get resources
-    return containerHandlerOpt.value().GetResources();
+    // use the container handler to get assets
+    return containerHandlerOpt.value().GetAssets();
 }
 
-/// import resource
-ObjectPtr Resources::Impl::Import(std::string_view path, const HashType type, std::string_view name)
+/// import asset
+ObjectPtr Assets::Impl::Import(std::string_view path, const HashType type, std::string_view name)
 {
-    for (ResourceInfo resourceInfo : ListResourceInfo(path))
+    for (AssetInfo assetInfo : ListAssetInfo(path))
     {
-        if (resourceInfo.Type() == type && (!name.empty() || resourceInfo.Name() == name))
+        if (assetInfo.Type() == type && (!name.empty() || assetInfo.Name() == name))
         {
-            return resourceInfo.Import();
+            return assetInfo.Import();
         }
     }
 
@@ -134,14 +134,14 @@ ObjectPtr Resources::Impl::Import(std::string_view path, const HashType type, st
 //==============================================================================================================================================================================
 
 /// constructor
-Resources::Resources() : mImpl(Resources::Impl::MakeUniquePtr()) {}
+Assets::Assets() : mImpl(Assets::Impl::MakeUniquePtr()) {}
 
 /// destructor
-Resources::~Resources() {}
+Assets::~Assets() {}
 
-ObjectPtr Resources::Import(std::string_view path, const HashType type, std::string_view name)
+ObjectPtr Assets::Import(std::string_view path, const HashType type, std::string_view name)
 {
-    // normalize the path and import the resource
+    // normalize the path and import the asset
     std::string normalizedPath = fs::path(path).lexically_normal().generic_string();
     return mImpl->Import(normalizedPath, type, name);
 }

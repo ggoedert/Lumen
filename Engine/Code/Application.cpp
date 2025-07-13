@@ -29,8 +29,8 @@ public:
     /// set engine
     void SetEngine(const EngineWeakPtr &engine) { mEngine = engine; }
 
-    /// get resources
-    [[nodiscard]] Lumen::Resources &Resources() { return mResources; }
+    /// get assets
+    [[nodiscard]] Lumen::Assets &Assets() { return mAssets; }
 
     /// get delta time
     [[nodiscard]] float DeltaTime() const { return mDeltaTime; }
@@ -55,8 +55,8 @@ private:
     /// application running
     bool mRunning { true };
 
-    /// resources
-    Lumen::Resources mResources;
+    /// assets
+    Lumen::Assets mAssets;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -127,10 +127,10 @@ void Application::SetEngine(const EngineWeakPtr &engine)
     mImpl->SetEngine(engine);
 }
 
-/// get resources
-Resources &Application::Resources() const
+/// get assets
+Assets &Application::Assets() const
 {
-    return mImpl->Resources();
+    return mImpl->Assets();
 }
 
 /// get delta time

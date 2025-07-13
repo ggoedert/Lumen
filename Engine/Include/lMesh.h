@@ -7,7 +7,7 @@
 
 #include "lDefs.h"
 #include "lObject.h"
-#include "lResources.h"
+#include "lAssets.h"
 
 /// Lumen namespace
 namespace Lumen

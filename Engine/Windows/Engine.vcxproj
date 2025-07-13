@@ -299,6 +299,7 @@
     <ClInclude Include="..\Code\Windows\EngineFramework.h" />
     <ClInclude Include="..\Code\Windows\StepTimer.h" />
     <ClInclude Include="..\Include\lApplication.h" />
+    <ClInclude Include="..\Include\lAssets.h" />
     <ClInclude Include="..\Include\lBehavior.h" />
     <ClInclude Include="..\Include\lCamera.h" />
     <ClInclude Include="..\Include\lComponent.h" />
@@ -315,7 +316,6 @@
     <ClInclude Include="..\Include\lProperty.h" />
     <ClInclude Include="..\Include\lPropertyArray.h" />
     <ClInclude Include="..\Include\lPropertyBase.h" />
-    <ClInclude Include="..\Include\lResources.h" />
     <ClInclude Include="..\Include\lSceneManager.h" />
     <ClInclude Include="..\Include\lScene.h" />
     <ClInclude Include="..\Include\lStringMap.h" />
@@ -326,6 +326,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\Application.cpp" />
+    <ClCompile Include="..\Code\Assets.cpp" />
     <ClCompile Include="..\Code\Behavior.cpp" />
     <ClCompile Include="..\Code\Camera.cpp" />
     <ClCompile Include="..\Code\Component.cpp" />
@@ -335,7 +336,6 @@
     <ClCompile Include="..\Code\Mesh.cpp" />
     <ClCompile Include="..\Code\MeshFilter.cpp" />
     <ClCompile Include="..\Code\Object.cpp" />
-    <ClCompile Include="..\Code\Resources.cpp" />
     <ClCompile Include="..\Code\SceneManager.cpp" />
     <ClCompile Include="..\Code\Transform.cpp" />
     <ClCompile Include="..\Code\Windows\DebugLogWindows.cpp" />

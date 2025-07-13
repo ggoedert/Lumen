@@ -193,7 +193,7 @@ bool MainScene::Load()
     // setup sphere
     if (auto sphereLock = mSphere.lock())
     {
-        Lumen::ObjectPtr spherePtr = mApplication.Resources().Import(
+        Lumen::ObjectPtr spherePtr = mApplication.Assets().Import(
             "Library/lumen default resources",
             Lumen::Mesh::Type(),
             "Sphere"
