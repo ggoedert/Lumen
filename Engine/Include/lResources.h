@@ -23,7 +23,7 @@ namespace Lumen
         ~Resources() noexcept;
 
         /// import resource
-        ObjectPtr Import(std::string_view path, const HashType type, std::optional<std::string_view> name = std::nullopt);
+        ObjectPtr Import(std::string_view path, const HashType type, std::string_view name);
 
     private:
         /// private implementation

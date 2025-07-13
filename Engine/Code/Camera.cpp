@@ -57,7 +57,7 @@ ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &
 #else
     DebugLog::Error(std::format("Create component, unknown parameter hash type: 0x{:08X}", (Hash)params.Type()));
 #endif
-    return ComponentPtr();
+    return {};
 }
 
 /// get background color

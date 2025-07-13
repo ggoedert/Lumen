@@ -66,6 +66,8 @@ namespace Lumen
         Hash mHash;
         std::string_view mName;
     };
+    struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h.mHash); } };
+    struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a.mHash < b.mHash; } };
 
     /// hash (FNV-1a) name from current type, typeinfo version
     HashType PodType(const char *currentType);
@@ -75,6 +77,8 @@ namespace Lumen
 #else
     /// lean version of HashType
     using HashType = Hash;
+    struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h); } };
+    struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a < b; } };
 
     /// hash (FNV-1a) name from current type evaluated at compile time
     consteval HashType PodType(const char *currentType)

@@ -24,7 +24,7 @@ namespace Lumen::Hidden
         ScenePtr mCurrentScene;
 
         /// map of component makers
-        std::map<HashType, SceneManager::ComponentMaker> mComponentMakers;
+        std::unordered_map<HashType, SceneManager::ComponentMaker, HashTypeHasher> mComponentMakers;
 
         /// game objects in the scene
         std::vector<GameObjectPtr> mGameObjects;
@@ -33,7 +33,7 @@ namespace Lumen::Hidden
         std::vector<ComponentPtr> mNewComponents;
 
         /// map of components
-        std::map<HashType, std::vector<ComponentPtr>> mComponentsMap;
+        std::unordered_map<HashType, std::vector<ComponentPtr>, HashTypeHasher> mComponentsMap;
     };
 
     static std::unique_ptr<SceneManagerState> gSceneManagerState;
@@ -98,7 +98,7 @@ ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObje
     auto it = Hidden::gSceneManagerState->mComponentMakers.find(type);
     if (it == Hidden::gSceneManagerState->mComponentMakers.end())
     {
-        return ComponentWeakPtr();
+        return {};
     }
     return RegisterComponent(it->second(gameObject, params));
 }
