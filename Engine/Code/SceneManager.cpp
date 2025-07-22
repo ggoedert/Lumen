@@ -77,7 +77,6 @@ void SceneManager::Unload()
         Hidden::gSceneManagerState->mGameObjects.clear();
         Hidden::gSceneManagerState->mComponentsMap.clear();
         Hidden::gSceneManagerState->mCurrentScene.reset();
-
     }
 }
 

@@ -5,6 +5,8 @@
 #include "EngineFramework.h"
 #include "DeviceResources.h"
 
+#include "lDebugLog.h"
+
 using namespace DX;
 using namespace DirectX;
 using namespace Lumen;
@@ -96,7 +98,7 @@ void DeviceResources::CreateDeviceResources()
         }
         else
         {
-            OutputDebugStringA("WARNING: Direct3D Debug Device is not available\n");
+            DebugLog::Warning("Direct3D Debug Device is not available");
         }
 
         ComPtr<IDXGIInfoQueue> dxgiInfoQueue;
@@ -137,7 +139,7 @@ if (m_options & c_AllowTearing)
     {
         m_options &= ~c_AllowTearing;
 #ifdef _DEBUG
-        OutputDebugStringA("WARNING: Variable refresh rate displays not supported");
+        DebugLog::Warning("Variable refresh rate displays not supported");
 #endif
     }
 }
@@ -307,7 +309,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
             char buff[64] = {};
             sprintf_s(buff, "Device Lost on ResizeBuffers: Reason code 0x%08X\n",
                 static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? m_d3dDevice->GetDeviceRemovedReason() : hr));
-            OutputDebugStringA(buff);
+            DebugLog::Info(buff);
 #endif
             // If the device was removed for any reason, a new device and swap chain will need to be created.
             HandleDeviceLost();
@@ -564,7 +566,7 @@ void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
         char buff[64] = {};
         sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n",
             static_cast<unsigned int>((hr == DXGI_ERROR_DEVICE_REMOVED) ? m_d3dDevice->GetDeviceRemovedReason() : hr));
-        OutputDebugStringA(buff);
+        DebugLog::Info(buff);
 #endif
         HandleDeviceLost();
     }
@@ -703,7 +705,7 @@ void DeviceResources::GetAdapter(IDXGIAdapter1 **ppAdapter)
             throw std::runtime_error("WARP12 not available. Enable the 'Graphics Tools' optional feature");
         }
 
-        OutputDebugStringA("Direct3D Adapter - WARP12\n");
+        DebugLog::Info("Direct3D Adapter - WARP12");
     }
 #endif
 

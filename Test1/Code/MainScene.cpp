@@ -6,6 +6,7 @@
 
 #include "MainScene.h"
 
+#include <lDebugLog.h>
 #include <lPropertyArray.h>
 #include <lTransform.h>
 #include <lCamera.h>
@@ -193,15 +194,27 @@ bool MainScene::Load()
     // setup sphere
     if (auto sphereLock = mSphere.lock())
     {
-        Lumen::ObjectPtr spherePtr = mApplication.Assets().Import(
+        Lumen::Expected<Lumen::ObjectPtr> sphereExp = mApplication.Assets().Import(
             "Library/lumen default resources",
             Lumen::Mesh::Type(),
             "Sphere"
         );
-        if (spherePtr)
+
+        /*
+        Lumen::Expected<Lumen::ObjectPtr> textureExp = mApplication.Assets().Import(
+            "Resources/lumen_builtin_extra",
+            Lumen::Texture::Type(),
+            "Default-Checker-Gray"
+        );
+        */
+
+        if (!sphereExp.HasValue())
         {
-            sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params({ static_pointer_cast<Lumen::Mesh>(spherePtr) }));
+            Lumen::DebugLog::Error("Unable to load default sphere resource, {}", sphereExp.Error());
+            return false;
         }
+
+        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(sphereExp.Value()) });
     }
 
     return true;

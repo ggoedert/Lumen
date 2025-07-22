@@ -1,34 +1,26 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Mesh interface
+/// \brief     BuiltinResources interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
-#include "lObject.h"
+#include "lAssets.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(Mesh);
-
-    /// Mesh class
-    class Mesh : public Object
+    /// DefaultResources class
+    class DefaultResources : public AssetFactory
     {
-        CLASS_NO_COPY_MOVE(Mesh);
-        OBJECT_TYPEINFO;
-
     public:
-        /// destroys mesh
-        ~Mesh() noexcept override;
+        /// creates a smart pointer version of the default resources
+        static AssetFactoryPtr MakePtr();
 
-    protected:
-        /// constructs a mesh
-        explicit Mesh();
+        /// accepts a path
+        [[nodiscard]] bool Accepts(std::filesystem::path path) const override;
 
-    private:
-        /// private implementation
-        CLASS_PIMPL_DEF(Impl);
+        /// get asset infos
+        [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos() override;
     };
 }

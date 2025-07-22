@@ -7,8 +7,6 @@
 #include "lEngine.h"
 #include "lSceneManager.h"
 
-#include <format>
-
 using namespace Lumen;
 
 // initialization and management
@@ -66,7 +64,7 @@ namespace Lumen::Hidden
         auto it = gTypeHashRegistry.find(hash);
         if (it != gTypeHashRegistry.end())
         {
-            L_ASSERT_MSG(it->second == name, std::format("Hash collision detected for type names '{}' and '{}'", it->second, name));
+            L_ASSERT_MSG(it->second == name, "Hash collision detected for type names '{}' and '{}'", it->second, name);
         }
         else
         {

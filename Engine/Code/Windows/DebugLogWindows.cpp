@@ -9,17 +9,30 @@
 
 using namespace Lumen;
 
-void DebugLog::Error(std::string_view error)
+void DebugLog::LogImpl(LogLevel level, std::string_view format, std::format_args args)
 {
-    OutputDebugStringA((std::string("[Error] ") + std::string(error) + "\n").c_str());
-}
+    std::string_view prefix = "[Log] ";
+    switch (level)
+    {
+    case LogLevel::Error:
+        prefix = "[Error] ";
+        break;
+    case LogLevel::Warning:
+        prefix = "[Warning] ";
+        break;
+    case LogLevel::Info:
+        prefix = "[Info] ";
+        break;
+    case LogLevel::Detail:
+        prefix = "[Detail] ";
+        break;
+    }
 
-void DebugLog::Warning(std::string_view warning)
-{
-    OutputDebugStringA((std::string("[Warning] ") + std::string(warning) + "\n").c_str());
-}
+    std::string message;
+    message.reserve(256);
+    message += prefix;
+    message += std::vformat(format, args);
+    message += '\n';
 
-void DebugLog::Info(std::string_view info)
-{
-    OutputDebugStringA((std::string("[Info] ") + std::string(info) + "\n").c_str());
+    OutputDebugStringA(message.c_str());
 }

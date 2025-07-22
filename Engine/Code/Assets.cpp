@@ -6,58 +6,8 @@
 
 #include "lAssets.h"
 #include "lStringMap.h"
-#include "lMesh.h"
-
-#include <filesystem>
 
 using namespace Lumen;
-namespace fs = std::filesystem;
-
-class AssetInfo
-{
-public:
-    /// type of asset
-    AssetInfo(HashType type, std::string_view name) : mType(type), mName(name) {}
-
-    /// get type
-    [[nodiscard]] HashType Type() const { return mType; }
-
-    /// get name
-    [[nodiscard]] std::string_view Name() const { return mName; }
-
-    ObjectPtr Import()
-    {
-        //TEST REMOVE THIS!!!
-        return Mesh::MakePtr();
-        //TEST REMOVE THIS!!!
-    }
-
-private:
-    /// type
-    const HashType mType;
-
-    /// name
-    const std::string mName;
-
-};
-
-class ContainerHandler
-{
-public:
-    std::vector<AssetInfo> GetAssets()
-    {
-        //TEST REMOVE THIS!!!
-        std::vector<AssetInfo> assetInfos;
-        assetInfos.emplace_back(Lumen::Mesh::Type(), "Sphere");
-        return assetInfos;
-        //TEST REMOVE THIS!!!
-    }
-
-/*private:
-    std::string prefix;
-    std::string sufix;
-*/
-};
 
 /// Assets::Impl class
 class Assets::Impl
@@ -67,71 +17,109 @@ class Assets::Impl
     friend class Assets;
 
 public:
-    /// constructs a assets
-    explicit Impl()
-    {
-        //TEST REMOVE THIS!!!
-        mContainerHandlers.emplace(std::string(), ContainerHandler());
-        //TEST REMOVE THIS!!!
-    }
+    /// constructs an assets
+    explicit Impl() {}
 
-    /// destroys behavior
+    /// destroys assets
     ~Impl() = default;
 
-    std::optional<ContainerHandler> GetContainerHandler(std::string_view path);
+    /// register an asset factory
+    void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);
 
-    std::vector<AssetInfo> ListAssetInfo(std::string_view path);
+    /// get the asset factory for the given path
+    std::optional<AssetFactoryPtr> GetAssetFactory(std::filesystem::path path);
+
+    /// list asset info for the given path
+    std::vector<Lumen::AssetInfoPtr> ListAssetInfo(std::filesystem::path path);
 
     /// import asset
-    ObjectPtr Import(std::string_view path, const HashType type, std::string_view name);
+    Expected<ObjectPtr> Import(std::filesystem::path path, const HashType type, std::string_view name);
 
 private:
-    Lumen::StringMap<ContainerHandler> mContainerHandlers;
+    Lumen::StringMap<std::multimap<float, AssetFactoryPtr>> mAssetFactories;
 };
 
-std::optional<ContainerHandler> Assets::Impl::GetContainerHandler(std::string_view path)
+/// register an asset factory
+void Assets::Impl::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)
 {
-    // find handler and return it
-    auto it = mContainerHandlers.find(path);
-    if (it != mContainerHandlers.end())
-    {
-        return it->second;
-    }
-
-    // if no handler found, return empty
-    return {};
+    // insert asset factory with the given extension and priority
+    std::string key(extension);
+    std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
+    mAssetFactories[key].emplace(priority, assetFactory);
 }
 
-std::vector<AssetInfo> Assets::Impl::ListAssetInfo(std::string_view path)
+/// get the asset factory for the given path
+std::optional<AssetFactoryPtr> Assets::Impl::GetAssetFactory(std::filesystem::path path)
 {
-    // get the container handler for the given path
-    std::optional<ContainerHandler> containerHandlerOpt = GetContainerHandler(path);
-    if (!containerHandlerOpt.has_value())
+    // construct key from the file extension
+    std::string key = path.extension().string();
+    if (!key.empty())
     {
-        // if no container handler is found, return empty
+        // remove the dot
+        key = key.substr(1);
+        std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
+    }
+
+    // find the asset factory for the given extension
+    auto assetFactoriesIt = mAssetFactories.find(key);
+    if (assetFactoriesIt != mAssetFactories.end())
+    {
+        // get the first factory with the highest priority
+        auto &extensionFactories = assetFactoriesIt->second;
+        for (auto &priorityFactory : extensionFactories)
+        {
+            auto &factoryPtr = priorityFactory.second;
+            if (factoryPtr->Accepts(path))
+            {
+                // return the first factory that accepts the path
+                return factoryPtr;
+            }
+        }
+    }
+
+    // if no asset factory is found, return nullopt
+    return std::nullopt;
+}
+
+/// list asset info for the given path
+std::vector<Lumen::AssetInfoPtr> Assets::Impl::ListAssetInfo(std::filesystem::path path)
+{
+    // get the asset factory for the given path
+    std::optional<AssetFactoryPtr> assetFactory = GetAssetFactory(path);
+    if (!assetFactory.has_value())
+    {
+        // if no asset factory is found, return empty
         return {};
     }
 
-    // use the container handler to get assets
-    return containerHandlerOpt.value().GetAssets();
+    // use the asset factory to get assets
+    return assetFactory.value()->GetAssetInfos();
 }
 
 /// import asset
-ObjectPtr Assets::Impl::Import(std::string_view path, const HashType type, std::string_view name)
+Expected<ObjectPtr> Assets::Impl::Import(std::filesystem::path path, const HashType type, std::string_view name)
 {
-    for (AssetInfo assetInfo : ListAssetInfo(path))
+    for (Lumen::AssetInfoPtr& assetInfo : ListAssetInfo(path))
     {
-        if (assetInfo.Type() == type && (!name.empty() || assetInfo.Name() == name))
+        if (assetInfo->Type() == type && (!name.empty() || assetInfo->Name() == name))
         {
-            return assetInfo.Import();
+            return assetInfo->Import();
         }
     }
 
     // none found, return empty
-    return {};
+    return Expected<ObjectPtr>::Unexpected("Asset not found");
 }
 
 //==============================================================================================================================================================================
+
+/*/// factory options
+struct FactoryOptions
+{
+    std::string_view baseDir {};
+    std::string_view fileName {};
+    bool recursive = true;
+};*/
 
 /// constructor
 Assets::Assets() : mImpl(Assets::Impl::MakeUniquePtr()) {}
@@ -139,9 +127,16 @@ Assets::Assets() : mImpl(Assets::Impl::MakeUniquePtr()) {}
 /// destructor
 Assets::~Assets() {}
 
-ObjectPtr Assets::Import(std::string_view path, const HashType type, std::string_view name)
+/// register an asset factory
+void Assets::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)
+{
+    mImpl->RegisterFactory(assetFactory, extension, priority);
+}
+
+/// import asset
+Expected<ObjectPtr> Assets::Import(std::filesystem::path path, const HashType type, std::string_view name)
 {
     // normalize the path and import the asset
-    std::string normalizedPath = fs::path(path).lexically_normal().generic_string();
-    return mImpl->Import(normalizedPath, type, name);
+    //std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
+    return mImpl->Import(path, type, name);
 }

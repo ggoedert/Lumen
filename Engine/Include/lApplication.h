@@ -29,10 +29,10 @@ namespace Lumen
         void SetEngine(const EngineWeakPtr &engine);
 
         /// initialize application
-        virtual bool Initialize() = 0;
+        [[nodiscard]] virtual bool Initialize();
 
         /// shutdown application
-        virtual void Shutdown() = 0;
+        virtual void Shutdown();
 
         /// get assets
         [[nodiscard]] Assets &Assets() const;

@@ -173,52 +173,52 @@ do                                                          \
 #define L_ASSERT(...) ((void)0)
 #define L_ASSERT_MSG(...) ((void)0)
 #else
-#define L_ASSERT(EXPR)                                                                                  \
-do {                                                                                                    \
-    if (!(EXPR))                                                                                        \
-    {                                                                                                   \
-        Lumen::DebugLog::Error("Assertion failed: " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-        std::abort();                                                                                   \
-    }                                                                                                   \
+#define L_ASSERT(EXPR)                                                                                         \
+do {                                                                                                           \
+    if (!(EXPR))                                                                                               \
+    {                                                                                                          \
+        Lumen::DebugLog::Error("{}", "(Assertion failed) " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+        std::abort();                                                                                          \
+    }                                                                                                          \
 } while (false)
-#define L_ASSERT_MSG(EXPR, MSG)                                                                                                   \
-do {                                                                                                                              \
-    if (!(EXPR))                                                                                                                  \
-    {                                                                                                                             \
-        Lumen::DebugLog::Error("Assertion failed: " #EXPR ", " + std::string(MSG) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-        std::abort();                                                                                                             \
-    }                                                                                                                             \
+#define L_ASSERT_MSG(EXPR, ...)                                                                                                                  \
+do {                                                                                                                                             \
+    if (!(EXPR))                                                                                                                                 \
+    {                                                                                                                                            \
+        Lumen::DebugLog::Error("{}", "(Assertion failed) " #EXPR ", " + std::format(__VA_ARGS__) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+        std::abort();                                                                                                                            \
+    }                                                                                                                                            \
 } while (false)
 #endif
-#define L_CHECK(EXPR)                                                                               \
-do {                                                                                                \
-    if (!(EXPR))                                                                                    \
-    {                                                                                               \
-        Lumen::DebugLog::Error("Check failed: " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-        std::abort();                                                                               \
-    }                                                                                               \
+#define L_CHECK(EXPR)                                                                                      \
+do {                                                                                                       \
+    if (!(EXPR))                                                                                           \
+    {                                                                                                      \
+        Lumen::DebugLog::Error("{}", "(Check failed) " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+        std::abort();                                                                                      \
+    }                                                                                                      \
 } while (false)
-#define L_CHECK_MSG(EXPR, MSG)                                                                                                \
-do {                                                                                                                          \
-    if (!(EXPR))                                                                                                              \
-    {                                                                                                                         \
-        Lumen::DebugLog::Error("Check failed: " #EXPR ", " + std::string(MSG) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-        std::abort();                                                                                                         \
-    }                                                                                                                         \
+#define L_CHECK_MSG(EXPR, ...)                                                                                                               \
+do {                                                                                                                                         \
+    if (!(EXPR))                                                                                                                             \
+    {                                                                                                                                        \
+        Lumen::DebugLog::Error("{}", "(Check failed) " #EXPR ", " + std::format(__VA_ARGS__) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+        std::abort();                                                                                                                        \
+    }                                                                                                                                        \
 } while (false)
-#define L_VERIFY(EXPR)                                                                               \
-do {                                                                                                 \
-    if (!(EXPR))                                                                                     \
-    {                                                                                                \
-        Lumen::DebugLog::Error("Verify failed: " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-    }                                                                                                \
+#define L_VERIFY(EXPR)                                                                                      \
+do {                                                                                                        \
+    if (!(EXPR))                                                                                            \
+    {                                                                                                       \
+        Lumen::DebugLog::Error("{}", "(Verify failed) " #EXPR " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+    }                                                                                                       \
 } while (false)
-#define L_VERIFY_MSG(EXPR, MSG)                                                                                                \
-do {                                                                                                                           \
-    if (!(EXPR))                                                                                                               \
-    {                                                                                                                          \
-        Lumen::DebugLog::Error("Verify failed: " #EXPR ", " + std::string(MSG) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
-    }                                                                                                                          \
+#define L_VERIFY_MSG(EXPR, ...)                                                                                                               \
+do {                                                                                                                                          \
+    if (!(EXPR))                                                                                                                              \
+    {                                                                                                                                         \
+        Lumen::DebugLog::Error("{}", "(Verify failed) " #EXPR ", " + std::format(__VA_ARGS__) + " [" __FILE__ ":" L_STRINGIZE(__LINE__) "]"); \
+    }                                                                                                                                         \
 } while (false)
 
 #define CLASS_NO_DEFAULT_CTOR(TYPE) \

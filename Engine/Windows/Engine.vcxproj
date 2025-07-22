@@ -298,6 +298,7 @@
     <ClInclude Include="..\Code\Windows\DeviceResources.h" />
     <ClInclude Include="..\Code\Windows\EngineFramework.h" />
     <ClInclude Include="..\Code\Windows\StepTimer.h" />
+    <ClInclude Include="..\Include\lBuiltinResources.h" />
     <ClInclude Include="..\Include\lApplication.h" />
     <ClInclude Include="..\Include\lAssets.h" />
     <ClInclude Include="..\Include\lBehavior.h" />
@@ -306,6 +307,7 @@
     <ClInclude Include="..\Include\lDebugLog.h" />
     <ClInclude Include="..\Include\lDefs.h" />
     <ClInclude Include="..\Include\lEngine.h" />
+    <ClInclude Include="..\Include\lExpected.h" />
     <ClInclude Include="..\Include\lFileSystem.h" />
     <ClInclude Include="..\Include\lFolderFileSystem.h" />
     <ClInclude Include="..\Include\lGameObject.h" />
@@ -328,6 +330,7 @@
     <ClCompile Include="..\Code\Application.cpp" />
     <ClCompile Include="..\Code\Assets.cpp" />
     <ClCompile Include="..\Code\Behavior.cpp" />
+    <ClCompile Include="..\Code\BuiltinResources.cpp" />
     <ClCompile Include="..\Code\Camera.cpp" />
     <ClCompile Include="..\Code\Component.cpp" />
     <ClCompile Include="..\Code\Engine.cpp" />

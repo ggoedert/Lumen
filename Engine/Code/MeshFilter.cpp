@@ -7,8 +7,6 @@
 #include "lDefs.h"
 #include "lMeshFilter.h"
 
-#include <format>
-
 using namespace Lumen;
 
 /// MeshFilter::Impl class
@@ -54,9 +52,9 @@ ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Obje
         return ComponentPtr(new MeshFilter(gameObject, createParams.mesh));
     }
 #ifdef TYPEINFO
-    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mName));
+    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
 #else
-    DebugLog::Error(std::format("Create component, unknown parameter hash type: 0x{:08X}", (Hash)params.Type()));
+    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
 #endif
     return {};
 }

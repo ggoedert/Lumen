@@ -6,8 +6,6 @@
 
 #include "lCamera.h"
 
-#include <format>
-
 using namespace Lumen;
 
 /// Camera::Impl class
@@ -53,9 +51,9 @@ ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &
         return ComponentPtr(new Camera(gameObject, createParams.backgroundColor));
     }
 #ifdef TYPEINFO
-    DebugLog::Error(std::format("Create component, unknown parameter type: {}", params.Type().mName));
+    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
 #else
-    DebugLog::Error(std::format("Create component, unknown parameter hash type: 0x{:08X}", (Hash)params.Type()));
+    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
 #endif
     return {};
 }

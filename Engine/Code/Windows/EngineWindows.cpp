@@ -15,8 +15,6 @@
 #include "StepTimer.h"
 #include "DDS.h"
 
-#include <format>
-
 using namespace DX;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -126,9 +124,9 @@ namespace Lumen::Windows
         if (config.Type() != Lumen::Windows::Config::Type())
         {
 #ifdef TYPEINFO
-            DebugLog::Error(std::format("Initialize engine, unknown config type: {}", config.Type().mName));
+            DebugLog::Error("Initialize engine, unknown config type: {}", config.Type().mName);
 #else
-            DebugLog::Error(std::format("Initialize engine, unknown config hash type: 0x{:08X}", (Hash)config.Type()));
+            DebugLog::Error("Initialize engine, unknown config hash type: 0x{:08X}", config.Type());
 #endif
             return false;
         }
@@ -219,7 +217,6 @@ namespace Lumen::Windows
         commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
         mEffect->SetWorld(mWorld);
-
         mEffect->Apply(commandList);
 
         mShape->Draw(commandList);
@@ -322,7 +319,7 @@ namespace Lumen::Windows
             || (shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_0))
         {
 #ifdef _DEBUG
-            OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
+            DebugLog::Error("Shader Model 6.0 is not supported!");
 #endif
             throw std::runtime_error("Shader Model 6.0 is not supported!");
         }
@@ -346,60 +343,44 @@ namespace Lumen::Windows
         resourceUpload.Begin();
 
 #define DDS_PREFIX (sizeof(DWORD) + sizeof(DirectX::DDS_HEADER))
-#define WIDTH  256
-#define HEIGHT 256
-#define SCREEN_TEX_PITCH ((256 * 8 * 4 + 7) / 8)
+#define WIDTH    64
+#define HEIGHT   64
+#define ELEMENTS  4
+#define B_P_ELEM  8
+#define SCREEN_TEX_PITCH ((WIDTH * ELEMENTS * B_P_ELEM + (B_P_ELEM - 1)) / B_P_ELEM)
 
-        std::vector<byte> m_ddsTexture(DDS_PREFIX + 256 * 256 * 4);
+        std::vector<byte> m_ddsTexture(DDS_PREFIX + WIDTH * HEIGHT * ELEMENTS);
         *((DWORD *)m_ddsTexture.data()) = DDS_MAGIC;
         DDS_HEADER *header = (DDS_HEADER *)(m_ddsTexture.data() + sizeof(DWORD));
 
         memset(header, 0, sizeof(DDS_HEADER));
         header->size = sizeof(DDS_HEADER);
         header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
-        header->height = 256;
-        header->width = 256;
+        header->height = HEIGHT;
+        header->width = WIDTH;
         header->pitchOrLinearSize = SCREEN_TEX_PITCH;
         header->mipMapCount = 1;
         header->ddspf = DDSPF_A8B8G8R8;
         header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
         byte *tex = m_ddsTexture.data() + DDS_PREFIX;
-        for (int y = 0; y < 256; y++)
+        for (int y = 0; y < HEIGHT; y++)
         {
-            for (int x = 0; x < 256; x++)
+            for (int x = 0; x < WIDTH; x++)
             {
-                if (y < 128)
+                if ((x < (WIDTH >> 1)) == (y < (HEIGHT >> 1)))
                 {
-                    if (x < 128)
-                    {
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 0] = 255;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 1] = 255;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 2] = 0;
-                    }
-                    else
-                    {
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 0] = 0;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 1] = 128;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 2] = 128;
-                    }
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 0] = 198;
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 1] = 197;
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 2] = 198;
                 }
                 else
                 {
-                    if (x < 128)
-                    {
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 0] = 255;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 1] = 192;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 2] = 203;
-                    }
-                    else
-                    {
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 0] = 255;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 1] = 0;
-                        tex[y * SCREEN_TEX_PITCH + x * 4 + 2] = 0;
-                    }
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 0] = 156;
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 1] = 158;
+                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 2] = 156;
                 }
-                tex[y * SCREEN_TEX_PITCH + x * 4 + 3] = 255;
+                tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 3] = 255;
             }
         }
 

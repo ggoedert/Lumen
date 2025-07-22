@@ -6,6 +6,7 @@
 
 #include "lApplication.h"
 #include "lCamera.h"
+#include "lBuiltinResources.h"
 
 using namespace Lumen;
 
@@ -28,6 +29,12 @@ public:
 
     /// set engine
     void SetEngine(const EngineWeakPtr &engine) { mEngine = engine; }
+
+    /// initialize application
+    [[nodiscard]] bool Initialize();
+
+    /// shutdown application
+    void Shutdown();
 
     /// get assets
     [[nodiscard]] Lumen::Assets &Assets() { return mAssets; }
@@ -73,6 +80,18 @@ Application::Impl::Impl() {}
 
 /// destroys application
 Application::Impl::~Impl() noexcept {}
+
+/// initialize application
+bool Application::Impl::Initialize()
+{
+    Assets().RegisterFactory(DefaultResources::MakePtr(), "", 1.0f);
+    return true;
+}
+
+/// shutdown application
+void Application::Impl::Shutdown()
+{
+}
 
 /// run application
 bool Application::Impl::Run(float deltaTime)
@@ -125,6 +144,18 @@ Application::~Application() noexcept {}
 void Application::SetEngine(const EngineWeakPtr &engine)
 {
     mImpl->SetEngine(engine);
+}
+
+/// initialize application
+bool Application::Initialize()
+{
+    return mImpl->Initialize();
+}
+
+/// shutdown application
+void Application::Shutdown()
+{
+    return mImpl->Shutdown();
 }
 
 /// get assets

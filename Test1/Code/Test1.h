@@ -25,18 +25,30 @@ public:
     /// initialize and load our test scene
     bool Initialize() override
     {
+        if (!Lumen::Application::Initialize())
+        {
+            return false;
+        }
+
         if (auto engineLock = GetEngine().lock())
         {
             Lumen::FileSystem::RegisterFileSystem(engineLock->FolderFileSystem("Assets", "Assets"));
         }
+
         mMainScene = MainScene::MakePtr(*this);
-        return Lumen::SceneManager::Load(mMainScene);
+        bool loadResult = Lumen::SceneManager::Load(mMainScene);
+        if (!loadResult)
+        {
+            Shutdown();
+        }
+        return loadResult;
     }
 
     /// shutdown and unload our test scene
     void Shutdown() override
     {
         Lumen::SceneManager::Unload();
+        Lumen::Application::Shutdown();
     }
 
 private:
