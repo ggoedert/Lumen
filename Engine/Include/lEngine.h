@@ -29,6 +29,9 @@ namespace Lumen
         /// allocate smart pointer version of the engine, implemented at platform level
         static EnginePtr MakePtr(const ApplicationPtr &application);
 
+        /// debug log, implemented at platform level
+        static void DebugOutput(const std::string &message);
+
         /// initialization and management
         virtual bool Initialize(const Object &config);
 

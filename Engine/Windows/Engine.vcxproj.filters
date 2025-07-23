@@ -124,9 +124,6 @@
     <ClCompile Include="..\Code\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\Windows\DebugLogWindows.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\BuiltinResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\DebugLog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

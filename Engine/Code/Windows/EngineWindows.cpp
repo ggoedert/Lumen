@@ -459,8 +459,14 @@ namespace Lumen::Windows
 
 //==============================================================================================================================================================================
 
-// allocate smart pointer version of the engine, implemented at platform level
+/// allocate smart pointer version of the engine, implemented at platform level
 Lumen::EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
     return std::make_shared<Windows::EngineWindows>(application);
+}
+
+/// debug log, implemented at platform level
+void Engine::DebugOutput(const std::string &message)
+{
+    OutputDebugStringA((message+'\n').c_str());
 }

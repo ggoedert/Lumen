@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lDebugLog.h"
-#include "lFramework.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -32,7 +32,6 @@ void DebugLog::LogImpl(LogLevel level, std::string_view format, std::format_args
     message.reserve(256);
     message += prefix;
     message += std::vformat(format, args);
-    message += '\n';
 
-    OutputDebugStringA(message.c_str());
+    Engine::DebugOutput(message);
 }
