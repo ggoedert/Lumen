@@ -12,7 +12,7 @@
 namespace Lumen
 {
     /// struct to hold an error message
-    struct ErrorMessage { std::string message; };
+    struct ErrorMessage { std::string mMessage; };
 
     /// Expected template class for handling values or string errors
     template<typename T>
@@ -56,10 +56,10 @@ namespace Lumen
         const T &ValueOr(const T &defaultValue) const { return HasValue() ? std::get<T>(mData) : defaultValue; }
 
         /// error accessor
-        std::string &Error() { return std::get<ErrorMessage>(mData).message; }
+        std::string &Error() { return std::get<ErrorMessage>(mData).mMessage; }
 
         /// const error accessor
-        const std::string &Error() const { return std::get<ErrorMessage>(mData).message; }
+        const std::string &Error() const { return std::get<ErrorMessage>(mData).mMessage; }
 
         /// operator bool for convenience
         explicit operator bool() const noexcept { return HasValue(); }

@@ -116,9 +116,9 @@ Expected<ObjectPtr> Assets::Impl::Import(std::filesystem::path path, const HashT
 /*/// factory options
 struct FactoryOptions
 {
-    std::string_view baseDir {};
-    std::string_view fileName {};
-    bool recursive = true;
+    std::string_view mBaseDir {};
+    std::string_view mFileName {};
+    bool mRecursive = true;
 };*/
 
 /// constructor

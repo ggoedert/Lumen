@@ -29,8 +29,8 @@ namespace Lumen
         struct Params : Object
         {
             OBJECT_TYPEINFO;
-            explicit Params(MeshPtr mesh) : Object(Type()), mesh(mesh) {}
-            MeshPtr mesh;
+            explicit Params(MeshPtr mesh) : Object(Type()), mMesh(mesh) {}
+            MeshPtr mMesh;
         };
 
         /// mesh property

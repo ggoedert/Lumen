@@ -7,6 +7,8 @@
 
 #include "lDefs.h"
 
+#include <functional>
+
 /// Lumen namespace
 namespace Lumen
 {

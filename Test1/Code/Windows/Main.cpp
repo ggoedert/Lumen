@@ -13,8 +13,10 @@
 
 #include "Test1.h"
 
-#include "lEnginePlatform.h"
+#include "lEngineWindows.h"
 #include "lFramework.h"
+
+#include <DirectXMath.h>
 
 // misc app setup
 #ifdef __clang__

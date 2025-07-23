@@ -49,7 +49,7 @@ ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Obje
     if (params.Type() == MeshFilter::Params::Type())
     {
         const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new MeshFilter(gameObject, createParams.mesh));
+        return ComponentPtr(new MeshFilter(gameObject, createParams.mMesh));
     }
 #ifdef TYPEINFO
     DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);

@@ -48,7 +48,7 @@ ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &
     if (params.Type() == Camera::Params::Type())
     {
         const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new Camera(gameObject, createParams.backgroundColor));
+        return ComponentPtr(new Camera(gameObject, createParams.mBackgroundColor));
     }
 #ifdef TYPEINFO
     DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);

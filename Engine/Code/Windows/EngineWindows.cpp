@@ -4,9 +4,8 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
+#include "lEngineWindows.h"
 #include "lFolderFileSystem.h"
-#include "lApplication.h"
-#include "lEnginePlatform.h"
 #include "lEngine.h"
 
 // helpers headers
@@ -132,7 +131,7 @@ namespace Lumen::Windows
         }
 
         const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
-        mDeviceResources->SetWindow(initializeConfig.window, initializeConfig.width, initializeConfig.height);
+        mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
         mDeviceResources->CreateDeviceResources();
         CreateDeviceDependentResources();

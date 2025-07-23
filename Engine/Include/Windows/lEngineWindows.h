@@ -5,6 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lObject.h"
+
+#include <Windows.h>
+
 /// Lumen Windows namespace
 namespace Lumen::Windows
 {
@@ -12,7 +16,7 @@ namespace Lumen::Windows
     struct Config : Object
     {
         OBJECT_TYPEINFO;
-        explicit Config(HWND window, int width, int height) : Object(Type()), window(window), width(width), height(height) {}
-        HWND window; int width; int height;
+        explicit Config(HWND window, int width, int height) : Object(Type()), mWindow(window), mWidth(width), mHeight(height) {}
+        HWND mWindow; int mWidth; int mHeight;
     };
 }

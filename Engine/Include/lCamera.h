@@ -28,8 +28,8 @@ namespace Lumen
         struct Params : Object
         {
             OBJECT_TYPEINFO;
-            explicit Params(const Math::Vector &backgroundColor) : Object(Type()), backgroundColor(backgroundColor) {}
-            Math::Vector backgroundColor;
+            explicit Params(const Math::Vector &backgroundColor) : Object(Type()), mBackgroundColor(backgroundColor) {}
+            Math::Vector mBackgroundColor;
         };
 
         /// background color property

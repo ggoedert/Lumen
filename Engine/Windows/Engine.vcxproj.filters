@@ -47,9 +47,6 @@
     <ClInclude Include="..\Include\lMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Windows\lMathPlatform.h">
-      <Filter>Header Files\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\lComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,9 +72,6 @@
       <Filter>Source Files\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\Windows\lFramework.h">
-      <Filter>Header Files\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Include\Windows\lEnginePlatform.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\lProperty.h">
@@ -112,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="..\Include\lBuiltinResources.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Windows\lEngineWindows.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
