@@ -4,7 +4,7 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lEngineWindows.h"
+#include "lEngineWindowsNT10.h"
 #include "lFolderFileSystem.h"
 #include "lEngine.h"
 
@@ -21,19 +21,19 @@ using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
 
-/// Lumen Windows namespace
-namespace Lumen::Windows
+/// Lumen WindowsNT10 namespace
+namespace Lumen::WindowsNT10
 {
-    /// Engine windows implementation.
+    /// Engine windows NT10 implementation.
     /// creates a D3D12 device and provides a game loop
-    class EngineWindows final : public Engine, public DX::IDeviceNotify
+    class EngineWindowsNT10 final : public Engine, public DX::IDeviceNotify
     {
-        CLASS_NO_DEFAULT_CTOR(EngineWindows);
-        CLASS_NO_COPY_MOVE(EngineWindows);
+        CLASS_NO_DEFAULT_CTOR(EngineWindowsNT10);
+        CLASS_NO_COPY_MOVE(EngineWindowsNT10);
 
     public:
-        EngineWindows(const ApplicationPtr &application) noexcept(false);
-        ~EngineWindows();
+        EngineWindowsNT10(const ApplicationPtr &application) noexcept(false);
+        ~EngineWindowsNT10();
 
         // initialization and management
         bool Initialize(const Object &config) override;
@@ -99,7 +99,7 @@ namespace Lumen::Windows
         };
     };
 
-    EngineWindows::EngineWindows(const ApplicationPtr &application) noexcept(false) :
+    EngineWindowsNT10::EngineWindowsNT10(const ApplicationPtr &application) noexcept(false) :
         mDeviceResources(std::make_unique<DeviceResources>()),
         Engine(application)
     {
@@ -109,7 +109,7 @@ namespace Lumen::Windows
         mDeviceResources->RegisterDeviceNotify(this);
     }
 
-    EngineWindows::~EngineWindows()
+    EngineWindowsNT10::~EngineWindowsNT10()
     {
         if (mDeviceResources)
         {
@@ -118,9 +118,9 @@ namespace Lumen::Windows
     }
 
     /// initialize the Direct3D resources required to run
-    bool EngineWindows::Initialize(const Object &config)
+    bool EngineWindowsNT10::Initialize(const Object &config)
     {
-        if (config.Type() != Lumen::Windows::Config::Type())
+        if (config.Type() != Lumen::WindowsNT10::Config::Type())
         {
 #ifdef TYPEINFO
             DebugLog::Error("Initialize engine, unknown config type: {}", config.Type().mName);
@@ -130,7 +130,7 @@ namespace Lumen::Windows
             return false;
         }
 
-        const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
+        const auto &initializeConfig = static_cast<const Lumen::WindowsNT10::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
         mDeviceResources->CreateDeviceResources();
@@ -152,7 +152,7 @@ namespace Lumen::Windows
 
 #pragma region Frame Update
     /// executes the basic game loop
-    bool EngineWindows::Tick()
+    bool EngineWindowsNT10::Tick()
     {
         bool updateResult = true;
 
@@ -171,7 +171,7 @@ namespace Lumen::Windows
     }
 
     /// updates the world
-    bool EngineWindows::Update(StepTimer const &timer)
+    bool EngineWindowsNT10::Update(StepTimer const &timer)
     {
         bool runResult = true;
 
@@ -196,7 +196,7 @@ namespace Lumen::Windows
 
 #pragma region Frame Render
     /// draws the scene
-    void EngineWindows::Render()
+    void EngineWindowsNT10::Render()
     {
         // don't try to render anything before the first Update
         if (mTimer.GetFrameCount() == 0)
@@ -230,7 +230,7 @@ namespace Lumen::Windows
     }
 
     /// helper method to clear the back buffers
-    void EngineWindows::Clear()
+    void EngineWindowsNT10::Clear()
     {
         auto commandList = mDeviceResources->GetCommandList();
         PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Clear");
@@ -254,40 +254,40 @@ namespace Lumen::Windows
 #pragma endregion
 
 #pragma region Message Handlers
-    void EngineWindows::OnActivated()
+    void EngineWindowsNT10::OnActivated()
     {
         // TODO: game is becoming active window
     }
 
-    void EngineWindows::OnDeactivated()
+    void EngineWindowsNT10::OnDeactivated()
     {
         // TODO: game is becoming background window
     }
 
-    void EngineWindows::OnSuspending()
+    void EngineWindowsNT10::OnSuspending()
     {
         // TODO: game is being power-suspended (or minimized)
     }
 
-    void EngineWindows::OnResuming()
+    void EngineWindowsNT10::OnResuming()
     {
         mTimer.ResetElapsedTime();
 
         // TODO: game is being power-resumed (or returning from minimize)
     }
 
-    void EngineWindows::OnWindowMoved()
+    void EngineWindowsNT10::OnWindowMoved()
     {
         auto r = mDeviceResources->GetOutputSize();
         mDeviceResources->WindowSizeChanged(r.right, r.bottom);
     }
 
-    void EngineWindows::OnDisplayChange()
+    void EngineWindowsNT10::OnDisplayChange()
     {
         mDeviceResources->UpdateColorSpace();
     }
 
-    void EngineWindows::OnWindowSizeChanged(int width, int height)
+    void EngineWindowsNT10::OnWindowSizeChanged(int width, int height)
     {
         if (!mDeviceResources->WindowSizeChanged(width, height))
             return;
@@ -298,7 +298,7 @@ namespace Lumen::Windows
     }
 
     // properties
-    void EngineWindows::GetDefaultSize(int &width, int &height) const noexcept
+    void EngineWindowsNT10::GetDefaultSize(int &width, int &height) const noexcept
     {
         // TODO: change to desired default window size (note minimum size is 320x200)
         width = 1600;
@@ -308,7 +308,7 @@ namespace Lumen::Windows
 
 #pragma region Direct3D Resources
     /// these are the resources that depend on the device.
-    void EngineWindows::CreateDeviceDependentResources()
+    void EngineWindowsNT10::CreateDeviceDependentResources()
     {
         auto device = mDeviceResources->GetD3DDevice();
 
@@ -423,7 +423,7 @@ namespace Lumen::Windows
     }
 
     /// allocate all memory resources that change on a window SizeChanged event
-    void EngineWindows::CreateWindowSizeDependentResources()
+    void EngineWindowsNT10::CreateWindowSizeDependentResources()
     {
         // TODO: initialize windows-size dependent objects here
         auto size = mDeviceResources->GetOutputSize();
@@ -437,7 +437,7 @@ namespace Lumen::Windows
         mEffect->SetProjection(mProj);
     }
 
-    void EngineWindows::OnDeviceLost()
+    void EngineWindowsNT10::OnDeviceLost()
     {
         // TODO: add Direct3D resource cleanup here
         mShape.reset();
@@ -448,7 +448,7 @@ namespace Lumen::Windows
         mGraphicsMemory.reset();
     }
 
-    void EngineWindows::OnDeviceRestored()
+    void EngineWindowsNT10::OnDeviceRestored()
     {
         CreateDeviceDependentResources();
 
@@ -462,7 +462,7 @@ namespace Lumen::Windows
 /// allocate smart pointer version of the engine, implemented at platform level
 Lumen::EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
-    return std::make_shared<Windows::EngineWindows>(application);
+    return std::make_shared<WindowsNT10::EngineWindowsNT10>(application);
 }
 
 /// debug log, implemented at platform level

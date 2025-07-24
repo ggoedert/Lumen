@@ -16,40 +16,46 @@
     <Filter Include="Source Files\Windows">
       <UniqueIdentifier>{7488be90-5d1e-4e5d-8279-794f2bd001fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Windows\NT10">
+      <UniqueIdentifier>{447b15a6-b319-4e7d-8898-7f05ddca67ed}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Resource Files\Windows">
       <UniqueIdentifier>{0991cf55-11c1-452b-bb4a-e94fdaea2d3f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Windows\NT10">
+      <UniqueIdentifier>{aef01608-d990-4ef6-af9b-101df3a42ff3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Code\Windows\targetver.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\..\Code\Windows\NT10\targetver.h">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Windows\Resource.h">
-      <Filter>Source Files\Windows</Filter>
+    <ClInclude Include="..\..\Code\Windows\NT10\Resource.h">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\Test1.h">
+    <ClInclude Include="..\..\Code\Test1.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\MainScene.h">
+    <ClInclude Include="..\..\Code\MainScene.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Code\Windows\Main.cpp">
-      <Filter>Source Files\Windows</Filter>
+    <ClCompile Include="..\..\Code\Windows\NT10\Main.cpp">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\MainScene.cpp">
+    <ClCompile Include="..\..\Code\MainScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\Code\Windows\Application.rc">
-      <Filter>Resource Files\Windows</Filter>
+    <ResourceCompile Include="..\..\Code\Windows\NT10\Application.rc">
+      <Filter>Resource Files\Windows\NT10</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Code\Windows\Application.ico">
-      <Filter>Resource Files\Windows</Filter>
+    <Image Include="..\..\Code\Windows\NT10\Application.ico">
+      <Filter>Resource Files\Windows\NT10</Filter>
     </Image>
   </ItemGroup>
 </Project>

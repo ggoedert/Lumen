@@ -133,7 +133,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -152,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -173,7 +173,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -236,7 +236,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -257,7 +257,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -280,7 +280,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\External\DirectXTK12\Inc;..\Code;..\Code\Windows;..\Include;..\Include\Windows</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -293,60 +293,60 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Code\Windows\D3DX12.h" />
-    <ClInclude Include="..\Code\Windows\DDS.h" />
-    <ClInclude Include="..\Code\Windows\DeviceResources.h" />
-    <ClInclude Include="..\Code\Windows\EngineFramework.h" />
-    <ClInclude Include="..\Code\Windows\StepTimer.h" />
-    <ClInclude Include="..\Include\lBuiltinResources.h" />
-    <ClInclude Include="..\Include\lApplication.h" />
-    <ClInclude Include="..\Include\lAssets.h" />
-    <ClInclude Include="..\Include\lBehavior.h" />
-    <ClInclude Include="..\Include\lCamera.h" />
-    <ClInclude Include="..\Include\lComponent.h" />
-    <ClInclude Include="..\Include\lDebugLog.h" />
-    <ClInclude Include="..\Include\lDefs.h" />
-    <ClInclude Include="..\Include\lEngine.h" />
-    <ClInclude Include="..\Include\lExpected.h" />
-    <ClInclude Include="..\Include\lFileSystem.h" />
-    <ClInclude Include="..\Include\lFolderFileSystem.h" />
-    <ClInclude Include="..\Include\lGameObject.h" />
-    <ClInclude Include="..\Include\lMath.h" />
-    <ClInclude Include="..\Include\lMesh.h" />
-    <ClInclude Include="..\Include\lMeshFilter.h" />
-    <ClInclude Include="..\Include\lObject.h" />
-    <ClInclude Include="..\Include\lProperty.h" />
-    <ClInclude Include="..\Include\lPropertyArray.h" />
-    <ClInclude Include="..\Include\lPropertyBase.h" />
-    <ClInclude Include="..\Include\lSceneManager.h" />
-    <ClInclude Include="..\Include\lScene.h" />
-    <ClInclude Include="..\Include\lStringMap.h" />
-    <ClInclude Include="..\Include\lTransform.h" />
-    <ClInclude Include="..\Include\Windows\lEngineWindows.h" />
-    <ClInclude Include="..\Include\Windows\lFramework.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\DDS.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\DeviceResources.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\EngineFramework.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\StepTimer.h" />
+    <ClInclude Include="..\..\Include\lBuiltinResources.h" />
+    <ClInclude Include="..\..\Include\lApplication.h" />
+    <ClInclude Include="..\..\Include\lAssets.h" />
+    <ClInclude Include="..\..\Include\lBehavior.h" />
+    <ClInclude Include="..\..\Include\lCamera.h" />
+    <ClInclude Include="..\..\Include\lComponent.h" />
+    <ClInclude Include="..\..\Include\lDebugLog.h" />
+    <ClInclude Include="..\..\Include\lDefs.h" />
+    <ClInclude Include="..\..\Include\lEngine.h" />
+    <ClInclude Include="..\..\Include\lExpected.h" />
+    <ClInclude Include="..\..\Include\lFileSystem.h" />
+    <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
+    <ClInclude Include="..\..\Include\lGameObject.h" />
+    <ClInclude Include="..\..\Include\lMath.h" />
+    <ClInclude Include="..\..\Include\lMesh.h" />
+    <ClInclude Include="..\..\Include\lMeshFilter.h" />
+    <ClInclude Include="..\..\Include\lObject.h" />
+    <ClInclude Include="..\..\Include\lProperty.h" />
+    <ClInclude Include="..\..\Include\lPropertyArray.h" />
+    <ClInclude Include="..\..\Include\lPropertyBase.h" />
+    <ClInclude Include="..\..\Include\lSceneManager.h" />
+    <ClInclude Include="..\..\Include\lScene.h" />
+    <ClInclude Include="..\..\Include\lStringMap.h" />
+    <ClInclude Include="..\..\Include\lTransform.h" />
+    <ClInclude Include="..\..\Include\Windows\NT10\lEngineWindowsNT10.h" />
+    <ClInclude Include="..\..\Include\Windows\NT10\lFramework.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Code\Application.cpp" />
-    <ClCompile Include="..\Code\Assets.cpp" />
-    <ClCompile Include="..\Code\Behavior.cpp" />
-    <ClCompile Include="..\Code\BuiltinResources.cpp" />
-    <ClCompile Include="..\Code\Camera.cpp" />
-    <ClCompile Include="..\Code\Component.cpp" />
-    <ClCompile Include="..\Code\DebugLog.cpp" />
-    <ClCompile Include="..\Code\Engine.cpp" />
-    <ClCompile Include="..\Code\FileSystem.cpp" />
-    <ClCompile Include="..\Code\GameObject.cpp" />
-    <ClCompile Include="..\Code\Mesh.cpp" />
-    <ClCompile Include="..\Code\MeshFilter.cpp" />
-    <ClCompile Include="..\Code\Object.cpp" />
-    <ClCompile Include="..\Code\SceneManager.cpp" />
-    <ClCompile Include="..\Code\Transform.cpp" />
-    <ClCompile Include="..\Code\Windows\DeviceResources.cpp" />
-    <ClCompile Include="..\Code\Windows\EngineWindows.cpp" />
-    <ClCompile Include="..\Code\Windows\FolderFileSystem.cpp" />
+    <ClCompile Include="..\..\Code\Application.cpp" />
+    <ClCompile Include="..\..\Code\Assets.cpp" />
+    <ClCompile Include="..\..\Code\Behavior.cpp" />
+    <ClCompile Include="..\..\Code\BuiltinResources.cpp" />
+    <ClCompile Include="..\..\Code\Camera.cpp" />
+    <ClCompile Include="..\..\Code\Component.cpp" />
+    <ClCompile Include="..\..\Code\DebugLog.cpp" />
+    <ClCompile Include="..\..\Code\Engine.cpp" />
+    <ClCompile Include="..\..\Code\FileSystem.cpp" />
+    <ClCompile Include="..\..\Code\GameObject.cpp" />
+    <ClCompile Include="..\..\Code\Mesh.cpp" />
+    <ClCompile Include="..\..\Code\MeshFilter.cpp" />
+    <ClCompile Include="..\..\Code\Object.cpp" />
+    <ClCompile Include="..\..\Code\SceneManager.cpp" />
+    <ClCompile Include="..\..\Code\Transform.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\FolderFileSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\README.md" />
+    <None Include="..\..\..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
