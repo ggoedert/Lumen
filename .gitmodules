@@ -1,3 +1,6 @@
 [submodule "External/Windows/NT10/DirectXTK12"]
 	path = External/Windows/NT10/DirectXTK12
 	url = https://github.com/microsoft/DirectXTK12.git
+[submodule "External/Windows/NT6_1/DirectXTK"]
+	path = External/Windows/NT6_1/DirectXTK
+	url = https://github.com/ggoedert/DirectXTK.git
