@@ -4,3 +4,6 @@
 [submodule "External/Windows/NT6_1/DirectXTK"]
 	path = External/Windows/NT6_1/DirectXTK
 	url = https://github.com/ggoedert/DirectXTK.git
+[submodule "External/Windows/NT6_1/DirectXMath"]
+	path = External/Windows/NT6_1/DirectXMath
+	url = https://github.com/microsoft/DirectXMath.git
