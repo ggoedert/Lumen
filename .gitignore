@@ -3,4 +3,5 @@ x64/
 Debug/
 Release/
 html/
+External/Windows/NT6_1/microsoft.xaudio2.redist
 *.aps
