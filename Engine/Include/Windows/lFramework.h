@@ -10,8 +10,10 @@
 #endif
 #include <sdkddkver.h>
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WINTHRESHOLD)
 // Use the C++ standard templated min/max
 #define NOMINMAX
+#endif
 
 // DirectX apps don't need GDI
 #define NODRAWTEXT

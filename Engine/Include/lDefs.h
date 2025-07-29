@@ -160,7 +160,7 @@ do                                                          \
 #define CURRENT_FUNCTION "HashType Class::Method()"
 #elif defined(__FUNCSIG__)
 #define CURRENT_FUNCTION __FUNCSIG__
-#elif defined(__PRETTY_FUNCTION__)
+#elif defined(__GNUC__) ||  defined(__clang__)
 #define CURRENT_FUNCTION __PRETTY_FUNCTION__
 #else
 #error Unable to determine the current function.

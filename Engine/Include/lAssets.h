@@ -21,13 +21,13 @@ namespace Lumen
     public:
 
         /// get type
-        virtual [[nodiscard]] HashType Type() const = 0;
+        [[nodiscard]] virtual HashType Type() const = 0;
 
         /// get name
-        virtual [[nodiscard]] std::string_view Name() const = 0;
+        [[nodiscard]] virtual std::string_view Name() const = 0;
 
         /// import the asset
-        virtual [[nodiscard]] ObjectPtr Import() = 0;
+        [[nodiscard]] virtual ObjectPtr Import() = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);
@@ -38,10 +38,10 @@ namespace Lumen
     public:
 
         /// accepts a path
-        virtual [[nodiscard]] bool Accepts(std::filesystem::path path) const = 0;
+        [[nodiscard]] virtual bool Accepts(std::filesystem::path path) const = 0;
 
         /// get asset infos
-        virtual [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos() = 0;
+        [[nodiscard]] virtual std::vector<AssetInfoPtr> GetAssetInfos() = 0;
     };
 
     /// Assets class

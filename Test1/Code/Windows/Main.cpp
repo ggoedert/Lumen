@@ -56,9 +56,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     if (!DirectX::XMVerifyCPUSupport())
         return 1;
 
+#ifdef PORTING
     Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
     if (FAILED(initialize))
         return 1;
+#endif
 
     // initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -86,7 +88,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         // create window
         int width = 800;
         int height = 600;
+#ifdef PORTING
         engine->GetDefaultSize(width, height);
+#endif
 
         RECT rc = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
@@ -114,12 +118,16 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 #endif
 
+#ifdef PORTING
         SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(engine.get()));
+#endif
 
         GetClientRect(hwnd, &rc);
 
+#ifdef PORTING
         if (!engine->Initialize(Lumen::Windows::Config(hwnd, rc.right - rc.left, rc.bottom - rc.top)))
             return 1;
+#endif
     }
 
     // main message loop
@@ -136,16 +144,20 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         {
             if (running)
             {
+#ifdef PORTING
                 if (!engine->Tick())
                 {
                     running = false;
                     PostQuitMessage(0);
                 }
+#endif
             }
         }
     }
 
+#ifdef PORTING
     engine->Shutdown();
+#endif
 
     return static_cast<int>(msg.wParam);
 }
@@ -162,16 +174,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static bool s_fullscreen = true;
 #endif
 
+#ifdef PORTING
     auto engine = reinterpret_cast<Lumen::Engine *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+#endif
 
     switch (message)
     {
     case WM_PAINT:
+#ifdef PORTING
         if (s_in_sizemove && engine)
         {
             engine->Tick();
         }
         else
+#endif
         {
             PAINTSTRUCT ps;
             (void)BeginPaint(hWnd, &ps);
@@ -180,17 +196,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_DISPLAYCHANGE:
+#ifdef PORTING
         if (engine)
         {
             engine->OnDisplayChange();
         }
+#endif
         break;
 
     case WM_MOVE:
+#ifdef PORTING
         if (engine)
         {
             engine->OnWindowMoved();
         }
+#endif
         break;
 
     case WM_SIZE:
@@ -199,22 +219,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (!s_minimized)
             {
                 s_minimized = true;
+#ifdef PORTING
                 if (!s_in_suspend && engine)
                     engine->OnSuspending();
+#endif
                 s_in_suspend = true;
             }
         }
         else if (s_minimized)
         {
             s_minimized = false;
+#ifdef PORTING
             if (s_in_suspend && engine)
                 engine->OnResuming();
+#endif
             s_in_suspend = false;
         }
+#ifdef PORTING
         else if (!s_in_sizemove && engine)
         {
             engine->OnWindowSizeChanged(LOWORD(lParam), HIWORD(lParam));
         }
+#endif
         break;
 
     case WM_ENTERSIZEMOVE:
@@ -223,6 +249,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_EXITSIZEMOVE:
         s_in_sizemove = false;
+#ifdef PORTING
         if (engine)
         {
             RECT rc;
@@ -230,6 +257,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             engine->OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
         }
+#endif
         break;
 
     case WM_GETMINMAXINFO:
@@ -242,6 +270,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_ACTIVATEAPP:
+#ifdef PORTING
         if (engine)
         {
             if (wParam)
@@ -253,22 +282,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 engine->OnDeactivated();
             }
         }
+#endif
         break;
 
     case WM_POWERBROADCAST:
         switch (wParam)
         {
         case PBT_APMQUERYSUSPEND:
+#ifdef PORTING
             if (!s_in_suspend && engine)
                 engine->OnSuspending();
+#endif
             s_in_suspend = true;
             return TRUE;
 
         case PBT_APMRESUMESUSPEND:
             if (!s_minimized)
             {
+#ifdef PORTING
                 if (s_in_suspend && engine)
                     engine->OnResuming();
+#endif
                 s_in_suspend = false;
             }
             return TRUE;
@@ -291,8 +325,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 int width = 800;
                 int height = 600;
+#ifdef PORTING
                 if (engine)
                     engine->GetDefaultSize(width, height);
+#endif
 
                 ShowWindow(hWnd, SW_SHOWNORMAL);
 
