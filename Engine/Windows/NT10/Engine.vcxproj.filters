@@ -113,15 +113,12 @@
     <ClInclude Include="..\..\Include\lBuiltinResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Windows\NT10\lEngineWindowsNT10.h">
-      <Filter>Header Files\Windows\NT10</Filter>
+    <ClInclude Include="..\..\Include\Windows\lEngineWindows.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\SceneManager.cpp">
@@ -171,6 +168,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\DebugLog.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -133,7 +133,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -152,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -173,7 +173,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -236,7 +236,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -257,7 +257,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -280,7 +280,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -322,7 +322,7 @@
     <ClInclude Include="..\..\Include\lScene.h" />
     <ClInclude Include="..\..\Include\lStringMap.h" />
     <ClInclude Include="..\..\Include\lTransform.h" />
-    <ClInclude Include="..\..\Include\Windows\NT10\lEngineWindowsNT10.h" />
+    <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
     <ClInclude Include="..\..\Include\Windows\NT10\lFramework.h" />
   </ItemGroup>
   <ItemGroup>
@@ -342,7 +342,7 @@
     <ClCompile Include="..\..\Code\SceneManager.cpp" />
     <ClCompile Include="..\..\Code\Transform.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp" />
-    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\FolderFileSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
