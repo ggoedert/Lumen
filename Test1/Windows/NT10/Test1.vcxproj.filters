@@ -41,11 +41,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Code\Windows\NT10\Main.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Code\MainScene.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\Main.cpp">
+      <Filter>Source Files\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,8 +54,8 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\Code\Windows\NT10\Application.ico">
-      <Filter>Resource Files\Windows\NT10</Filter>
+    <Image Include="..\..\Code\Windows\Application.ico">
+      <Filter>Resource Files\Windows</Filter>
     </Image>
   </ItemGroup>
 </Project>

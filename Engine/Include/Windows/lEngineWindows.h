@@ -9,8 +9,8 @@
 
 #include <Windows.h>
 
-/// Lumen WindowsNT10 namespace
-namespace Lumen::WindowsNT10
+/// Lumen Windows namespace
+namespace Lumen::Windows
 {
     /// engine initialize config
     struct Config : Object

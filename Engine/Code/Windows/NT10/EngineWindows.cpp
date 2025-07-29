@@ -4,7 +4,7 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lEngineWindowsNT10.h"
+#include "lEngineWindows.h"
 #include "lFolderFileSystem.h"
 #include "lEngine.h"
 
@@ -120,7 +120,7 @@ namespace Lumen::WindowsNT10
     /// initialize the Direct3D resources required to run
     bool EngineWindowsNT10::Initialize(const Object &config)
     {
-        if (config.Type() != Lumen::WindowsNT10::Config::Type())
+        if (config.Type() != Lumen::Windows::Config::Type())
         {
 #ifdef TYPEINFO
             DebugLog::Error("Initialize engine, unknown config type: {}", config.Type().mName);
@@ -130,7 +130,7 @@ namespace Lumen::WindowsNT10
             return false;
         }
 
-        const auto &initializeConfig = static_cast<const Lumen::WindowsNT10::Config &>(config);
+        const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
         mDeviceResources->CreateDeviceResources();
