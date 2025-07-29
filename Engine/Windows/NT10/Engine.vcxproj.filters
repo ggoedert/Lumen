@@ -12,9 +12,6 @@
     <Filter Include="Header Files\Windows">
       <UniqueIdentifier>{30d65542-1567-4e16-8dbc-bc8f538916ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Windows\NT10">
-      <UniqueIdentifier>{8e88e28d-f3ce-4de5-949e-02cb0daf9cc8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Windows">
       <UniqueIdentifier>{34370817-ac45-41ec-87f1-c543d4e5af88}</UniqueIdentifier>
     </Filter>
@@ -77,9 +74,6 @@
     <ClInclude Include="..\..\Code\Windows\NT10\StepTimer.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Windows\NT10\lFramework.h">
-      <Filter>Header Files\Windows\NT10</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\lProperty.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -114,6 +108,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Windows\lFramework.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>

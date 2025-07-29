@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -166,7 +166,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Debug</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -178,7 +178,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>EDITOR;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -190,7 +190,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Debug</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -204,7 +204,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -218,7 +218,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Release</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -232,7 +232,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>EDITOR;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -246,7 +246,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Release</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -258,7 +258,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -270,7 +270,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Debug</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -282,7 +282,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>EDITOR;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -294,7 +294,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Debug</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -308,7 +308,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -322,7 +322,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Release</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -336,7 +336,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>EDITOR;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -350,7 +350,7 @@
       <AdditionalLibraryDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Bin\Desktop_2022_Win10\$(Platform)\Release</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>

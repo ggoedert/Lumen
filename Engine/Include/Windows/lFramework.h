@@ -31,4 +31,6 @@
 #include <Windows.h>
 
 #include <wrl/client.h>
+#if (_WIN32_WINNT >= _WIN32_WINNT_WINTHRESHOLD)
 #include <wrl/event.h>
+#endif

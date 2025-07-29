@@ -323,7 +323,7 @@
     <ClInclude Include="..\..\Include\lStringMap.h" />
     <ClInclude Include="..\..\Include\lTransform.h" />
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
-    <ClInclude Include="..\..\Include\Windows\NT10\lFramework.h" />
+    <ClInclude Include="..\..\Include\Windows\lFramework.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Application.cpp" />
