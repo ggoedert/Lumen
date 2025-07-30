@@ -13,9 +13,9 @@ using namespace Lumen;
 /// GameObject::Impl class
 class GameObject::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(GameObject::Impl);
-    CLASS_NO_COPY_MOVE(GameObject::Impl);
-    CLASS_PTR_UNIQUEMAKER(GameObject::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class GameObject;
 
 public:
@@ -55,7 +55,7 @@ GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mInterface(gameObject), 
 /// destroys game object
 GameObject::Impl::~Impl() noexcept
 {
-    for (const ComponentWeakPtr component : mComponents)
+    for (const ComponentWeakPtr &component : mComponents)
     {
         SceneManager::UnregisterComponent(component);
     }

@@ -13,8 +13,8 @@ using namespace Lumen;
 /// Application::Impl class
 class Application::Impl
 {
-    CLASS_NO_COPY_MOVE(Application::Impl);
-    CLASS_PTR_UNIQUEMAKER(Application::Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Application;
 
 public:

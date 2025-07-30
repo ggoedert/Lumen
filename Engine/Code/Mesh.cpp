@@ -11,8 +11,8 @@ using namespace Lumen;
 /// Mesh::Impl class
 class Mesh::Impl
 {
-    CLASS_NO_COPY_MOVE(Mesh::Impl);
-    CLASS_PTR_UNIQUEMAKER(Mesh::Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Mesh;
 
 public:

@@ -11,9 +11,9 @@ using namespace Lumen;
 /// Camera::Impl class
 class Camera::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Camera::Impl);
-    CLASS_NO_COPY_MOVE(Camera::Impl);
-    CLASS_PTR_UNIQUEMAKER(Camera::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Camera;
 
 public:

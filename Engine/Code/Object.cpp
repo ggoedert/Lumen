@@ -11,9 +11,9 @@ using namespace Lumen;
 /// Object::Impl class
 class Object::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Object::Impl);
-    CLASS_NO_COPY_MOVE(Object::Impl);
-    CLASS_PTR_UNIQUEMAKER(Object::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Object;
 
 public:

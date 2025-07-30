@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="../../../Engine/Windows/NT6_1/Engine.cbp" />
+		<Project filename="Test1.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

@@ -11,9 +11,9 @@ using namespace Lumen;
 /// FolderFileSystem::Impl class
 class FolderFileSystem::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(FolderFileSystem::Impl);
-    CLASS_NO_COPY_MOVE(FolderFileSystem::Impl);
-    CLASS_PTR_UNIQUEMAKER(FolderFileSystem::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class FolderFileSystem;
 
 public:

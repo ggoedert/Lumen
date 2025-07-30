@@ -12,9 +12,9 @@ using namespace Lumen;
 /// MeshFilter::Impl class
 class MeshFilter::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(MeshFilter::Impl);
-    CLASS_NO_COPY_MOVE(MeshFilter::Impl);
-    CLASS_PTR_UNIQUEMAKER(MeshFilter::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class MeshFilter;
 
 public:

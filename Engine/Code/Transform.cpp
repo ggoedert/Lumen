@@ -11,9 +11,9 @@ using namespace Lumen;
 /// Transform::Impl class
 class Transform::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Transform::Impl);
-    CLASS_NO_COPY_MOVE(Transform::Impl);
-    CLASS_PTR_UNIQUEMAKER(Transform::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
 
 public:
     /// constructs a transform

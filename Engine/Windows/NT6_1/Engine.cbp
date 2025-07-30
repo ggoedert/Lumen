@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Engine" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="Bin/Debug/bin/Engine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Bin/Debug/obj/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="Bin/Release/bin/Engine" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Bin/Release/obj/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=c++20" />
+			<Add option="-mtune=generic -msse2" />
+			<Add option="-D_WIN32_WINNT=0x0601" />
+			<Add option="-DUNICODE" />
+			<Add option="-D_UNICODE" />
+			<Add directory="../../../External/Windows/NT6_1/DirectXMath/Inc" />
+			<Add directory="../../../External/Windows/NT6_1/DirectXTK/Inc" />
+			<Add directory="../../Code" />
+			<Add directory="../../Code/Windows" />
+			<Add directory="../../Code/Windows/NT6_1" />
+			<Add directory="../../Include" />
+			<Add directory="../../Include/Windows" />
+			<Add directory="../../Include/Windows/NT6_1" />
+		</Compiler>
+		<Unit filename="..\..\Code\Application.cpp" />
+		<Unit filename="..\..\Code\Assets.cpp" />
+		<Unit filename="..\..\Code\Behavior.cpp" />
+		<Unit filename="..\..\Code\BuiltinResources.cpp" />
+		<Unit filename="..\..\Code\Camera.cpp" />
+		<Unit filename="..\..\Code\Component.cpp" />
+		<Unit filename="..\..\Code\DebugLog.cpp" />
+		<Unit filename="..\..\Code\Engine.cpp" />
+		<Unit filename="..\..\Code\FileSystem.cpp" />
+		<Unit filename="..\..\Code\GameObject.cpp" />
+		<Unit filename="..\..\Code\Mesh.cpp" />
+		<Unit filename="..\..\Code\MeshFilter.cpp" />
+		<Unit filename="..\..\Code\Object.cpp" />
+		<Unit filename="..\..\Code\SceneManager.cpp" />
+		<Unit filename="..\..\Code\Transform.cpp" />
+		<Unit filename="..\..\Code\Windows\FolderFileSystem.cpp" />
+		<Unit filename="..\..\Code\Windows\DDS.h" />
+		<Unit filename="..\..\Code\Windows\StepTimer.h" />
+		<Unit filename="..\..\Code\Windows\NT6_1\DeviceResources.cpp" />
+		<Unit filename="..\..\Code\Windows\NT6_1\EngineWindows.cpp" />
+		<Unit filename="..\..\Code\Windows\NT6_1\DeviceResources.h" />
+		<Unit filename="..\..\Code\Windows\NT6_1\EngineFramework.h" />
+		<Unit filename="..\..\Include\lBuiltinResources.h" />
+		<Unit filename="..\..\Include\lApplication.h" />
+		<Unit filename="..\..\Include\lAssets.h" />
+		<Unit filename="..\..\Include\lBehavior.h" />
+		<Unit filename="..\..\Include\lCamera.h" />
+		<Unit filename="..\..\Include\lComponent.h" />
+		<Unit filename="..\..\Include\lDebugLog.h" />
+		<Unit filename="..\..\Include\lDefs.h" />
+		<Unit filename="..\..\Include\lEngine.h" />
+		<Unit filename="..\..\Include\lExpected.h" />
+		<Unit filename="..\..\Include\lFileSystem.h" />
+		<Unit filename="..\..\Include\lFolderFileSystem.h" />
+		<Unit filename="..\..\Include\lGameObject.h" />
+		<Unit filename="..\..\Include\lMath.h" />
+		<Unit filename="..\..\Include\lMesh.h" />
+		<Unit filename="..\..\Include\lMeshFilter.h" />
+		<Unit filename="..\..\Include\lObject.h" />
+		<Unit filename="..\..\Include\lProperty.h" />
+		<Unit filename="..\..\Include\lPropertyArray.h" />
+		<Unit filename="..\..\Include\lPropertyBase.h" />
+		<Unit filename="..\..\Include\lSceneManager.h" />
+		<Unit filename="..\..\Include\lScene.h" />
+		<Unit filename="..\..\Include\lStringMap.h" />
+		<Unit filename="..\..\Include\lTransform.h" />
+		<Unit filename="..\..\Include\Windows\lEngineWindows.h" />
+		<Unit filename="..\..\Include\Windows\lFramework.h" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

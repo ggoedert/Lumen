@@ -12,8 +12,8 @@ using namespace Lumen;
 /// Assets::Impl class
 class Assets::Impl
 {
-    CLASS_NO_COPY_MOVE(Assets::Impl);
-    CLASS_PTR_UNIQUEMAKER(Assets::Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Assets;
 
 public:

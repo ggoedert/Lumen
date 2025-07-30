@@ -6,6 +6,11 @@
 #pragma once
 
 // platform specific includes
+#ifdef _WIN32
+#include <sal.h>
+#else
+#define _In_reads_(s)
+#endif
 #if defined(__SSE__) || defined(_M_X64) || defined(_M_IX86)
 #define SIMDSSE
 #include <xmmintrin.h>

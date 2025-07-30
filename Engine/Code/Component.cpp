@@ -11,9 +11,9 @@ using namespace Lumen;
 /// Component::Impl class
 class Component::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Component::Impl);
-    CLASS_NO_COPY_MOVE(Component::Impl);
-    CLASS_PTR_UNIQUEMAKER(Component::Impl);
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Component;
 
 public:
