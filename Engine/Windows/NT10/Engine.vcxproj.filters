@@ -62,16 +62,10 @@
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Code\Windows\NT10\DDS.h">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\DeviceResources.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\EngineFramework.h">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Code\Windows\NT10\StepTimer.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lProperty.h">
@@ -113,6 +107,12 @@
     <ClInclude Include="..\..\Include\Windows\lFramework.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Code\Windows\DDS.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Code\Windows\StepTimer.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -148,9 +148,6 @@
     <ClCompile Include="..\..\Code\MeshFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\NT10\FolderFileSystem.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Code\FileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -168,6 +165,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp">
       <Filter>Source Files\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
+      <Filter>Source Files\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
