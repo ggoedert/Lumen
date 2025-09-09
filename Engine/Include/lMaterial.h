@@ -1,53 +1,44 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     MeshFilter interface
+/// \brief     Material interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
 #include "lDefs.h"
 #include "lComponent.h"
-#include "lMesh.h"
+#include "lShader.h"
 #include "lSceneManager.h"
 #include "lProperty.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(MeshFilter);
+    CLASS_PTR_DEF(Material);
 
-    /// MeshFilter class
-    class MeshFilter : public Component
+    /// Material class
+    class Material : public Component
     {
-        CLASS_NO_DEFAULT_CTOR(MeshFilter);
-        CLASS_NO_COPY_MOVE(MeshFilter);
+        CLASS_NO_DEFAULT_CTOR(Material);
+        CLASS_NO_COPY_MOVE(Material);
         COMPONENT_TYPEINFO;
         friend void SceneManager::Initialize();
 
     public:
-        /// mesh filter creation parameters
+        /// material creation parameters
         struct Params : Object
         {
             OBJECT_TYPEINFO;
-            explicit Params(MeshPtr mesh) : Object(Type()), mMesh(mesh) {}
-            MeshPtr mMesh;
+            explicit Params(ShaderPtr shader) : Object(Type()), mShader(shader) {}
+            ShaderPtr mShader;
         };
 
-        /// mesh property
-        PROPERTY(MeshPtr, Mesh, GetMesh, SetMesh);
-
     private:
-        /// constructs a mesh filter with a mesh
-        explicit MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh);
+        /// constructs a material an shader
+        explicit Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader);
 
-        /// creates a smart pointer version of the mesh filter component
+        /// creates a smart pointer version of the material component
         static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const Object &params);
-
-        /// get mesh
-        [[nodiscard]] const MeshPtr GetMesh() const;
-
-        /// set mesh
-        void SetMesh(const MeshPtr &mesh);
 
         /// run component
         void Run() override;

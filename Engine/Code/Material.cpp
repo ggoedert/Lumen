@@ -1,55 +1,56 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     MeshFilter
+/// \brief     Material
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
 #include "lDefs.h"
-#include "lMeshFilter.h"
+#include "lMaterial.h"
 
 using namespace Lumen;
 
-/// MeshFilter::Impl class
-class MeshFilter::Impl
+/// Material::Impl class
+class Material::Impl
 {
     CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
-    friend class MeshFilter;
+    friend class Material;
 
 public:
-    /// constructs a mesh filter
-    explicit Impl(MeshPtr mesh) :mMesh(mesh) {}
+    /// constructs a material
+    explicit Impl(ShaderPtr shader) :mShader(shader) {}
 
-    /// get mesh
-    [[nodiscard]] const MeshPtr GetMesh() const { return mMesh;  }
+    /// get shader
+    [[nodiscard]] const ShaderPtr GetShader() const { return mShader; }
 
-    /// set mesh
-    void SetMesh(const MeshPtr &mesh) { mMesh = mesh; }
+    /// set shader
+    void SetShader(const ShaderPtr &shader) { mShader = shader; }
 
 private:
     /// run component
     void Run() {}
 
-    /// mesh
-    MeshPtr mMesh;
+    /// shader
+    ShaderPtr mShader;
 };
 
 //==============================================================================================================================================================================
 
-DEFINE_COMPONENT_TYPEINFO(MeshFilter);
+DEFINE_COMPONENT_TYPEINFO(Material);
 
-/// constructs a mesh filter with a mesh
-MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh) :
-    Component(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr(mesh)) {}
+/// constructs a material with an shader
+Material::Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader) :
+    Component(Type(), Name(), gameObject), mImpl(Material::Impl::MakeUniquePtr(shader))
+{}
 
-/// creates a smart pointer version of the mesh filter component
-ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
+/// creates a smart pointer version of the material component
+ComponentPtr Material::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
 {
-    if (params.Type() == MeshFilter::Params::Type())
+    if (params.Type() == Material::Params::Type())
     {
         const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new MeshFilter(gameObject, createParams.mMesh));
+        return ComponentPtr(new Material(gameObject, createParams.mShader));
     }
 #ifdef TYPEINFO
     DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
@@ -59,11 +60,5 @@ ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Obje
     return {};
 }
 
-/// get mesh
-const MeshPtr MeshFilter::GetMesh() const { return mImpl->GetMesh(); }
-
-/// set mesh
-void MeshFilter::SetMesh(const MeshPtr &mesh) { mImpl->SetMesh(mesh); }
-
 /// run component
-void MeshFilter::Run() { mImpl->Run(); }
+void Material::Run() { mImpl->Run(); }

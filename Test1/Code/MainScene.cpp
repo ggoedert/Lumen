@@ -12,6 +12,9 @@
 #include <lCamera.h>
 #include <lMesh.h>
 #include <lMeshFilter.h>
+#include <lTexture.h>
+#include <lMaterial.h>
+#include <lShader.h>
 
 class Player
 {
@@ -194,27 +197,51 @@ bool MainScene::Load()
     // setup sphere
     if (auto sphereLock = mSphere.lock())
     {
-        Lumen::Expected<Lumen::ObjectPtr> sphereExp = mApplication.Assets().Import(
+        // load sphere mesh
+        Lumen::Expected<Lumen::ObjectPtr> meshExp = mApplication.Assets().Import(
             "Library/lumen default resources",
             Lumen::Mesh::Type(),
             "Sphere"
         );
+        if (!meshExp.HasValue())
+        {
+            Lumen::DebugLog::Error("Unable to load default sphere mesh resource, {}", meshExp.Error());
+            return false;
+        }
 
-        /*
+        // add sphere mesh filter component
+        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(meshExp.Value()) });
+
+        // load default checker gray texture
         Lumen::Expected<Lumen::ObjectPtr> textureExp = mApplication.Assets().Import(
             "Resources/lumen_builtin_extra",
             Lumen::Texture::Type(),
             "Default-Checker-Gray"
         );
-        */
-
-        if (!sphereExp.HasValue())
+        if (!textureExp.HasValue())
         {
-            Lumen::DebugLog::Error("Unable to load default sphere resource, {}", sphereExp.Error());
+            Lumen::DebugLog::Error("Unable to load default checker gray texture resource, {}", textureExp.Error());
             return false;
         }
 
-        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(sphereExp.Value()) });
+        // load simple diffuse shader
+        Lumen::Expected<Lumen::ObjectPtr> shaderExp = mApplication.Assets().Import(
+            "Resources/lumen_builtin_extra",
+            Lumen::Shader::Type(),
+            "Simple/Diffuse"
+        );
+        if (!shaderExp.HasValue())
+        {
+            Lumen::DebugLog::Error("Unable to load simple diffuse shader resource, {}", shaderExp.Error());
+            return false;
+        }
+
+        // setup texture property in shader
+        Lumen::ShaderPtr shader = static_pointer_cast<Lumen::Shader>(shaderExp.Value());
+        shader->SetProperty("_MainTex", textureExp.Value());
+
+        // add material component
+        sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { shader });
     }
 
     return true;

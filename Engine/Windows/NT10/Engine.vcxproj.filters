@@ -113,6 +113,15 @@
     <ClInclude Include="..\..\Code\Windows\StepTimer.h">
       <Filter>Source Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -168,6 +177,15 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
       <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Shader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

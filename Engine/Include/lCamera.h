@@ -36,7 +36,7 @@ namespace Lumen
         PROPERTY(Math::Vector, BackgroundColor, GetBackgroundColor, SetBackgroundColor);
 
     private:
-        /// constructs a camera with name and background color
+        /// constructs a camera with a background color
         explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
         /// creates a smart pointer version of the camera component

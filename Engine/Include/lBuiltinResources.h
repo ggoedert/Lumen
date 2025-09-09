@@ -23,4 +23,19 @@ namespace Lumen
         /// get asset infos
         [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos() override;
     };
+
+    /// BuiltinExtra class
+    class BuiltinExtra : public AssetFactory
+    {
+    public:
+        /// creates a smart pointer version of the builtin extra
+        static AssetFactoryPtr MakePtr();
+
+        /// accepts a path
+        [[nodiscard]] bool Accepts(std::filesystem::path path) const override;
+
+        /// get asset infos
+        [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos() override;
+    };
+
 }

@@ -38,7 +38,7 @@ private:
 
 DEFINE_COMPONENT_TYPEINFO(Camera);
 
-/// constructs a camera with name and background color
+/// constructs a camera with a background color
 Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) :
     Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 

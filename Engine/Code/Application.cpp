@@ -85,6 +85,7 @@ Application::Impl::~Impl() noexcept {}
 bool Application::Impl::Initialize()
 {
     Assets().RegisterFactory(DefaultResources::MakePtr(), "", 1.0f);
+    Assets().RegisterFactory(BuiltinExtra::MakePtr(), "", 1.0f);
     return true;
 }
 

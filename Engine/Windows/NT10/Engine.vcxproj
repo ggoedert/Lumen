@@ -320,7 +320,10 @@
     <ClInclude Include="..\..\Include\lPropertyBase.h" />
     <ClInclude Include="..\..\Include\lSceneManager.h" />
     <ClInclude Include="..\..\Include\lScene.h" />
+    <ClInclude Include="..\..\Include\lShader.h" />
     <ClInclude Include="..\..\Include\lStringMap.h" />
+    <ClInclude Include="..\..\Include\lTexture.h" />
+    <ClInclude Include="..\..\Include\lMaterial.h" />
     <ClInclude Include="..\..\Include\lTransform.h" />
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
     <ClInclude Include="..\..\Include\Windows\lFramework.h" />
@@ -340,6 +343,9 @@
     <ClCompile Include="..\..\Code\MeshFilter.cpp" />
     <ClCompile Include="..\..\Code\Object.cpp" />
     <ClCompile Include="..\..\Code\SceneManager.cpp" />
+    <ClCompile Include="..\..\Code\Shader.cpp" />
+    <ClCompile Include="..\..\Code\Texture.cpp" />
+    <ClCompile Include="..\..\Code\Material.cpp" />
     <ClCompile Include="..\..\Code\Transform.cpp" />
     <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp" />
