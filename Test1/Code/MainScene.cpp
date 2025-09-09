@@ -223,6 +223,7 @@ bool MainScene::Load()
             Lumen::DebugLog::Error("Unable to load default checker gray texture resource, {}", textureExp.Error());
             return false;
         }
+        const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
 
         // load simple diffuse shader
         Lumen::Expected<Lumen::ObjectPtr> shaderExp = mApplication.Assets().Import(
@@ -235,10 +236,10 @@ bool MainScene::Load()
             Lumen::DebugLog::Error("Unable to load simple diffuse shader resource, {}", shaderExp.Error());
             return false;
         }
+        Lumen::ShaderPtr shader = static_pointer_cast<Lumen::Shader>(shaderExp.Value());
 
         // setup texture property in shader
-        Lumen::ShaderPtr shader = static_pointer_cast<Lumen::Shader>(shaderExp.Value());
-        shader->SetProperty("_MainTex", textureExp.Value());
+        shader->SetProperty("_MainTex", texture);
 
         // add material component
         sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { shader });

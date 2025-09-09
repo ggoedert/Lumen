@@ -5,8 +5,11 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include <variant>
+
 #include "lDefs.h"
 #include "lObject.h"
+#include "lTexture.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -23,8 +26,14 @@ namespace Lumen
         /// destroys shader
         ~Shader() noexcept override;
 
-        /// set property
-        void SetProperty(const std::string name, const Lumen::ObjectPtr &property);
+        /// set int property
+        void SetProperty(std::string_view name, const int property);
+
+        /// set float property
+        void SetProperty(std::string_view name, const float property);
+
+        /// set TexturePtr property
+        void SetProperty(std::string_view name, const Lumen::TexturePtr &property);
 
     protected:
         /// constructs a shader
