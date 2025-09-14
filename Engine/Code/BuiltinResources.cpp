@@ -8,6 +8,7 @@
 #include "lMesh.h"
 #include "lTexture.h"
 #include "lShader.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -20,10 +21,10 @@ class SphereMesh : public Lumen::Mesh
 
 public:
     /// creates a smart pointer version of the sphere mesh info
-    static ObjectPtr MakePtr() { return SphereMeshPtr(new SphereMesh()); }
+    static ObjectPtr MakePtr(EngineWeakPtr &engine) { return SphereMeshPtr(new SphereMesh(engine)); }
 
     /// constructs a sphere mesh
-    explicit SphereMesh() {}
+    explicit SphereMesh(EngineWeakPtr &engine) {}
 
     /// destroys sphere mesh
     ~SphereMesh() = default;
@@ -52,9 +53,9 @@ public:
     }
 
     /// import the sphere mesh
-    [[nodiscard]] ObjectPtr Import()
+    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
     {
-        return SphereMesh::MakePtr();
+        return SphereMesh::MakePtr(engine);
     }
 };
 
@@ -71,10 +72,15 @@ bool DefaultResources::Accepts(std::filesystem::path path) const
 }
 
 /// get asset infos
-std::vector<Lumen::AssetInfoPtr> DefaultResources::GetAssetInfos()
+const std::vector<Lumen::AssetInfoPtr> &DefaultResources::GetAssetInfos() const
 {
-    std::vector<Lumen::AssetInfoPtr> assetInfos;
-    assetInfos.push_back(SphereMeshInfo::MakePtr());
+    static const std::vector<Lumen::AssetInfoPtr> assetInfos = []
+    {
+        std::vector<Lumen::AssetInfoPtr> infos;
+        infos.push_back(SphereMeshInfo::MakePtr());
+        return infos;
+    }();
+
     return assetInfos;
 }
 
@@ -87,13 +93,27 @@ class CheckerGrayTexture : public Lumen::Texture
 
 public:
     /// creates a smart pointer version of the checker gray texture info
-    static ObjectPtr MakePtr() { return CheckerGrayTexturePtr(new CheckerGrayTexture()); }
+    static ObjectPtr MakePtr(EngineWeakPtr &engine) {
+        auto ptr = CheckerGrayTexturePtr(new CheckerGrayTexture(engine));
 
-    /// constructs a checker gray texture
-    explicit CheckerGrayTexture() {}
+        if (auto engineLock = engine.lock())
+        {
+            L_ASSERT_MSG(
+                (ptr->mTexId = engineLock->RegisterTexture(ptr/*, 64, 64*/)) != Engine::InvalidTextureID,
+                "Failed to register checker gray texture");
+        }
+
+        return ptr;
+    }
 
     /// destroys checker gray texture
-    ~CheckerGrayTexture() = default;
+    ~CheckerGrayTexture() noexcept override = default;
+
+private:
+    /// constructs a checker gray texture
+    explicit CheckerGrayTexture(EngineWeakPtr &engine) : Texture(engine)
+    {
+    }
 };
 
 /// CheckerGrayTextureInfo class
@@ -119,9 +139,9 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] ObjectPtr Import()
+    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
     {
-        return CheckerGrayTexture::MakePtr();
+        return CheckerGrayTexture::MakePtr(engine);
     }
 };
 
@@ -134,10 +154,10 @@ class SimpleDiffuseShader : public Lumen::Shader
 
 public:
     /// creates a smart pointer version of the simple diffuse shader info
-    static ObjectPtr MakePtr() { return SimpleDiffuseShaderPtr(new SimpleDiffuseShader()); }
+    static ObjectPtr MakePtr(EngineWeakPtr &engine) { return SimpleDiffuseShaderPtr(new SimpleDiffuseShader(engine)); }
 
     /// constructs a simple diffuse shader
-    explicit SimpleDiffuseShader() {}
+    explicit SimpleDiffuseShader(EngineWeakPtr &engine) {}
 
     /// destroys simple diffuse shader
     ~SimpleDiffuseShader() = default;
@@ -166,9 +186,9 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] ObjectPtr Import()
+    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
     {
-        return SimpleDiffuseShader::MakePtr();
+        return SimpleDiffuseShader::MakePtr(engine);
     }
 };
 
@@ -185,10 +205,15 @@ bool BuiltinExtra::Accepts(std::filesystem::path path) const
 }
 
 /// get asset infos
-std::vector<Lumen::AssetInfoPtr> BuiltinExtra::GetAssetInfos()
+const std::vector<Lumen::AssetInfoPtr> &BuiltinExtra::GetAssetInfos() const
 {
-    std::vector<Lumen::AssetInfoPtr> assetInfos;
-    assetInfos.push_back(CheckerGrayTextureInfo::MakePtr());
-    assetInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
+    static const std::vector<Lumen::AssetInfoPtr> assetInfos = []
+    {
+        std::vector<Lumen::AssetInfoPtr> infos;
+        infos.push_back(CheckerGrayTextureInfo::MakePtr());
+        infos.push_back(SimpleDiffuseShaderInfo::MakePtr());
+        return infos;
+    }();
+
     return assetInfos;
 }

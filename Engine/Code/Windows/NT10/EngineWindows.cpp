@@ -6,6 +6,7 @@
 
 #include "lEngineWindows.h"
 #include "lFolderFileSystem.h"
+#include "lTexture.h"
 #include "lEngine.h"
 
 // helpers headers
@@ -38,6 +39,9 @@ namespace Lumen::WindowsNT10
         // initialization and management
         bool Initialize(const Object &config) override;
 
+        /// shutdown
+        void Shutdown() override;
+
         // basic game loop
         bool Tick() override;
 
@@ -63,7 +67,16 @@ namespace Lumen::WindowsNT10
             return FolderFileSystem::MakePtr(name, path);
         }
 
+        /// register a texture
+        TextureID RegisterTexture(const TexturePtr &texture) override;
+
+        /// unregister a texture
+        void UnregisterTexture(TextureID texID) override;
+
     private:
+        /// generate next TextureID
+        Engine::TextureID GenerateNextTextureID();
+
         bool Update(StepTimer const &timer);
         void Render();
 
@@ -97,10 +110,17 @@ namespace Lumen::WindowsNT10
             Procedural,
             Count
         };
+
+        /// next texture id
+        Engine::TextureID mNextTextureID;
+
+        /// map of texture
+        std::unordered_map<Engine::TextureID, TexturePtr> mTextureMap;
     };
 
     EngineWindowsNT10::EngineWindowsNT10(const ApplicationPtr &application) noexcept(false) :
         mDeviceResources(std::make_unique<DeviceResources>()),
+        mNextTextureID(0),
         Engine(application)
     {
         // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
@@ -130,6 +150,12 @@ namespace Lumen::WindowsNT10
             return false;
         }
 
+        // initialize base
+        if (!Engine::Initialize(config))
+        {
+            return false;
+        }
+
         const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
@@ -146,8 +172,26 @@ namespace Lumen::WindowsNT10
         mTimer.SetTargetElapsedSeconds(1.0 / 60);
         */
 
-        // initialize base
-        return Engine::Initialize(config);
+        return true;
+    }
+
+    /// shutdown
+    void EngineWindowsNT10::Shutdown()
+    {
+        // shutdown base
+        Engine::Shutdown();
+
+        // release textures
+        auto keyView = std::views::keys(mTextureMap);
+        for (auto &texID : std::vector<Engine::TextureID>(keyView.begin(), keyView.end()))
+        {
+            auto it = mTextureMap.find(texID);
+            if (it != mTextureMap.end())
+            {
+                it->second->Unregister();
+            }
+        }
+        mTextureMap.clear();
     }
 
 #pragma region Frame Update
@@ -305,6 +349,30 @@ namespace Lumen::WindowsNT10
         height = 900;
     }
 #pragma endregion
+
+    /// register a texture
+    Engine::TextureID EngineWindowsNT10::RegisterTexture(const TexturePtr &texture)
+    {
+        Engine::TextureID texID = GenerateNextTextureID();
+        mTextureMap[texID] = texture;
+        return texID;
+    }
+
+    /// unregister a texture
+    void EngineWindowsNT10::UnregisterTexture(TextureID texID)
+    {
+        auto it = mTextureMap.find(texID);
+        if (it != mTextureMap.end())
+        {
+            mTextureMap.erase(it);
+        }
+    }
+
+    /// generate next TextureID
+    Engine::TextureID EngineWindowsNT10::GenerateNextTextureID()
+    {
+        return mNextTextureID++;
+    }
 
 #pragma region Direct3D Resources
     /// these are the resources that depend on the device.

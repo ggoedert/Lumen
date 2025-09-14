@@ -13,6 +13,7 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(AssetInfo);
 
     /// AssetInfo class
@@ -27,7 +28,7 @@ namespace Lumen
         [[nodiscard]] virtual std::string_view Name() const = 0;
 
         /// import the asset
-        [[nodiscard]] virtual ObjectPtr Import() = 0;
+        [[nodiscard]] virtual ObjectPtr Import(EngineWeakPtr &engine) = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);
@@ -41,7 +42,7 @@ namespace Lumen
         [[nodiscard]] virtual bool Accepts(std::filesystem::path path) const = 0;
 
         /// get asset infos
-        [[nodiscard]] virtual std::vector<AssetInfoPtr> GetAssetInfos() = 0;
+        [[nodiscard]] virtual const std::vector<AssetInfoPtr> &GetAssetInfos() const = 0;
     };
 
     /// Assets class
@@ -55,6 +56,9 @@ namespace Lumen
 
         /// destructor
         ~Assets() noexcept;
+
+        /// set engine
+        void SetEngine(const EngineWeakPtr &engine);
 
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);

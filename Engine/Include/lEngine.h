@@ -15,6 +15,7 @@ namespace Lumen
     CLASS_PTR_DEF(Engine);
     CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Application);
+    CLASS_PTR_DEF(Texture);
 
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
@@ -23,6 +24,12 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Engine);
 
     public:
+        /// texture id type
+        using TextureID = uint32_t;
+
+        /// invalid texture id
+        static constexpr TextureID InvalidTextureID = static_cast<TextureID>(UINT32_MAX);
+
         /// virtual destructor
         virtual ~Engine() noexcept = default;
 
@@ -55,6 +62,12 @@ namespace Lumen
 
         /// create a folder file system
         virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
+
+        /// register a texture
+        virtual TextureID RegisterTexture(const TexturePtr &texture) = 0;
+
+        /// unregister a texture
+        virtual void UnregisterTexture(TextureID texID) = 0;
 
     protected:
         /// protected constructor

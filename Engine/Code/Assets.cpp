@@ -6,6 +6,7 @@
 
 #include "lAssets.h"
 #include "lStringMap.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -23,6 +24,9 @@ public:
     /// destroys assets
     ~Impl() = default;
 
+    /// set engine
+    void SetEngine(const EngineWeakPtr &engine);
+
     /// register an asset factory
     void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);
 
@@ -36,8 +40,18 @@ public:
     Expected<ObjectPtr> Import(std::filesystem::path path, const HashType type, std::string_view name);
 
 private:
+    /// engine pointer
+    EngineWeakPtr mEngine;
+
+    /// asset factories
     Lumen::StringMap<std::multimap<float, AssetFactoryPtr>> mAssetFactories;
 };
+
+/// set engine
+void Assets::Impl::SetEngine(const EngineWeakPtr &engine)
+{
+    mEngine = engine;
+}
 
 /// register an asset factory
 void Assets::Impl::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)
@@ -103,7 +117,7 @@ Expected<ObjectPtr> Assets::Impl::Import(std::filesystem::path path, const HashT
     {
         if (assetInfo->Type() == type && (!name.empty() || assetInfo->Name() == name))
         {
-            return assetInfo->Import();
+            return assetInfo->Import(mEngine);
         }
     }
 
@@ -126,6 +140,12 @@ Assets::Assets() : mImpl(Assets::Impl::MakeUniquePtr()) {}
 
 /// destructor
 Assets::~Assets() {}
+
+/// set engine
+void Assets::SetEngine(const EngineWeakPtr &engine)
+{
+    mImpl->SetEngine(engine);
+}
 
 /// register an asset factory
 void Assets::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)

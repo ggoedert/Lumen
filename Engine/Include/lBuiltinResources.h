@@ -21,7 +21,7 @@ namespace Lumen
         [[nodiscard]] bool Accepts(std::filesystem::path path) const override;
 
         /// get asset infos
-        [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos() override;
+        [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const override;
     };
 
     /// BuiltinExtra class
@@ -35,7 +35,7 @@ namespace Lumen
         [[nodiscard]] bool Accepts(std::filesystem::path path) const override;
 
         /// get asset infos
-        [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos() override;
+        [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const override;
     };
 
 }

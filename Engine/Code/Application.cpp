@@ -28,7 +28,7 @@ public:
     [[nodiscard]] EngineWeakPtr GetEngine() { return mEngine; }
 
     /// set engine
-    void SetEngine(const EngineWeakPtr &engine) { mEngine = engine; }
+    void SetEngine(const EngineWeakPtr &engine);
 
     /// initialize application
     [[nodiscard]] bool Initialize();
@@ -80,6 +80,13 @@ Application::Impl::Impl() {}
 
 /// destroys application
 Application::Impl::~Impl() noexcept {}
+
+/// set engine
+void Application::Impl::SetEngine(const EngineWeakPtr &engine)
+{
+    mEngine = engine;
+    mAssets.SetEngine(engine);
+}
 
 /// initialize application
 bool Application::Impl::Initialize()
