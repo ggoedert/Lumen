@@ -25,10 +25,10 @@ namespace Lumen
 
     public:
         /// texture id type
-        using TextureID = uint32_t;
+        using TextureID = size_t;
 
         /// invalid texture id
-        static constexpr TextureID InvalidTextureID = static_cast<TextureID>(UINT32_MAX);
+        static constexpr TextureID InvalidTextureID = static_cast<TextureID>(SIZE_MAX);
 
         /// virtual destructor
         virtual ~Engine() noexcept = default;
@@ -64,7 +64,7 @@ namespace Lumen
         virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
 
         /// register a texture
-        virtual TextureID RegisterTexture(const TexturePtr &texture) = 0;
+        virtual TextureID RegisterTexture(const TexturePtr &texture, int width, int height) = 0;
 
         /// unregister a texture
         virtual void UnregisterTexture(TextureID texID) = 0;

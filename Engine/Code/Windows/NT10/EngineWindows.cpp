@@ -12,12 +12,13 @@
 // helpers headers
 #include "EngineFramework.h"
 #include "DeviceResources.h"
+#include "DynamicDescriptorHeap.h"
 #include "StepTimer.h"
 #include "DDS.h"
 
 using namespace DX;
 using namespace DirectX;
-using namespace DirectX::SimpleMath;
+using namespace SimpleMath;
 using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
@@ -33,7 +34,7 @@ namespace Lumen::WindowsNT10
         CLASS_NO_COPY_MOVE(EngineWindowsNT10);
 
     public:
-        EngineWindowsNT10(const ApplicationPtr &application) noexcept(false);
+        EngineWindowsNT10(const ApplicationPtr &application);
         ~EngineWindowsNT10();
 
         // initialization and management
@@ -68,7 +69,7 @@ namespace Lumen::WindowsNT10
         }
 
         /// register a texture
-        TextureID RegisterTexture(const TexturePtr &texture) override;
+        TextureID RegisterTexture(const TexturePtr &texture, int width, int height) override;
 
         /// unregister a texture
         void UnregisterTexture(TextureID texID) override;
@@ -91,34 +92,35 @@ namespace Lumen::WindowsNT10
         // rendering loop timer
         StepTimer mTimer;
 
-        std::unique_ptr<DirectX::GraphicsMemory> mGraphicsMemory;
-        std::unique_ptr<DirectX::CommonStates> mStates;
+        std::unique_ptr<GraphicsMemory> mGraphicsMemory;
+        std::unique_ptr<CommonStates> mStates;
 
-        DirectX::SimpleMath::Matrix mWorld;
-        DirectX::SimpleMath::Matrix mView;
-        DirectX::SimpleMath::Matrix mProj;
+        SimpleMath::Matrix mWorld;
+        SimpleMath::Matrix mView;
+        SimpleMath::Matrix mProj;
 
-        std::unique_ptr<DirectX::GeometricPrimitive> mShape;
+        std::unique_ptr<GeometricPrimitive> mShape;
 
-        std::unique_ptr<DirectX::BasicEffect> mEffect;
+        std::unique_ptr<BasicEffect> mEffect;
 
-        std::unique_ptr<DirectX::DescriptorHeap> mResourceDescriptors;
-        Microsoft::WRL::ComPtr<ID3D12Resource> mTexture;
-
-        enum Descriptors : size_t
-        {
-            Procedural,
-            Count
-        };
+        std::unique_ptr<DynamicDescriptorHeap> mResourceDescriptors;
 
         /// next texture id
         Engine::TextureID mNextTextureID;
 
         /// map of texture
-        std::unordered_map<Engine::TextureID, TexturePtr> mTextureMap;
+        struct TextureData
+        {
+            TexturePtr mTexture;
+            DynamicDescriptorHeap::IndexType mIndex;
+            Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
+            int mWidth;
+            int mHeight;
+        };
+        std::unordered_map<Engine::TextureID, TextureData> mTextureMap;
     };
 
-    EngineWindowsNT10::EngineWindowsNT10(const ApplicationPtr &application) noexcept(false) :
+    EngineWindowsNT10::EngineWindowsNT10(const ApplicationPtr &application) :
         mDeviceResources(std::make_unique<DeviceResources>()),
         mNextTextureID(0),
         Engine(application)
@@ -188,7 +190,7 @@ namespace Lumen::WindowsNT10
             auto it = mTextureMap.find(texID);
             if (it != mTextureMap.end())
             {
-                it->second->Unregister();
+                it->second.mTexture->Unregister();
             }
         }
         mTextureMap.clear();
@@ -351,10 +353,14 @@ namespace Lumen::WindowsNT10
 #pragma endregion
 
     /// register a texture
-    Engine::TextureID EngineWindowsNT10::RegisterTexture(const TexturePtr &texture)
+    Engine::TextureID EngineWindowsNT10::RegisterTexture(const TexturePtr &texture, int width, int height)
     {
         Engine::TextureID texID = GenerateNextTextureID();
-        mTextureMap[texID] = texture;
+        TextureData textureData;
+        textureData.mTexture = texture;
+        textureData.mWidth = width;
+        textureData.mHeight = width;
+        mTextureMap[texID] = textureData;
         return texID;
     }
 
@@ -396,8 +402,7 @@ namespace Lumen::WindowsNT10
 
         mStates = std::make_unique<CommonStates>(device);
 
-        mResourceDescriptors = std::make_unique<DescriptorHeap>(device,
-            Descriptors::Count);
+        mResourceDescriptors = std::make_unique<DynamicDescriptorHeap>(device, 256);
 
         mShape = GeometricPrimitive::CreateSphere();
 
@@ -409,53 +414,39 @@ namespace Lumen::WindowsNT10
 
         resourceUpload.Begin();
 
-#define DDS_PREFIX (sizeof(DWORD) + sizeof(DirectX::DDS_HEADER))
-#define WIDTH    64
-#define HEIGHT   64
-#define ELEMENTS  4
-#define B_P_ELEM  8
-#define SCREEN_TEX_PITCH ((WIDTH * ELEMENTS * B_P_ELEM + (B_P_ELEM - 1)) / B_P_ELEM)
-
-        std::vector<byte> m_ddsTexture(DDS_PREFIX + WIDTH * HEIGHT * ELEMENTS);
-        *((DWORD *)m_ddsTexture.data()) = DDS_MAGIC;
-        DDS_HEADER *header = (DDS_HEADER *)(m_ddsTexture.data() + sizeof(DWORD));
-
-        memset(header, 0, sizeof(DDS_HEADER));
-        header->size = sizeof(DDS_HEADER);
-        header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
-        header->height = HEIGHT;
-        header->width = WIDTH;
-        header->pitchOrLinearSize = SCREEN_TEX_PITCH;
-        header->mipMapCount = 1;
-        header->ddspf = DDSPF_A8B8G8R8;
-        header->caps = DDS_SURFACE_FLAGS_TEXTURE;
-
-        byte *tex = m_ddsTexture.data() + DDS_PREFIX;
-        for (int y = 0; y < HEIGHT; y++)
+        // ???
+        auto it = mTextureMap.find(0/*mTextureIndex*/);
+        if (it != mTextureMap.end())
         {
-            for (int x = 0; x < WIDTH; x++)
-            {
-                if ((x < (WIDTH >> 1)) == (y < (HEIGHT >> 1)))
-                {
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 0] = 198;
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 1] = 197;
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 2] = 198;
-                }
-                else
-                {
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 0] = 156;
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 1] = 158;
-                    tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 2] = 156;
-                }
-                tex[y * SCREEN_TEX_PITCH + ELEMENTS * x + 3] = 255;
-            }
+            static constexpr int ddsPrefix = sizeof(DWORD) + sizeof(DDS_HEADER);
+            static constexpr int elements = 4;
+            static constexpr int BPElem = 8;
+            int width = it->second.mWidth;
+            int height = it->second.mHeight;
+            int screenTexPitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
+
+            std::vector<byte> ddsTexture(ddsPrefix + width * height * elements);
+            *((DWORD *)ddsTexture.data()) = DDS_MAGIC;
+            DDS_HEADER *header = (DDS_HEADER *)(ddsTexture.data() + sizeof(DWORD));
+
+            memset(header, 0, sizeof(DDS_HEADER));
+            header->size = sizeof(DDS_HEADER);
+            header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
+            header->height = height;
+            header->width = width;
+            header->pitchOrLinearSize = screenTexPitch;
+            header->mipMapCount = 1;
+            header->ddspf = DDSPF_A8B8G8R8;
+            header->caps = DDS_SURFACE_FLAGS_TEXTURE;
+
+            // ??? fill texture with a pattern
+            it->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
+            it->second.mIndex = mResourceDescriptors->Allocate();
+            ThrowIfFailed(
+                CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), it->second.mResource.ReleaseAndGetAddressOf(), true));
+
+            CreateShaderResourceView(device, it->second.mResource.Get(), mResourceDescriptors->GetCpuHandle(it->second.mIndex));
         }
-
-        ThrowIfFailed(
-            CreateDDSTextureFromMemory(device, resourceUpload, m_ddsTexture.data(), m_ddsTexture.size(), mTexture.ReleaseAndGetAddressOf(), true));
-
-        CreateShaderResourceView(device, mTexture.Get(),
-            mResourceDescriptors->GetCpuHandle(Descriptors::Procedural));
 
 #if 1
         mShape->LoadStaticBuffers(device, resourceUpload);
@@ -484,7 +475,7 @@ namespace Lumen::WindowsNT10
         mEffect->SetLightDiffuseColor(0, Colors::White);
         mEffect->SetLightDirection(0, -Vector3::UnitZ);
 
-        mEffect->SetTexture(mResourceDescriptors->GetGpuHandle(Descriptors::Procedural),
+        mEffect->SetTexture(mResourceDescriptors->GetGpuHandle(0/*mTextureIndex*/),
             mStates->AnisotropicWrap());
 
         mWorld = Matrix::Identity;
@@ -510,7 +501,10 @@ namespace Lumen::WindowsNT10
         // TODO: add Direct3D resource cleanup here
         mShape.reset();
         mEffect.reset();
-        mTexture.Reset();
+        for (auto &textureData : std::views::values(mTextureMap))
+        {
+            textureData.mResource.Reset();
+        }
         mResourceDescriptors.reset();
         mStates.reset();
         mGraphicsMemory.reset();

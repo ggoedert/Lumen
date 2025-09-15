@@ -28,6 +28,9 @@ namespace Lumen
         /// unregister a texture
         void Unregister();
 
+        /// get texture data
+        virtual void GetTextureData(byte *data, int pitch) = 0;
+
     protected:
         /// constructs a texture
         explicit Texture(const EngineWeakPtr &engine);

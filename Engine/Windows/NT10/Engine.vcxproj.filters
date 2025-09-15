@@ -122,6 +122,9 @@
     <ClInclude Include="..\..\Include\lShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h">
+      <Filter>Source Files\Windows\NT10</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -186,6 +189,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Shader.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.cpp">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

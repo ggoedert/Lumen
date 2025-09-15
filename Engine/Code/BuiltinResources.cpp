@@ -99,11 +99,35 @@ public:
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mTexId = engineLock->RegisterTexture(ptr/*, 64, 64*/)) != Engine::InvalidTextureID,
+                (ptr->mTexId = engineLock->RegisterTexture(ptr, 64, 64)) != Engine::InvalidTextureID,
                 "Failed to register checker gray texture");
         }
 
         return ptr;
+    }
+
+    /// get texture data
+    void GetTextureData(byte *data, int pitch) override
+    {
+        for (int y = 0; y < 64; y++)
+        {
+            for (int x = 0; x < 64; x++)
+            {
+                if ((x < (64 >> 1)) == (y < (64 >> 1)))
+                {
+                    data[y * pitch + 4 * x + 0] = 198;
+                    data[y * pitch + 4 * x + 1] = 197;
+                    data[y * pitch + 4 * x + 2] = 198;
+                }
+                else
+                {
+                    data[y * pitch + 4 * x + 0] = 156;
+                    data[y * pitch + 4 * x + 1] = 158;
+                    data[y * pitch + 4 * x + 2] = 156;
+                }
+                data[y * pitch + 4 * x + 3] = 255;
+            }
+        }
     }
 
     /// destroys checker gray texture

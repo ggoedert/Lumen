@@ -297,6 +297,7 @@
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\DeviceResources.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\EngineFramework.h" />
+    <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Code\Windows\StepTimer.h" />
     <ClInclude Include="..\..\Include\lBuiltinResources.h" />
     <ClInclude Include="..\..\Include\lApplication.h" />
@@ -350,6 +351,7 @@
     <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\README.md" />
