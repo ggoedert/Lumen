@@ -125,6 +125,9 @@
     <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Code\EngineImpl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">

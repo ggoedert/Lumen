@@ -22,6 +22,7 @@ namespace Lumen
     {
         CLASS_NO_DEFAULT_CTOR(Engine);
         CLASS_NO_COPY_MOVE(Engine);
+        class Impl;
 
     public:
         /// texture id type
@@ -30,8 +31,8 @@ namespace Lumen
         /// invalid texture id
         static constexpr TextureID InvalidTextureID = static_cast<TextureID>(SIZE_MAX);
 
-        /// virtual destructor
-        virtual ~Engine() noexcept = default;
+        /// destructor
+        ~Engine() noexcept = default;
 
         /// allocate smart pointer version of the engine, implemented at platform level
         static EnginePtr MakePtr(const ApplicationPtr &application);
@@ -40,43 +41,44 @@ namespace Lumen
         static void DebugOutput(const std::string &message);
 
         /// initialization and management
-        virtual bool Initialize(const Object &config);
+        bool Initialize(const Object &config);
 
         /// shutdown
-        virtual void Shutdown();
+        void Shutdown();
 
         /// basic game loop
-        virtual bool Tick() = 0;
+        bool Run();
 
         /// messages
-        virtual void OnActivated() = 0;
-        virtual void OnDeactivated() = 0;
-        virtual void OnSuspending() = 0;
-        virtual void OnResuming() = 0;
-        virtual void OnWindowMoved() = 0;
-        virtual void OnDisplayChange() = 0;
-        virtual void OnWindowSizeChanged(int width, int height) = 0;
+        void OnActivated();
+        void OnDeactivated();
+        void OnSuspending();
+        void OnResuming();
+        void OnWindowMoved();
+        void OnDisplayChange();
+        void OnWindowSizeChanged(int width, int height);
 
         /// properties
-        virtual void GetDefaultSize(int &width, int &height) const noexcept = 0;
+        void GetDefaultSize(int &width, int &height) const;
 
         /// create a folder file system
-        virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
+        IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const;
 
         /// register a texture
-        virtual TextureID RegisterTexture(const TexturePtr &texture, int width, int height) = 0;
+        TextureID RegisterTexture(const TexturePtr &texture, int width, int height);
 
         /// unregister a texture
-        virtual void UnregisterTexture(TextureID texID) = 0;
+        void UnregisterTexture(TextureID texID);
 
     protected:
         /// protected constructor
-        explicit Engine(const ApplicationPtr &application) : mApplication(application) {}
-
-        /// run engine
-        bool Run(float deltaTime);
+        explicit Engine(const ApplicationPtr &application, Impl *impl);
 
         // application
         ApplicationPtr mApplication;
+
+    private:
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

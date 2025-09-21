@@ -151,7 +151,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         {
             if (running)
             {
-                if (!engine->Tick())
+                if (!engine->Run())
                 {
                     running = false;
                     PostQuitMessage(0);
@@ -188,7 +188,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         if (s_in_sizemove && engine)
         {
-            engine->Tick();
+            engine->Run();
         }
         else
         {

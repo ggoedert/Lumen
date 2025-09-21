@@ -7,9 +7,14 @@
 #include "lEngine.h"
 #include "lSceneManager.h"
 
+#include "EngineImpl.h"
+
 using namespace Lumen;
 
-// initialization and management
+/// constructor
+Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(application), mImpl(ImplUniquePtr(impl)) {}
+
+/// initialization and management
 bool Engine::Initialize(const Object &config)
 {
     Lumen::FileSystem::Initialize();
@@ -25,7 +30,10 @@ bool Engine::Initialize(const Object &config)
 #endif
 
     // initialize application
-    return mApplication->Initialize();
+    if (!mApplication->Initialize())
+        return false;
+
+    return mImpl->Initialize(config);
 }
 
 /// shutdown
@@ -37,16 +45,51 @@ void Engine::Shutdown()
 
     Lumen::SceneManager::Shutdown();
     Lumen::FileSystem::Shutdown();
+
+    mImpl->Shutdown();
 }
 
-/// run engine
-bool Engine::Run(float deltaTime)
+/// basic game loop
+bool Engine::Run()
 {
-    if (!mApplication)
-        return false;
-
     // run application
-    return mApplication->Run(deltaTime);
+    if (mApplication && mApplication->Run(mImpl->GetElapsedTime()))
+        return mImpl->Run();
+
+    return false;
+}
+
+/// messages
+void Engine::OnActivated() { mImpl->OnActivated(); }
+void Engine::OnDeactivated() { mImpl->OnDeactivated(); }
+void Engine::OnSuspending() { mImpl->OnSuspending(); }
+void Engine::OnResuming() { mImpl->OnResuming(); }
+void Engine::OnWindowMoved() { mImpl->OnWindowMoved(); }
+void Engine::OnDisplayChange() { mImpl->OnDisplayChange(); }
+void Engine::OnWindowSizeChanged(int width, int height) { mImpl->OnWindowSizeChanged(width, height); }
+
+/// properties
+void Engine::GetDefaultSize(int &width, int &height) const
+{
+    return mImpl->GetDefaultSize(width, height);
+}
+
+/// create a folder file system
+IFileSystemPtr Engine::FolderFileSystem(std::string_view name, std::string_view path) const
+{
+    return mImpl->FolderFileSystem(name, path);
+}
+
+/// register a texture
+Engine::TextureID Engine::RegisterTexture(const TexturePtr &texture, int width, int height)
+{
+    return mImpl->RegisterTexture(texture, width, height);
+}
+
+/// unregister a texture
+void Engine::UnregisterTexture(TextureID texID)
+{
+    mImpl->UnregisterTexture(texID);
 }
 
 //==============================================================================================================================================================================

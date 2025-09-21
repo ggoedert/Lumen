@@ -9,6 +9,8 @@
 #include "lTexture.h"
 #include "lEngine.h"
 
+#include "EngineImpl.h"
+
 // helpers headers
 #include "EngineFramework.h"
 #include "DeviceResources.h"
@@ -28,13 +30,12 @@ namespace Lumen::WindowsNT10
 {
     /// Engine windows NT10 implementation.
     /// creates a D3D12 device and provides a game loop
-    class EngineWindowsNT10 final : public Engine, public DX::IDeviceNotify
+    class EngineWindowsNT10 final : public Engine::Impl, public DX::IDeviceNotify
     {
-        CLASS_NO_DEFAULT_CTOR(EngineWindowsNT10);
         CLASS_NO_COPY_MOVE(EngineWindowsNT10);
 
     public:
-        EngineWindowsNT10(const ApplicationPtr &application);
+        explicit EngineWindowsNT10();
         ~EngineWindowsNT10();
 
         // initialization and management
@@ -43,8 +44,11 @@ namespace Lumen::WindowsNT10
         /// shutdown
         void Shutdown() override;
 
+        // get elapsed time since last run
+        float GetElapsedTime() override;
+
         // basic game loop
-        bool Tick() override;
+        bool Run() override;
 
         // IDeviceNotify
         void OnDeviceLost() override;
@@ -69,10 +73,10 @@ namespace Lumen::WindowsNT10
         }
 
         /// register a texture
-        TextureID RegisterTexture(const TexturePtr &texture, int width, int height) override;
+        Engine::TextureID RegisterTexture(const TexturePtr &texture, int width, int height) override;
 
         /// unregister a texture
-        void UnregisterTexture(TextureID texID) override;
+        void UnregisterTexture(Engine::TextureID texID) override;
 
     private:
         /// generate next TextureID
@@ -120,10 +124,9 @@ namespace Lumen::WindowsNT10
         std::unordered_map<Engine::TextureID, TextureData> mTextureMap;
     };
 
-    EngineWindowsNT10::EngineWindowsNT10(const ApplicationPtr &application) :
+    EngineWindowsNT10::EngineWindowsNT10() :
         mDeviceResources(std::make_unique<DeviceResources>()),
-        mNextTextureID(0),
-        Engine(application)
+        mNextTextureID(0)
     {
         // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
         //   Add DeviceResources::c_AllowTearing to opt-in to variable rate displays.
@@ -152,12 +155,6 @@ namespace Lumen::WindowsNT10
             return false;
         }
 
-        // initialize base
-        if (!Engine::Initialize(config))
-        {
-            return false;
-        }
-
         const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
@@ -180,9 +177,6 @@ namespace Lumen::WindowsNT10
     /// shutdown
     void EngineWindowsNT10::Shutdown()
     {
-        // shutdown base
-        Engine::Shutdown();
-
         // release textures
         auto keyView = std::views::keys(mTextureMap);
         for (auto &texID : std::vector<Engine::TextureID>(keyView.begin(), keyView.end()))
@@ -196,13 +190,17 @@ namespace Lumen::WindowsNT10
         mTextureMap.clear();
     }
 
+    // get elapsed time since last run
+    float EngineWindowsNT10::GetElapsedTime()
+    {
+        return static_cast<float>(mTimer.GetElapsedSeconds());
+    }
+
 #pragma region Frame Update
     /// executes the basic game loop
-    bool EngineWindowsNT10::Tick()
+    bool EngineWindowsNT10::Run()
     {
         bool updateResult = true;
-
-        Engine::Run(static_cast<float>(mTimer.GetElapsedSeconds()));
 
         mTimer.Tick([&]()
         {
@@ -365,7 +363,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// unregister a texture
-    void EngineWindowsNT10::UnregisterTexture(TextureID texID)
+    void EngineWindowsNT10::UnregisterTexture(Engine::TextureID texID)
     {
         auto it = mTextureMap.find(texID);
         if (it != mTextureMap.end())
@@ -524,7 +522,7 @@ namespace Lumen::WindowsNT10
 /// allocate smart pointer version of the engine, implemented at platform level
 Lumen::EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
-    return std::make_shared<WindowsNT10::EngineWindowsNT10>(application);
+    return EnginePtr(new Lumen::Engine(application, new Lumen::WindowsNT10::EngineWindowsNT10()));
 }
 
 /// debug log, implemented at platform level
