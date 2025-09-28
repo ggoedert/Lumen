@@ -23,7 +23,7 @@ namespace Lumen::WindowsNT10
         using IndexType = size_t;
 
         /// invalid index id
-        static constexpr IndexType InvalidTextureID = static_cast<IndexType>(SIZE_MAX);
+        static constexpr IndexType InvalidIndex = static_cast<IndexType>(SIZE_MAX);
 
         DynamicDescriptorHeap(ID3D12Device *device, int initialSize);
 
@@ -35,8 +35,10 @@ namespace Lumen::WindowsNT10
 
         IndexType Allocate();
 
+        void Free(IndexType index);
+
     private:
         std::unique_ptr<DirectX::DescriptorHeap> mResourceDescriptors;
-        IndexType m_top;
+        IndexType mTop;
     };
 }

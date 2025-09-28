@@ -25,11 +25,11 @@ namespace Lumen
         class Impl;
 
     public:
-        /// texture id type
-        using TextureID = size_t;
+        /// id type
+        using IdType = size_t;
 
-        /// invalid texture id
-        static constexpr TextureID InvalidTextureID = static_cast<TextureID>(SIZE_MAX);
+        /// invalid id
+        static constexpr IdType InvalidId = static_cast<IdType>(SIZE_MAX);
 
         /// destructor
         ~Engine() noexcept = default;
@@ -65,10 +65,10 @@ namespace Lumen
         IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const;
 
         /// register a texture
-        TextureID RegisterTexture(const TexturePtr &texture, int width, int height);
+        IdType RegisterTexture(const TexturePtr &texture, int width, int height);
 
         /// unregister a texture
-        void UnregisterTexture(TextureID texID);
+        void UnregisterTexture(IdType texID);
 
     protected:
         /// protected constructor

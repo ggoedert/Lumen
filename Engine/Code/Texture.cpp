@@ -23,18 +23,18 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a texture
-Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Engine::InvalidTextureID), mImpl(Texture::Impl::MakeUniquePtr()) {}
+Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Engine::InvalidId), mImpl(Texture::Impl::MakeUniquePtr()) {}
+
+/// destroys texture
+Texture::~Texture() noexcept {}
 
 /// unregister a texture
 void Texture::Unregister()
 {
-    Engine::TextureID texId = mTexId;
-    mTexId = Engine::InvalidTextureID;
+    Engine::IdType texId = mTexId;
+    mTexId = Engine::InvalidId;
     if (auto engineLock = mEngine.lock())
     {
         engineLock->UnregisterTexture(texId);
     }
 }
-
-/// destroys texture
-Texture::~Texture() noexcept {}

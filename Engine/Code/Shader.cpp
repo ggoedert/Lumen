@@ -23,10 +23,23 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a shader
-Shader::Shader() : Object(Type()), mImpl(Shader::Impl::MakeUniquePtr()) {}
+Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
 
 /// destroys shader
 Shader::~Shader() noexcept {}
+
+/// unregister a shader
+void Shader::Unregister()
+{
+#ifdef WIP
+    Engine::IdType shaderId = mShaderId;
+    mShaderId = Engine::InvalidId;
+    if (auto engineLock = mEngine.lock())
+    {
+        engineLock->UnregisterShader(shaderId);
+    }
+#endif
+}
 
 /// set int property
 void Shader::SetProperty(std::string_view name, const int property)

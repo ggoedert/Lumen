@@ -99,7 +99,7 @@ public:
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mTexId = engineLock->RegisterTexture(ptr, 64, 64)) != Engine::InvalidTextureID,
+                (ptr->mTexId = engineLock->RegisterTexture(ptr, 64, 64)) != Engine::InvalidId,
                 "Failed to register checker gray texture");
         }
 
@@ -178,10 +178,24 @@ class SimpleDiffuseShader : public Lumen::Shader
 
 public:
     /// creates a smart pointer version of the simple diffuse shader info
-    static ObjectPtr MakePtr(EngineWeakPtr &engine) { return SimpleDiffuseShaderPtr(new SimpleDiffuseShader(engine)); }
+    static ObjectPtr MakePtr(EngineWeakPtr &engine)
+    {
+        auto ptr = SimpleDiffuseShaderPtr(new SimpleDiffuseShader(engine));
+
+#ifdef WIP
+        if (auto engineLock = engine.lock())
+        {
+            L_ASSERT_MSG(
+                (ptr->mShaderId = engineLock->RegisterShader(ptr, Engine::SimpleDiffuseShader)) != Engine::InvalidId,
+                "Failed to register simple diffuse shader");
+        }
+#endif
+
+        return ptr;
+    }
 
     /// constructs a simple diffuse shader
-    explicit SimpleDiffuseShader(EngineWeakPtr &engine) {}
+    explicit SimpleDiffuseShader(EngineWeakPtr &engine) : Lumen::Shader(engine) {}
 
     /// destroys simple diffuse shader
     ~SimpleDiffuseShader() = default;

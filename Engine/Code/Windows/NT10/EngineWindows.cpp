@@ -73,14 +73,14 @@ namespace Lumen::WindowsNT10
         }
 
         /// register a texture
-        Engine::TextureID RegisterTexture(const TexturePtr &texture, int width, int height) override;
+        Engine::IdType RegisterTexture(const TexturePtr &texture, int width, int height) override;
 
         /// unregister a texture
-        void UnregisterTexture(Engine::TextureID texID) override;
+        void UnregisterTexture(Engine::IdType texID) override;
 
     private:
-        /// generate next TextureID
-        Engine::TextureID GenerateNextTextureID();
+        /// generate next texture id
+        Engine::IdType GenerateNextTextureID();
 
         bool Update(StepTimer const &timer);
         void Render();
@@ -105,12 +105,12 @@ namespace Lumen::WindowsNT10
 
         std::unique_ptr<GeometricPrimitive> mShape;
 
-        std::unique_ptr<BasicEffect> mEffect;
+        std::unique_ptr<IEffect> mEffect;
 
         std::unique_ptr<DynamicDescriptorHeap> mResourceDescriptors;
 
         /// next texture id
-        Engine::TextureID mNextTextureID;
+        Engine::IdType mNextTextureID;
 
         /// map of texture
         struct TextureData
@@ -121,7 +121,7 @@ namespace Lumen::WindowsNT10
             int mWidth;
             int mHeight;
         };
-        std::unordered_map<Engine::TextureID, TextureData> mTextureMap;
+        std::unordered_map<Engine::IdType, TextureData> mTextureMap;
     };
 
     EngineWindowsNT10::EngineWindowsNT10() :
@@ -179,7 +179,7 @@ namespace Lumen::WindowsNT10
     {
         // release textures
         auto keyView = std::views::keys(mTextureMap);
-        for (auto &texID : std::vector<Engine::TextureID>(keyView.begin(), keyView.end()))
+        for (auto &texID : std::vector<Engine::IdType>(keyView.begin(), keyView.end()))
         {
             auto it = mTextureMap.find(texID);
             if (it != mTextureMap.end())
@@ -259,9 +259,9 @@ namespace Lumen::WindowsNT10
         ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
         commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
-        mEffect->SetWorld(mWorld);
-        mEffect->Apply(commandList);
-
+        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
+        basicEffect->SetWorld(mWorld);
+        basicEffect->Apply(commandList);
         mShape->Draw(commandList);
 
         PIXEndEvent(commandList);
@@ -351,9 +351,9 @@ namespace Lumen::WindowsNT10
 #pragma endregion
 
     /// register a texture
-    Engine::TextureID EngineWindowsNT10::RegisterTexture(const TexturePtr &texture, int width, int height)
+    Engine::IdType EngineWindowsNT10::RegisterTexture(const TexturePtr &texture, int width, int height)
     {
-        Engine::TextureID texID = GenerateNextTextureID();
+        Engine::IdType texID = GenerateNextTextureID();
         TextureData textureData;
         textureData.mTexture = texture;
         textureData.mWidth = width;
@@ -363,17 +363,18 @@ namespace Lumen::WindowsNT10
     }
 
     /// unregister a texture
-    void EngineWindowsNT10::UnregisterTexture(Engine::TextureID texID)
+    void EngineWindowsNT10::UnregisterTexture(Engine::IdType texID)
     {
         auto it = mTextureMap.find(texID);
         if (it != mTextureMap.end())
         {
+            mResourceDescriptors->Free(it->second.mIndex);
             mTextureMap.erase(it);
         }
     }
 
-    /// generate next TextureID
-    Engine::TextureID EngineWindowsNT10::GenerateNextTextureID()
+    /// generate next texture id
+    Engine::IdType EngineWindowsNT10::GenerateNextTextureID()
     {
         return mNextTextureID++;
     }
@@ -468,12 +469,13 @@ namespace Lumen::WindowsNT10
         //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
         //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
         mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
-        //mEffect->EnableDefaultLighting();
-        mEffect->SetLightEnabled(0, true);
-        mEffect->SetLightDiffuseColor(0, Colors::White);
-        mEffect->SetLightDirection(0, -Vector3::UnitZ);
+        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
+        basicEffect->EnableDefaultLighting();
+        //basicEffect->SetLightEnabled(0, true);
+        //basicEffect->SetLightDiffuseColor(0, Colors::White);
+        //basicEffect->SetLightDirection(0, -Vector3::UnitZ);
 
-        mEffect->SetTexture(mResourceDescriptors->GetGpuHandle(0/*mTextureIndex*/),
+        basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(0/*mTextureIndex*/),
             mStates->AnisotropicWrap());
 
         mWorld = Matrix::Identity;
@@ -490,8 +492,9 @@ namespace Lumen::WindowsNT10
         mProj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
             float(size.right) / float(size.bottom), 0.1f, 10.f);
 
-        mEffect->SetView(mView);
-        mEffect->SetProjection(mProj);
+        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
+        basicEffect->SetView(mView);
+        basicEffect->SetProjection(mProj);
     }
 
     void EngineWindowsNT10::OnDeviceLost()

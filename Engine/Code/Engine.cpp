@@ -81,13 +81,13 @@ IFileSystemPtr Engine::FolderFileSystem(std::string_view name, std::string_view 
 }
 
 /// register a texture
-Engine::TextureID Engine::RegisterTexture(const TexturePtr &texture, int width, int height)
+Engine::IdType Engine::RegisterTexture(const TexturePtr &texture, int width, int height)
 {
     return mImpl->RegisterTexture(texture, width, height);
 }
 
 /// unregister a texture
-void Engine::UnregisterTexture(TextureID texID)
+void Engine::UnregisterTexture(IdType texID)
 {
     mImpl->UnregisterTexture(texID);
 }

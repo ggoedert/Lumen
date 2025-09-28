@@ -39,7 +39,7 @@ namespace Lumen
         EngineWeakPtr mEngine;
 
         /// engine texture id
-        Engine::TextureID mTexId;
+        Engine::IdType mTexId;
 
     private:
         /// private implementation

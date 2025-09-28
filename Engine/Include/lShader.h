@@ -5,11 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include <variant>
-
 #include "lDefs.h"
 #include "lObject.h"
 #include "lTexture.h"
+#include "lEngine.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -24,7 +23,10 @@ namespace Lumen
 
     public:
         /// destroys shader
-        ~Shader() noexcept override;
+        virtual ~Shader() noexcept override;
+
+        /// unregister a shader
+        void Unregister();
 
         /// set int property
         void SetProperty(std::string_view name, const int property);
@@ -37,7 +39,13 @@ namespace Lumen
 
     protected:
         /// constructs a shader
-        explicit Shader();
+        explicit Shader(const EngineWeakPtr &engine);
+
+        /// engine pointer
+        EngineWeakPtr mEngine;
+
+        /// engine shader id
+        Engine::IdType mShaderId;
 
     private:
         /// private implementation
