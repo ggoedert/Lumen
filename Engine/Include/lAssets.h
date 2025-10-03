@@ -55,7 +55,7 @@ namespace Lumen
         void Shutdown();
 
         /// register an asset factory
-        void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);
+        void RegisterFactory(const AssetFactoryPtr &assetFactory, float priority = 0.5f);
 
         /// import asset
         Expected<ObjectPtr> Import(std::optional<std::filesystem::path> path, const HashType type, std::string_view name);

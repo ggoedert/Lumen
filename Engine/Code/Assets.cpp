@@ -30,7 +30,7 @@ public:
     void SetEngine(const EngineWeakPtr &engine);
 
     /// register an asset factory
-    void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);
+    void RegisterFactory(const AssetFactoryPtr &assetFactory, float priority = 0.5f);
 
     /// get the asset factory for the given path
     std::optional<AssetFactoryPtr> GetAssetFactory(std::filesystem::path path);
@@ -49,16 +49,14 @@ private:
     EngineWeakPtr mEngine;
 
     /// asset factories
-    Lumen::StringMap<std::multimap<float, AssetFactoryPtr>> mAssetFactories;
+    std::multimap<float, AssetFactoryPtr> mAssetFactories;
 };
 
 /// register an asset factory
-void AssetsImpl::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)
+void AssetsImpl::RegisterFactory(const AssetFactoryPtr &assetFactory, float priority)
 {
     // insert asset factory with the given extension and priority
-    std::string key(extension);
-    std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
-    mAssetFactories[key].emplace(priority, assetFactory);
+    mAssetFactories.emplace(priority, assetFactory);
 }
 
 /// get the asset factory for the given path
@@ -73,20 +71,14 @@ std::optional<AssetFactoryPtr> AssetsImpl::GetAssetFactory(std::filesystem::path
         std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
     }
 
-    // find the asset factory for the given extension
-    auto assetFactoriesIt = mAssetFactories.find(key);
-    if (assetFactoriesIt != mAssetFactories.end())
+    // get the first factory with the highest priority
+    for (auto &priorityFactory : mAssetFactories)
     {
-        // get the first factory with the highest priority
-        auto &extensionFactories = assetFactoriesIt->second;
-        for (auto &priorityFactory : extensionFactories)
+        auto &factoryPtr = priorityFactory.second;
+        if (factoryPtr->Accepts(path))
         {
-            auto &factoryPtr = priorityFactory.second;
-            if (factoryPtr->Accepts(path))
-            {
-                // return the first factory that accepts the path
-                return factoryPtr;
-            }
+            // return the first factory that accepts the path
+            return factoryPtr;
         }
     }
 
@@ -113,19 +105,16 @@ std::vector<Lumen::AssetInfoPtr> AssetsImpl::ListAssetInfo(std::filesystem::path
 Expected<Lumen::AssetInfoPtr> AssetsImpl::FindAssetInfo(const HashType type, std::string_view name)
 {
     // iterate over all asset factories
-    for (const auto &assetFactoriesPair : mAssetFactories)
+    for (const auto &priorityFactoryPair : mAssetFactories)
     {
-        for (const auto &priorityFactoryPair : assetFactoriesPair.second)
+        // iterate over asset infos in the factory
+        const auto &factoryPtr = priorityFactoryPair.second;
+        for (const auto &assetInfoPtr : factoryPtr->GetAssetInfos())
         {
-            // iterate over asset infos in the factory
-            const auto &factoryPtr = priorityFactoryPair.second;
-            for (const auto &assetInfoPtr : factoryPtr->GetAssetInfos())
+            if (assetInfoPtr->Type() == type && assetInfoPtr->Name() == name)
             {
-                if (assetInfoPtr->Type() == type && assetInfoPtr->Name() == name)
-                {
-                    // return the first asset infos that matches the type and name
-                    return assetInfoPtr;
-                }
+                // return the first asset infos that matches the type and name
+                return assetInfoPtr;
             }
         }
     }
@@ -197,9 +186,9 @@ void Assets::Shutdown()
 }
 
 /// register an asset factory
-void Assets::RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority)
+void Assets::RegisterFactory(const AssetFactoryPtr &assetFactory, float priority)
 {
-    Hidden::gAssetsImpl->RegisterFactory(assetFactory, extension, priority);
+    Hidden::gAssetsImpl->RegisterFactory(assetFactory, priority);
 }
 
 /// import asset
