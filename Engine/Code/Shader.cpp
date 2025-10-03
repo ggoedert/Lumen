@@ -22,6 +22,22 @@ public:
 
 //==============================================================================================================================================================================
 
+/// custom smart pointer maker
+Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
+{
+    // load simple diffuse shader
+    Lumen::Expected<Lumen::ObjectPtr> shaderExp = Lumen::Assets::Import(
+        std::nullopt,
+        Lumen::Shader::Type(),
+        "Simple/Diffuse"
+    );
+    if (!shaderExp.HasValue())
+    {
+        return Expected<ShaderPtr>::Unexpected(std::format("Unable to load {} shader resource, {}", shaderName, shaderExp.Error()));
+    }
+    return static_pointer_cast<Lumen::Shader>(shaderExp.Value());
+}
+
 /// constructs a shader
 Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
 

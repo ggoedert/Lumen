@@ -6,6 +6,7 @@
 
 #include "lEngine.h"
 #include "lSceneManager.h"
+#include "lBuiltinResources.h"
 
 #include "EngineImpl.h"
 
@@ -17,8 +18,12 @@ Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(app
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
-    Lumen::FileSystem::Initialize();
-    Lumen::SceneManager::Initialize();
+    Assets::Initialize(shared_from_this());
+    Assets::RegisterFactory(DefaultResources::MakePtr(), "", 1.0f);
+    Assets::RegisterFactory(BuiltinExtra::MakePtr(), "", 1.0f);
+
+    FileSystem::Initialize();
+    SceneManager::Initialize();
 
     if (!mApplication)
         return false;
@@ -26,7 +31,7 @@ bool Engine::Initialize(const Object &config)
     mApplication->SetEngine(shared_from_this());
 
 #ifdef EDITOR
-    Lumen::DebugLog::Info("Engine initialized in editor mode");
+    DebugLog::Info("Engine initialized in editor mode");
 #endif
 
     // initialize application
@@ -43,8 +48,10 @@ void Engine::Shutdown()
     if (mApplication)
         mApplication->Shutdown();
 
-    Lumen::SceneManager::Shutdown();
-    Lumen::FileSystem::Shutdown();
+    SceneManager::Shutdown();
+    FileSystem::Shutdown();
+
+    Assets::Shutdown();
 
     mImpl->Shutdown();
 }

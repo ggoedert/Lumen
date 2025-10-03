@@ -29,12 +29,12 @@ namespace Lumen
         struct Params : Object
         {
             OBJECT_TYPEINFO;
-            explicit Params(ShaderPtr shader) : Object(Type()), mShader(shader) {}
-            ShaderPtr mShader;
+            explicit Params(std::string_view shaderName) : Object(Type()), mShaderName(shaderName) {}
+            std::string_view mShaderName;
         };
 
     private:
-        /// constructs a material an shader
+        /// constructs a material with an shader
         explicit Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader);
 
         /// creates a smart pointer version of the material component

@@ -22,6 +22,13 @@ namespace Lumen
 
         /// get asset infos
         [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const override;
+
+    private:
+        /// constructor
+        explicit DefaultResources();
+
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 
     /// BuiltinExtra class
@@ -36,6 +43,13 @@ namespace Lumen
 
         /// get asset infos
         [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const override;
+
+    private:
+        /// constructor
+        explicit BuiltinExtra();
+
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 
 }

@@ -198,7 +198,7 @@ bool MainScene::Load()
     if (auto sphereLock = mSphere.lock())
     {
         // load sphere mesh
-        Lumen::Expected<Lumen::ObjectPtr> meshExp = mApplication.Assets().Import(
+        Lumen::Expected<Lumen::ObjectPtr> meshExp = Lumen::Assets::Import(
             "Library/lumen default resources",
             Lumen::Mesh::Type(),
             "Sphere"
@@ -213,7 +213,7 @@ bool MainScene::Load()
         sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(meshExp.Value()) });
 
         // load default checker gray texture
-        Lumen::Expected<Lumen::ObjectPtr> textureExp = mApplication.Assets().Import(
+        Lumen::Expected<Lumen::ObjectPtr> textureExp = Lumen::Assets::Import(
             "Resources/lumen_builtin_extra",
             Lumen::Texture::Type(),
             "Default-Checker-Gray"
@@ -225,24 +225,11 @@ bool MainScene::Load()
         }
         const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
 
-        // load simple diffuse shader
-        Lumen::Expected<Lumen::ObjectPtr> shaderExp = mApplication.Assets().Import(
-            "Resources/lumen_builtin_extra",
-            Lumen::Shader::Type(),
-            "Simple/Diffuse"
-        );
-        if (!shaderExp.HasValue())
-        {
-            Lumen::DebugLog::Error("Unable to load simple diffuse shader resource, {}", shaderExp.Error());
-            return false;
-        }
-        Lumen::ShaderPtr shader = static_pointer_cast<Lumen::Shader>(shaderExp.Value());
-
-        // setup texture property in shader
-        shader->SetProperty("_MainTex", texture);
-
         // add material component
-        sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { shader });
+        if (auto materialLock = sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { "Simple/Diffuse" }).lock())
+        {
+            //WIP materialLock->SetProperty("_MainTex", texture);
+        }
     }
 
     return true;

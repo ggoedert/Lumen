@@ -45,29 +45,19 @@ namespace Lumen
         [[nodiscard]] virtual const std::vector<AssetInfoPtr> &GetAssetInfos() const = 0;
     };
 
-    /// Assets class
-    class Assets
+    /// Assets namespace
+    namespace Assets
     {
-        CLASS_NO_COPY_MOVE(Assets);
+        /// initialize assets namespace
+        void Initialize(const EngineWeakPtr &engine);
 
-    public:
-        /// constructor
-        explicit Assets();
-
-        /// destructor
-        ~Assets() noexcept;
-
-        /// set engine
-        void SetEngine(const EngineWeakPtr &engine);
+        /// shutdown assets namespace
+        void Shutdown();
 
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory, std::string_view extension, float priority = 0.5f);
 
         /// import asset
-        Expected<ObjectPtr> Import(std::filesystem::path path, const HashType type, std::string_view name);
-
-    private:
-        /// private implementation
-        CLASS_PIMPL_DEF(Impl);
+        Expected<ObjectPtr> Import(std::optional<std::filesystem::path> path, const HashType type, std::string_view name);
     };
 }

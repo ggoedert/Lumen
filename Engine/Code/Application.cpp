@@ -6,7 +6,6 @@
 
 #include "lApplication.h"
 #include "lCamera.h"
-#include "lBuiltinResources.h"
 
 using namespace Lumen;
 
@@ -36,9 +35,6 @@ public:
     /// shutdown application
     void Shutdown();
 
-    /// get assets
-    [[nodiscard]] Lumen::Assets &Assets() { return mAssets; }
-
     /// get delta time
     [[nodiscard]] float DeltaTime() const { return mDeltaTime; }
 
@@ -62,9 +58,6 @@ private:
     /// application running
     bool mRunning { true };
 
-    /// assets
-    Lumen::Assets mAssets;
-
     /// engine pointer
     EngineWeakPtr mEngine;
 
@@ -85,14 +78,11 @@ Application::Impl::~Impl() noexcept {}
 void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 {
     mEngine = engine;
-    mAssets.SetEngine(engine);
 }
 
 /// initialize application
 bool Application::Impl::Initialize()
 {
-    Assets().RegisterFactory(DefaultResources::MakePtr(), "", 1.0f);
-    Assets().RegisterFactory(BuiltinExtra::MakePtr(), "", 1.0f);
     return true;
 }
 
@@ -164,12 +154,6 @@ bool Application::Initialize()
 void Application::Shutdown()
 {
     return mImpl->Shutdown();
-}
-
-/// get assets
-Assets &Application::Assets() const
-{
-    return mImpl->Assets();
 }
 
 /// get delta time

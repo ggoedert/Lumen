@@ -47,17 +47,25 @@ Material::Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader) :
 /// creates a smart pointer version of the material component
 ComponentPtr Material::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
 {
-    if (params.Type() == Material::Params::Type())
+    if (params.Type() != Material::Params::Type())
     {
-        const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new Material(gameObject, createParams.mShader));
-    }
 #ifdef TYPEINFO
-    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
+        DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
 #else
-    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
+        DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
 #endif
-    return {};
+        return {};
+    }
+
+    const auto &createParams = static_cast<const Params &>(params);
+    Expected<ShaderPtr> shaderExp = Shader::MakePtr(createParams.mShaderName);
+    if (!shaderExp.HasValue())
+    {
+        Lumen::DebugLog::Error("Unable to create shader {}: {}", createParams.mShaderName, shaderExp.Error());
+        return {};
+    }
+
+    return ComponentPtr(new Material(gameObject, shaderExp.Value()));
 }
 
 /// run component

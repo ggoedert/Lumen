@@ -59,29 +59,62 @@ public:
     }
 };
 
+//==============================================================================================================================================================================
+
+/// DefaultResources::Impl class
+class DefaultResources::Impl
+{
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
+
+public:
+    /// constructor
+    explicit Impl()
+    {
+        mAssetInfos.push_back(SphereMeshInfo::MakePtr());
+    }
+
+    /// destructor
+    ~Impl() = default;
+
+    /// accepts a path
+    [[nodiscard]] bool Accepts(std::filesystem::path path) const
+    {
+        return path == "Library/lumen default resources";
+    }
+
+    /// get asset infos
+    [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const
+    {
+        return mAssetInfos;
+    }
+
+private:
+    /// asset infos
+    std::vector<Lumen::AssetInfoPtr> mAssetInfos;
+};
+
+//==============================================================================================================================================================================
+
 /// creates a smart pointer version of the default resources
 AssetFactoryPtr DefaultResources::MakePtr()
 {
     return AssetFactoryPtr(new DefaultResources());
 }
 
+/// constructs default resources
+DefaultResources::DefaultResources() : mImpl(DefaultResources::Impl::MakeUniquePtr()) {}
+
 /// accepts a path
 bool DefaultResources::Accepts(std::filesystem::path path) const
 {
-    return path == "Library/lumen default resources";
+    return mImpl->Accepts(path);
 }
 
 /// get asset infos
 const std::vector<Lumen::AssetInfoPtr> &DefaultResources::GetAssetInfos() const
 {
-    static const std::vector<Lumen::AssetInfoPtr> assetInfos = []
-    {
-        std::vector<Lumen::AssetInfoPtr> infos;
-        infos.push_back(SphereMeshInfo::MakePtr());
-        return infos;
-    }();
-
-    return assetInfos;
+    return mImpl->GetAssetInfos();
 }
 
 CLASS_PTR_DEF(CheckerGrayTexture);
@@ -230,28 +263,61 @@ public:
     }
 };
 
+//==============================================================================================================================================================================
+
+/// BuiltinExtra::Impl class
+class BuiltinExtra::Impl
+{
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
+
+public:
+    /// constructor
+    explicit Impl()
+    {
+        mAssetInfos.push_back(CheckerGrayTextureInfo::MakePtr());
+        mAssetInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
+    }
+
+    /// destructor
+    ~Impl() = default;
+
+    /// accepts a path
+    [[nodiscard]] bool Accepts(std::filesystem::path path) const
+    {
+        return path == "Resources/lumen_builtin_extra";
+    }
+
+    /// get asset infos
+    [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const
+    {
+        return mAssetInfos;
+    }
+
+private:
+    /// asset infos
+    std::vector<Lumen::AssetInfoPtr> mAssetInfos;
+};
+
+//==============================================================================================================================================================================
+
 /// creates a smart pointer version of the builtin extra
 AssetFactoryPtr BuiltinExtra::MakePtr()
 {
     return AssetFactoryPtr(new BuiltinExtra());
 }
 
+/// constructs builtin extra
+BuiltinExtra::BuiltinExtra() : mImpl(BuiltinExtra::Impl::MakeUniquePtr()) {}
+
 /// accepts a path
 bool BuiltinExtra::Accepts(std::filesystem::path path) const
 {
-    return path == "Resources/lumen_builtin_extra";
+    return mImpl->Accepts(path);
 }
 
 /// get asset infos
 const std::vector<Lumen::AssetInfoPtr> &BuiltinExtra::GetAssetInfos() const
 {
-    static const std::vector<Lumen::AssetInfoPtr> assetInfos = []
-    {
-        std::vector<Lumen::AssetInfoPtr> infos;
-        infos.push_back(CheckerGrayTextureInfo::MakePtr());
-        infos.push_back(SimpleDiffuseShaderInfo::MakePtr());
-        return infos;
-    }();
-
-    return assetInfos;
+    return mImpl->GetAssetInfos();
 }

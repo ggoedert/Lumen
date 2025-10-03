@@ -34,9 +34,6 @@ namespace Lumen
         /// shutdown application
         virtual void Shutdown();
 
-        /// get assets
-        [[nodiscard]] Assets &Assets() const;
-
         /// get delta time
         [[nodiscard]] float DeltaTime() const;
 
