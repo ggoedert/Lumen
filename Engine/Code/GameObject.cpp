@@ -98,6 +98,12 @@ void GameObject::Impl::Run()
 
 //==============================================================================================================================================================================
 
+/// constructs a game object
+GameObject::GameObject() : Object(Type()) {}
+
+/// destroys game object
+GameObject::~GameObject() noexcept {}
+
 /// custom smart pointer maker, self registers into scene manager
 GameObjectWeakPtr GameObject::MakePtr()
 {
@@ -106,12 +112,6 @@ GameObjectWeakPtr GameObject::MakePtr()
     gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak);
     return gameObjectWeak;
 }
-
-/// constructs a game object
-GameObject::GameObject() : Object(Type()) {}
-
-/// destroys game object
-GameObject::~GameObject() noexcept {}
 
 /// get transform
 TransformWeakPtr GameObject::Transform() const

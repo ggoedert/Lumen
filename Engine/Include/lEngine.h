@@ -64,11 +64,11 @@ namespace Lumen
         /// create a folder file system
         IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const;
 
-        /// register a texture
-        IdType RegisterTexture(const TexturePtr &texture, int width, int height);
+        /// create a texture
+        IdType CreateTexture(const TexturePtr &texture, int width, int height);
 
-        /// unregister a texture
-        void UnregisterTexture(IdType texID);
+        /// release a texture
+        void ReleaseTexture(IdType texID);
 
     protected:
         /// protected constructor

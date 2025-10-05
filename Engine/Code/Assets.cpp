@@ -139,7 +139,7 @@ Expected<ObjectPtr> AssetsImpl::Import(std::optional<std::filesystem::path> path
         }
 
         // none found, return empty
-        return Expected<ObjectPtr>::Unexpected("Asset not found");
+        return Expected<ObjectPtr>::Unexpected("Asset Information not found");
     }
     else
     {

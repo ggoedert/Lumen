@@ -50,10 +50,10 @@ namespace Lumen
         /// create a folder file system
         virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
 
-        /// register a texture
-        virtual IdType RegisterTexture(const TexturePtr &texture, int width, int height) = 0;
+        /// create a texture
+        virtual IdType CreateTexture(const TexturePtr &texture, int width, int height) = 0;
 
-        /// unregister a texture
-        virtual void UnregisterTexture(IdType texID) = 0;
+        /// release a texture
+        virtual void ReleaseTexture(IdType texID) = 0;
     };
 }

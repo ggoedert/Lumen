@@ -24,11 +24,11 @@ namespace Lumen
         friend void SceneManager::Run();
 
     public:
-        /// custom smart pointer maker, self registers into scene manager
-        static GameObjectWeakPtr MakePtr();
-
         /// destroys game object
         ~GameObject() noexcept override;
+
+        /// custom smart pointer maker, self registers into scene manager
+        static GameObjectWeakPtr MakePtr();
 
         /// get transform
         [[nodiscard]] TransformWeakPtr Transform() const;

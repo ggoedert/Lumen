@@ -22,6 +22,15 @@ public:
 
 //==============================================================================================================================================================================
 
+/// constructs a shader
+Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
+
+/// destroys shader
+Shader::~Shader() noexcept
+{
+    Release();
+}
+
 /// custom smart pointer maker
 Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
 {
@@ -38,21 +47,18 @@ Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
     return static_pointer_cast<Lumen::Shader>(shaderExp.Value());
 }
 
-/// constructs a shader
-Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
-
-/// destroys shader
-Shader::~Shader() noexcept {}
-
-/// unregister a shader
-void Shader::Unregister()
+/// release a shader
+void Shader::Release()
 {
 #ifdef WIP
-    Engine::IdType shaderId = mShaderId;
-    mShaderId = Engine::InvalidId;
-    if (auto engineLock = mEngine.lock())
+    if (Engine::InvalidId != mShaderId)
     {
-        engineLock->UnregisterShader(shaderId);
+        Engine::IdType shaderId = mShaderId;
+        mShaderId = Engine::InvalidId;
+        if (auto engineLock = mEngine.lock())
+        {
+            engineLock->ReleaseShader(shaderId);
+        }
     }
 #endif
 }

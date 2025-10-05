@@ -25,8 +25,8 @@ namespace Lumen
         /// destroys texture
         virtual ~Texture() noexcept override;
 
-        /// unregister a texture
-        void Unregister();
+        /// release a texture
+        void Release();
 
         /// get texture data
         virtual void GetTextureData(byte *data, int pitch) = 0;

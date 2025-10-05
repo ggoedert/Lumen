@@ -41,8 +41,7 @@ DEFINE_COMPONENT_TYPEINFO(Material);
 
 /// constructs a material with an shader
 Material::Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader) :
-    Component(Type(), Name(), gameObject), mImpl(Material::Impl::MakeUniquePtr(shader))
-{}
+    Component(Type(), Name(), gameObject), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
 
 /// creates a smart pointer version of the material component
 ComponentPtr Material::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)

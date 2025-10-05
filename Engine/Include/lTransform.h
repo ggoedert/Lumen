@@ -23,11 +23,11 @@ namespace Lumen
         OBJECT_TYPEINFO;
 
     public:
-        /// creates a smart pointer version of the transform
-        static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
-
         /// destructor
         ~Transform() noexcept override;
+
+        /// creates a smart pointer version of the transform
+        static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;

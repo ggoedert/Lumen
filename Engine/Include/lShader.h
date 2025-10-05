@@ -28,8 +28,8 @@ namespace Lumen
         /// destroys shader
         virtual ~Shader() noexcept override;
 
-        /// unregister a shader
-        void Unregister();
+        /// release a shader
+        void Release();
 
         /// set int property
         void SetProperty(std::string_view name, const int property);

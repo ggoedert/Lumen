@@ -20,14 +20,15 @@ class SphereMesh : public Lumen::Mesh
     CLASS_NO_COPY_MOVE(SphereMesh);
 
 public:
+    /// destroys sphere mesh
+    ~SphereMesh() = default;
+
     /// creates a smart pointer version of the sphere mesh info
     static ObjectPtr MakePtr(EngineWeakPtr &engine) { return SphereMeshPtr(new SphereMesh(engine)); }
 
+private:
     /// constructs a sphere mesh
     explicit SphereMesh(EngineWeakPtr &engine) {}
-
-    /// destroys sphere mesh
-    ~SphereMesh() = default;
 };
 
 /// SphereMeshInfo class
@@ -57,6 +58,10 @@ public:
     {
         return SphereMesh::MakePtr(engine);
     }
+
+private:
+    /// constructs a sphere mesh info
+    explicit SphereMeshInfo() {}
 };
 
 //==============================================================================================================================================================================
@@ -96,14 +101,14 @@ private:
 
 //==============================================================================================================================================================================
 
+/// constructs default resources
+DefaultResources::DefaultResources() : mImpl(DefaultResources::Impl::MakeUniquePtr()) {}
+
 /// creates a smart pointer version of the default resources
 AssetFactoryPtr DefaultResources::MakePtr()
 {
     return AssetFactoryPtr(new DefaultResources());
 }
-
-/// constructs default resources
-DefaultResources::DefaultResources() : mImpl(DefaultResources::Impl::MakeUniquePtr()) {}
 
 /// accepts a path
 bool DefaultResources::Accepts(std::filesystem::path path) const
@@ -125,15 +130,19 @@ class CheckerGrayTexture : public Lumen::Texture
     CLASS_NO_COPY_MOVE(CheckerGrayTexture);
 
 public:
+    /// destroys checker gray texture
+    ~CheckerGrayTexture() noexcept override = default;
+
     /// creates a smart pointer version of the checker gray texture info
-    static ObjectPtr MakePtr(EngineWeakPtr &engine) {
+    static ObjectPtr MakePtr(EngineWeakPtr &engine)
+    {
         auto ptr = CheckerGrayTexturePtr(new CheckerGrayTexture(engine));
 
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mTexId = engineLock->RegisterTexture(ptr, 64, 64)) != Engine::InvalidId,
-                "Failed to register checker gray texture");
+                (ptr->mTexId = engineLock->CreateTexture(ptr, 64, 64)) != Engine::InvalidId,
+                "Failed to create checker gray texture");
         }
 
         return ptr;
@@ -163,14 +172,9 @@ public:
         }
     }
 
-    /// destroys checker gray texture
-    ~CheckerGrayTexture() noexcept override = default;
-
 private:
     /// constructs a checker gray texture
-    explicit CheckerGrayTexture(EngineWeakPtr &engine) : Texture(engine)
-    {
-    }
+    explicit CheckerGrayTexture(EngineWeakPtr &engine) : Texture(engine) {}
 };
 
 /// CheckerGrayTextureInfo class
@@ -200,6 +204,10 @@ public:
     {
         return CheckerGrayTexture::MakePtr(engine);
     }
+
+private:
+    /// constructs a checker gray texture info
+    explicit CheckerGrayTextureInfo() {}
 };
 
 CLASS_PTR_DEF(SimpleDiffuseShader);
@@ -210,6 +218,9 @@ class SimpleDiffuseShader : public Lumen::Shader
     CLASS_NO_COPY_MOVE(SimpleDiffuseShader);
 
 public:
+    /// destroys simple diffuse shader
+    ~SimpleDiffuseShader() = default;
+
     /// creates a smart pointer version of the simple diffuse shader info
     static ObjectPtr MakePtr(EngineWeakPtr &engine)
     {
@@ -219,19 +230,17 @@ public:
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mShaderId = engineLock->RegisterShader(ptr, Engine::SimpleDiffuseShader)) != Engine::InvalidId,
-                "Failed to register simple diffuse shader");
+                (ptr->mShaderId = engineLock->CreateShader(ptr, Engine::SimpleDiffuseShader)) != Engine::InvalidId,
+                "Failed to create simple diffuse shader");
         }
 #endif
 
         return ptr;
     }
 
+private:
     /// constructs a simple diffuse shader
     explicit SimpleDiffuseShader(EngineWeakPtr &engine) : Lumen::Shader(engine) {}
-
-    /// destroys simple diffuse shader
-    ~SimpleDiffuseShader() = default;
 };
 
 /// SimpleDiffuseShaderInfo class
@@ -261,6 +270,10 @@ public:
     {
         return SimpleDiffuseShader::MakePtr(engine);
     }
+
+private:
+    /// constructs a simple diffuse shader info
+    explicit SimpleDiffuseShaderInfo() {}
 };
 
 //==============================================================================================================================================================================
@@ -301,14 +314,14 @@ private:
 
 //==============================================================================================================================================================================
 
+/// constructs builtin extra
+BuiltinExtra::BuiltinExtra() : mImpl(BuiltinExtra::Impl::MakeUniquePtr()) {}
+
 /// creates a smart pointer version of the builtin extra
 AssetFactoryPtr BuiltinExtra::MakePtr()
 {
     return AssetFactoryPtr(new BuiltinExtra());
 }
-
-/// constructs builtin extra
-BuiltinExtra::BuiltinExtra() : mImpl(BuiltinExtra::Impl::MakeUniquePtr()) {}
 
 /// accepts a path
 bool BuiltinExtra::Accepts(std::filesystem::path path) const

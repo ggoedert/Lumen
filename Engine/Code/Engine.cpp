@@ -87,16 +87,16 @@ IFileSystemPtr Engine::FolderFileSystem(std::string_view name, std::string_view 
     return mImpl->FolderFileSystem(name, path);
 }
 
-/// register a texture
-Engine::IdType Engine::RegisterTexture(const TexturePtr &texture, int width, int height)
+/// create a texture
+Engine::IdType Engine::CreateTexture(const TexturePtr &texture, int width, int height)
 {
-    return mImpl->RegisterTexture(texture, width, height);
+    return mImpl->CreateTexture(texture, width, height);
 }
 
-/// unregister a texture
-void Engine::UnregisterTexture(IdType texID)
+/// release a texture
+void Engine::ReleaseTexture(IdType texID)
 {
-    mImpl->UnregisterTexture(texID);
+    mImpl->ReleaseTexture(texID);
 }
 
 //==============================================================================================================================================================================

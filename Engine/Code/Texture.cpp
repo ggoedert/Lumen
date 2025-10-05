@@ -26,15 +26,21 @@ public:
 Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Engine::InvalidId), mImpl(Texture::Impl::MakeUniquePtr()) {}
 
 /// destroys texture
-Texture::~Texture() noexcept {}
-
-/// unregister a texture
-void Texture::Unregister()
+Texture::~Texture() noexcept
 {
-    Engine::IdType texId = mTexId;
-    mTexId = Engine::InvalidId;
-    if (auto engineLock = mEngine.lock())
+    Release();
+}
+
+/// release a texture
+void Texture::Release()
+{
+    if (Engine::InvalidId != mTexId)
     {
-        engineLock->UnregisterTexture(texId);
+        Engine::IdType texId = mTexId;
+        mTexId = Engine::InvalidId;
+        if (auto engineLock = mEngine.lock())
+        {
+            engineLock->ReleaseTexture(texId);
+        }
     }
 }

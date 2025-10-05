@@ -72,11 +72,11 @@ namespace Lumen::WindowsNT10
             return FolderFileSystem::MakePtr(name, path);
         }
 
-        /// register a texture
-        Engine::IdType RegisterTexture(const TexturePtr &texture, int width, int height) override;
+        /// create a texture
+        Engine::IdType CreateTexture(const TexturePtr &texture, int width, int height) override;
 
-        /// unregister a texture
-        void UnregisterTexture(Engine::IdType texID) override;
+        /// release a texture
+        void ReleaseTexture(Engine::IdType texID) override;
 
     private:
         /// generate next texture id
@@ -184,10 +184,10 @@ namespace Lumen::WindowsNT10
             auto it = mTextureMap.find(texID);
             if (it != mTextureMap.end())
             {
-                it->second.mTexture->Unregister();
+                it->second.mTexture->Release();
             }
         }
-        mTextureMap.clear();
+        L_ASSERT(mTextureMap.empty());
     }
 
     // get elapsed time since last run
@@ -350,8 +350,8 @@ namespace Lumen::WindowsNT10
     }
 #pragma endregion
 
-    /// register a texture
-    Engine::IdType EngineWindowsNT10::RegisterTexture(const TexturePtr &texture, int width, int height)
+    /// create a texture
+    Engine::IdType EngineWindowsNT10::CreateTexture(const TexturePtr &texture, int width, int height)
     {
         Engine::IdType texID = GenerateNextTextureID();
         TextureData textureData;
@@ -362,8 +362,8 @@ namespace Lumen::WindowsNT10
         return texID;
     }
 
-    /// unregister a texture
-    void EngineWindowsNT10::UnregisterTexture(Engine::IdType texID)
+    /// release a texture
+    void EngineWindowsNT10::ReleaseTexture(Engine::IdType texID)
     {
         auto it = mTextureMap.find(texID);
         if (it != mTextureMap.end())
@@ -414,14 +414,14 @@ namespace Lumen::WindowsNT10
         resourceUpload.Begin();
 
         // ???
-        auto it = mTextureMap.find(0/*mTextureIndex*/);
-        if (it != mTextureMap.end())
+        auto texIt = mTextureMap.find(0/*mTextureIndex*/);
+        if (texIt != mTextureMap.end())
         {
             static constexpr int ddsPrefix = sizeof(DWORD) + sizeof(DDS_HEADER);
             static constexpr int elements = 4;
             static constexpr int BPElem = 8;
-            int width = it->second.mWidth;
-            int height = it->second.mHeight;
+            int width = texIt->second.mWidth;
+            int height = texIt->second.mHeight;
             int screenTexPitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
 
             std::vector<byte> ddsTexture(ddsPrefix + width * height * elements);
@@ -439,12 +439,12 @@ namespace Lumen::WindowsNT10
             header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
             // ??? fill texture with a pattern
-            it->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
-            it->second.mIndex = mResourceDescriptors->Allocate();
+            texIt->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
+            texIt->second.mIndex = mResourceDescriptors->Allocate();
             ThrowIfFailed(
-                CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), it->second.mResource.ReleaseAndGetAddressOf(), true));
+                CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), texIt->second.mResource.ReleaseAndGetAddressOf(), true));
 
-            CreateShaderResourceView(device, it->second.mResource.Get(), mResourceDescriptors->GetCpuHandle(it->second.mIndex));
+            CreateShaderResourceView(device, texIt->second.mResource.Get(), mResourceDescriptors->GetCpuHandle(texIt->second.mIndex));
         }
 
 #if 1
@@ -475,8 +475,11 @@ namespace Lumen::WindowsNT10
         //basicEffect->SetLightDiffuseColor(0, Colors::White);
         //basicEffect->SetLightDirection(0, -Vector3::UnitZ);
 
-        basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(0/*mTextureIndex*/),
-            mStates->AnisotropicWrap());
+        if (texIt != mTextureMap.end())
+        {
+            basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
+                mStates->AnisotropicWrap());
+        }
 
         mWorld = Matrix::Identity;
     }
