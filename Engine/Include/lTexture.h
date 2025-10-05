@@ -23,7 +23,7 @@ namespace Lumen
 
     public:
         /// destroys texture
-        virtual ~Texture() noexcept override;
+        virtual ~Texture() override;
 
         /// release a texture
         void Release();

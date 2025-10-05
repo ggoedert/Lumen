@@ -48,7 +48,7 @@ namespace Lumen
         explicit Application();
 
         /// virtual destructor
-        virtual ~Application() noexcept;
+        virtual ~Application();
 
         /// run application
         bool Run(float deltaTime);

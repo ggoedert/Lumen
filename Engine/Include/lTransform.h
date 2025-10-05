@@ -24,7 +24,7 @@ namespace Lumen
 
     public:
         /// destructor
-        ~Transform() noexcept override;
+        ~Transform() override;
 
         /// creates a smart pointer version of the transform
         static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);

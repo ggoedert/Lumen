@@ -34,7 +34,7 @@ namespace Lumen
         explicit Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
         /// virtual destructor
-        virtual ~Component() noexcept override;
+        virtual ~Component() override;
 
     private:
         /// start component

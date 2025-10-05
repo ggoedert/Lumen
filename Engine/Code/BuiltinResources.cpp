@@ -131,7 +131,7 @@ class CheckerGrayTexture : public Lumen::Texture
 
 public:
     /// destroys checker gray texture
-    ~CheckerGrayTexture() noexcept override = default;
+    ~CheckerGrayTexture() override = default;
 
     /// creates a smart pointer version of the checker gray texture info
     static ObjectPtr MakePtr(EngineWeakPtr &engine)

@@ -61,7 +61,7 @@ private:
 Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(gameObject)) {}
 
 /// destructor
-Transform::~Transform() noexcept = default;
+Transform::~Transform() = default;
 
 /// creates a smart pointer version of the camera component
 TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)

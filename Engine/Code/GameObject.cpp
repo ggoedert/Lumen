@@ -53,7 +53,7 @@ private:
 GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mInterface(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
-GameObject::Impl::~Impl() noexcept
+GameObject::Impl::~Impl()
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
@@ -102,7 +102,7 @@ void GameObject::Impl::Run()
 GameObject::GameObject() : Object(Type()) {}
 
 /// destroys game object
-GameObject::~GameObject() noexcept {}
+GameObject::~GameObject() {}
 
 /// custom smart pointer maker, self registers into scene manager
 GameObjectWeakPtr GameObject::MakePtr()

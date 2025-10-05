@@ -26,4 +26,4 @@ public:
 Mesh::Mesh() : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr()) {}
 
 /// destroys mesh
-Mesh::~Mesh() noexcept {}
+Mesh::~Mesh() {}

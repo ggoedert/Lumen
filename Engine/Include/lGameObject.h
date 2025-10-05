@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         /// destroys game object
-        ~GameObject() noexcept override;
+        ~GameObject() override;
 
         /// custom smart pointer maker, self registers into scene manager
         static GameObjectWeakPtr MakePtr();

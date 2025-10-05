@@ -22,7 +22,7 @@ namespace Lumen
         explicit Scene() = default;
 
         /// virtual destructor
-        virtual ~Scene() noexcept = default;
+        virtual ~Scene() = default;
 
         /// load scene
         virtual bool Load() = 0;

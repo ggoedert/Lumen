@@ -26,7 +26,7 @@ namespace Lumen
         explicit IFileSystem() = default;
 
         /// pure virtual destructor
-        virtual ~IFileSystem() noexcept = default;
+        virtual ~IFileSystem() = default;
     };
 
     /// FileSystem namespace

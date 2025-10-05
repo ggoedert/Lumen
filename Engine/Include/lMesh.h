@@ -21,7 +21,7 @@ namespace Lumen
 
     public:
         /// destroys mesh
-        ~Mesh() noexcept override;
+        ~Mesh() override;
 
     protected:
         /// constructs a mesh

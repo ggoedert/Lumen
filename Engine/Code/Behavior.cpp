@@ -40,7 +40,7 @@ Behavior::Behavior(const HashType type, std::string_view name, const GameObjectW
     Component(type, name, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
 
 /// destructor
-Behavior::~Behavior() noexcept = default;
+Behavior::~Behavior() = default;
 
 /// control enabled
 void Behavior::Enable(bool enable) { mImpl->Enable(enable); }

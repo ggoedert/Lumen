@@ -44,7 +44,7 @@ namespace Lumen
         IProperty(Mode mode, HashType hash, std::string_view name, std::size_t size) : mMode(mode), mHash(hash), mName(name), mSize(size) {}
 
         /// default destructor
-        virtual ~IProperty() noexcept = default;
+        virtual ~IProperty() = default;
 
         /// read only mode check
         bool IsReadOnly() { return mMode == Mode::Read; }

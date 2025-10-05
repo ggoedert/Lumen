@@ -38,7 +38,7 @@ private:
 Object::Object(const HashType type) : mImpl(Object::Impl::MakeUniquePtr(type)) {}
 
 /// destructor
-Object::~Object() noexcept = default;
+Object::~Object() = default;
 
 /// get type
 HashType Object::Type() const noexcept

@@ -21,7 +21,7 @@ namespace Lumen
         explicit Impl() {}
 
         /// virtual destroys engine
-        virtual ~Impl() noexcept = default;
+        virtual ~Impl() = default;
 
         /// initialization and management
         virtual bool Initialize(const Object &config) = 0;

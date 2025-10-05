@@ -21,7 +21,7 @@ public:
     explicit Impl();
 
     /// destructor
-    ~Impl() noexcept;
+    ~Impl();
 
     /// get engine
     [[nodiscard]] EngineWeakPtr GetEngine() { return mEngine; }
@@ -72,7 +72,7 @@ private:
 Application::Impl::Impl() {}
 
 /// destroys application
-Application::Impl::~Impl() noexcept {}
+Application::Impl::~Impl() {}
 
 /// set engine
 void Application::Impl::SetEngine(const EngineWeakPtr &engine)
@@ -130,7 +130,7 @@ const Math::Vector Application::Impl::GetBackgroundColor() const
 Application::Application() : mImpl(Application::Impl::MakeUniquePtr()) {}
 
 /// virtual destructor
-Application::~Application() noexcept {}
+Application::~Application() {}
 
 /// get engine
 [[nodiscard]] EngineWeakPtr Application::GetEngine()

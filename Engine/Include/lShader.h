@@ -26,7 +26,7 @@ namespace Lumen
         static Expected<ShaderPtr> MakePtr(std::string_view shaderName);
 
         /// destroys shader
-        virtual ~Shader() noexcept override;
+        virtual ~Shader() override;
 
         /// release a shader
         void Release();

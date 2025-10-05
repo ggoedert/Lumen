@@ -32,7 +32,7 @@ namespace Lumen
         static constexpr IdType InvalidId = static_cast<IdType>(SIZE_MAX);
 
         /// destructor
-        ~Engine() noexcept = default;
+        ~Engine() = default;
 
         /// allocate smart pointer version of the engine, implemented at platform level
         static EnginePtr MakePtr(const ApplicationPtr &application);

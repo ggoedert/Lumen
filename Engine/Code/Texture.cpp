@@ -26,7 +26,7 @@ public:
 Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Engine::InvalidId), mImpl(Texture::Impl::MakeUniquePtr()) {}
 
 /// destroys texture
-Texture::~Texture() noexcept
+Texture::~Texture()
 {
     Release();
 }

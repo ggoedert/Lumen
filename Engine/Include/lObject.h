@@ -26,7 +26,7 @@ namespace Lumen
         explicit Object(const HashType type);
 
         /// virtual destructor
-        virtual ~Object() noexcept;
+        virtual ~Object();
 
     private:
         /// private implementation

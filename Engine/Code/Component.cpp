@@ -49,7 +49,7 @@ Component::Component(const HashType type, std::string_view name, const GameObjec
     Object(type), mImpl(Component::Impl::MakeUniquePtr(name, gameObject)) {}
 
 /// destructor
-Component::~Component() noexcept = default;
+Component::~Component() = default;
 
 /// get name
 std::string_view Component::Name() const noexcept

@@ -23,7 +23,7 @@ namespace Lumen
         explicit Behavior(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
         /// destructor
-        ~Behavior() noexcept override;
+        ~Behavior() override;
 
         /// control enabled
         void Enable(bool enable);

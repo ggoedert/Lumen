@@ -26,7 +26,7 @@ public:
 Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
 
 /// destroys shader
-Shader::~Shader() noexcept
+Shader::~Shader()
 {
     Release();
 }
