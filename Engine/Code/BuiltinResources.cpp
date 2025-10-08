@@ -21,14 +21,29 @@ class SphereMesh : public Lumen::Mesh
 
 public:
     /// destroys sphere mesh
-    ~SphereMesh() = default;
+    ~SphereMesh() override = default;
 
     /// creates a smart pointer version of the sphere mesh info
-    static ObjectPtr MakePtr(EngineWeakPtr &engine) { return SphereMeshPtr(new SphereMesh(engine)); }
+    static ObjectPtr MakePtr(EngineWeakPtr &engine)
+    {
+        auto ptr = SphereMeshPtr(new SphereMesh(engine));
+
+        if (auto engineLock = engine.lock())
+        {
+            L_ASSERT_MSG(
+                (ptr->mMeshId = engineLock->CreateMesh(ptr)) != Id::Invalid,
+                "Failed to create sphere mesh");
+        }
+
+        return ptr;
+    }
+
+    /// get mesh data
+    void GetMeshData(byte *data) override {}
 
 private:
     /// constructs a sphere mesh
-    explicit SphereMesh(EngineWeakPtr &engine) {}
+    explicit SphereMesh(EngineWeakPtr &engine) : Mesh(engine) {}
 };
 
 /// SphereMeshInfo class
@@ -141,7 +156,7 @@ public:
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mTexId = engineLock->CreateTexture(ptr, 64, 64)) != Engine::InvalidId,
+                (ptr->mTexId = engineLock->CreateTexture(ptr, 64, 64)) != Id::Invalid,
                 "Failed to create checker gray texture");
         }
 
@@ -219,21 +234,19 @@ class SimpleDiffuseShader : public Lumen::Shader
 
 public:
     /// destroys simple diffuse shader
-    ~SimpleDiffuseShader() = default;
+    ~SimpleDiffuseShader() override = default;
 
     /// creates a smart pointer version of the simple diffuse shader info
     static ObjectPtr MakePtr(EngineWeakPtr &engine)
     {
         auto ptr = SimpleDiffuseShaderPtr(new SimpleDiffuseShader(engine));
 
-#ifdef WIP
         if (auto engineLock = engine.lock())
         {
             L_ASSERT_MSG(
-                (ptr->mShaderId = engineLock->CreateShader(ptr, Engine::SimpleDiffuseShader)) != Engine::InvalidId,
+                (ptr->mShaderId = engineLock->CreateShader(ptr/*, Engine::SimpleDiffuseShader*/)) != Id::Invalid,
                 "Failed to create simple diffuse shader");
         }
-#endif
 
         return ptr;
     }

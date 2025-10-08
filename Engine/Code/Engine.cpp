@@ -88,15 +88,39 @@ IFileSystemPtr Engine::FolderFileSystem(std::string_view name, std::string_view 
 }
 
 /// create a texture
-Engine::IdType Engine::CreateTexture(const TexturePtr &texture, int width, int height)
+Id::Type Engine::CreateTexture(const TexturePtr &texture, int width, int height)
 {
     return mImpl->CreateTexture(texture, width, height);
 }
 
 /// release a texture
-void Engine::ReleaseTexture(IdType texID)
+void Engine::ReleaseTexture(Id::Type texId)
 {
-    mImpl->ReleaseTexture(texID);
+    mImpl->ReleaseTexture(texId);
+}
+
+/// create a shader
+Id::Type Engine::CreateShader(const ShaderPtr &shader)
+{
+    return mImpl->CreateShader(shader);
+}
+
+/// release a shader
+void Engine::ReleaseShader(Id::Type shaderId)
+{
+    return mImpl->ReleaseShader(shaderId);
+}
+
+/// create a mesh
+Id::Type Engine::CreateMesh(const MeshPtr &mesh)
+{
+    return mImpl->CreateMesh(mesh);
+}
+
+/// release a mesh
+void Engine::ReleaseMesh(Id::Type meshId)
+{
+    mImpl->ReleaseMesh(meshId);
 }
 
 //==============================================================================================================================================================================

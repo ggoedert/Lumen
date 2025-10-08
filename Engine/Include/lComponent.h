@@ -33,8 +33,8 @@ namespace Lumen
         /// constructs a component with type, name, and parent. called by derived classes
         explicit Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
-        /// virtual destructor
-        virtual ~Component() override;
+        /// destroys component
+        ~Component() override;
 
     private:
         /// start component

@@ -23,7 +23,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a shader
-Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Engine::InvalidId), mImpl(Shader::Impl::MakeUniquePtr()) {}
+Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mShaderId(Id::Invalid), mImpl(Shader::Impl::MakeUniquePtr()) {}
 
 /// destroys shader
 Shader::~Shader()
@@ -50,33 +50,13 @@ Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
 /// release a shader
 void Shader::Release()
 {
-#ifdef WIP
-    if (Engine::InvalidId != mShaderId)
+    if (Id::Invalid != mShaderId)
     {
-        Engine::IdType shaderId = mShaderId;
-        mShaderId = Engine::InvalidId;
+        Id::Type shaderId = mShaderId;
+        mShaderId = Id::Invalid;
         if (auto engineLock = mEngine.lock())
         {
             engineLock->ReleaseShader(shaderId);
         }
     }
-#endif
-}
-
-/// set int property
-void Shader::SetProperty(std::string_view name, const int property)
-{
-    Lumen::DebugLog::Info("Shader::SetProperty {} to {}", name, property);
-}
-
-/// set float property
-void Shader::SetProperty(std::string_view name, const float property)
-{
-    Lumen::DebugLog::Info("Shader::SetProperty {} to {}", name, property);
-}
-
-/// set TexturePtr property
-void Shader::SetProperty(std::string_view name, const Lumen::TexturePtr &property)
-{
-    Lumen::DebugLog::Info("Shader::SetProperty {} from an TexturePtr", name);
 }

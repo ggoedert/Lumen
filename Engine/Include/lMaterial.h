@@ -25,6 +25,9 @@ namespace Lumen
         friend void SceneManager::Initialize();
 
     public:
+        /// property value type
+        using PropertyValue = std::variant<int, float, Lumen::TexturePtr>;
+
         /// material creation parameters
         struct Params : Object
         {
@@ -32,6 +35,12 @@ namespace Lumen
             explicit Params(std::string_view shaderName) : Object(Type()), mShaderName(shaderName) {}
             std::string_view mShaderName;
         };
+
+        /// set property
+        void SetProperty(std::string_view name, const PropertyValue &property);
+
+        /// get property
+        [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const;
 
     private:
         /// constructs a material with an shader

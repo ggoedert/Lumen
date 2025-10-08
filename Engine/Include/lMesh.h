@@ -7,11 +7,13 @@
 
 #include "lDefs.h"
 #include "lObject.h"
+#include "lEngine.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(Mesh);
+    CLASS_WEAK_PTR_DEF(Mesh);
 
     /// Mesh class
     class Mesh : public Object
@@ -23,9 +25,21 @@ namespace Lumen
         /// destroys mesh
         ~Mesh() override;
 
+        /// release a mesh
+        void Release();
+
+        /// get mesh data
+        virtual void GetMeshData(byte *data) = 0;
+
     protected:
         /// constructs a mesh
-        explicit Mesh();
+        explicit Mesh(const EngineWeakPtr &engine);
+
+        /// engine pointer
+        EngineWeakPtr mEngine;
+
+        /// engine mesh id
+        Id::Type mMeshId;
 
     private:
         /// private implementation

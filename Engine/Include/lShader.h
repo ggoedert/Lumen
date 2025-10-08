@@ -26,19 +26,10 @@ namespace Lumen
         static Expected<ShaderPtr> MakePtr(std::string_view shaderName);
 
         /// destroys shader
-        virtual ~Shader() override;
+        ~Shader() override;
 
         /// release a shader
         void Release();
-
-        /// set int property
-        void SetProperty(std::string_view name, const int property);
-
-        /// set float property
-        void SetProperty(std::string_view name, const float property);
-
-        /// set TexturePtr property
-        void SetProperty(std::string_view name, const Lumen::TexturePtr &property);
 
     protected:
         /// constructs a shader
@@ -48,7 +39,7 @@ namespace Lumen
         EngineWeakPtr mEngine;
 
         /// engine shader id
-        Engine::IdType mShaderId;
+        Id::Type mShaderId;
 
     private:
         /// private implementation

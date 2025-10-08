@@ -23,7 +23,24 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh() : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr()) {}
+Mesh::Mesh(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mMeshId(Id::Invalid), mImpl(Mesh::Impl::MakeUniquePtr()) {}
 
 /// destroys mesh
-Mesh::~Mesh() {}
+Mesh::~Mesh()
+{
+    Release();
+}
+
+/// release a mesh
+void Mesh::Release()
+{
+    if (Id::Invalid != mMeshId)
+    {
+        Id::Type meshId = mMeshId;
+        mMeshId = Id::Invalid;
+        if (auto engineLock = mEngine.lock())
+        {
+            engineLock->ReleaseMesh(meshId);
+        }
+    }
+}

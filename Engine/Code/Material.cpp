@@ -6,6 +6,7 @@
 
 #include "lDefs.h"
 #include "lMaterial.h"
+#include "lStringMap.h"
 
 using namespace Lumen;
 
@@ -22,10 +23,28 @@ public:
     explicit Impl(ShaderPtr shader) :mShader(shader) {}
 
     /// get shader
-    [[nodiscard]] const ShaderPtr GetShader() const { return mShader; }
+    [[nodiscard]] ShaderPtr GetShader() const { return mShader; }
 
     /// set shader
     void SetShader(const ShaderPtr &shader) { mShader = shader; }
+
+    /// set property
+    void SetProperty(std::string_view name, const PropertyValue &property)
+    {
+        //Lumen::DebugLog::Info("Material::SetProperty {} to {}", name, property);
+        mProperties.insert_or_assign(std::string(name), property);
+    }
+
+    /// get property
+    [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const
+    {
+        auto it = mProperties.find(name);
+        if (it != mProperties.end())
+        {
+            return it->second;
+        }
+        return Expected<PropertyValue>::Unexpected(std::format("Property '{}' not found", name));
+    }
 
 private:
     /// run component
@@ -33,6 +52,9 @@ private:
 
     /// shader
     ShaderPtr mShader;
+
+    /// map of properties
+    StringMap<PropertyValue> mProperties;
 };
 
 //==============================================================================================================================================================================
@@ -66,6 +88,12 @@ ComponentPtr Material::MakePtr(const GameObjectWeakPtr &gameObject, const Object
 
     return ComponentPtr(new Material(gameObject, shaderExp.Value()));
 }
+
+/// set property
+void Material::SetProperty(std::string_view name, const PropertyValue &property) { mImpl->SetProperty(name, property); }
+
+/// get property
+[[nodiscard]] Expected<Material::PropertyValue> Material::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
 
 /// run component
 void Material::Run() { mImpl->Run(); }

@@ -225,10 +225,14 @@ bool MainScene::Load()
         }
         const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
 
+        // FIXME: rethink this
+        // MATERIAL IS NOT A COMPONENT (SHOULD BE A OBJECT LIKE MESH AND SHADER)
+        // COMPONENT IS A MESH RENDERER THAT HAS A MATERIAL
         // add material component
-        if (auto materialLock = sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { "Simple/Diffuse" }).lock())
+        if (auto materialLock = static_pointer_cast<Lumen::Material>(sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { "Simple/Diffuse" }).lock()))
         {
-            //WIP materialLock->SetProperty("_MainTex", texture);
+            // set texture property
+            materialLock->SetProperty("_MainTex", texture);
         }
     }
 

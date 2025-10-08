@@ -313,6 +313,7 @@
     <ClInclude Include="..\..\Include\lFileSystem.h" />
     <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
     <ClInclude Include="..\..\Include\lGameObject.h" />
+    <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
     <ClInclude Include="..\..\Include\lMeshFilter.h" />

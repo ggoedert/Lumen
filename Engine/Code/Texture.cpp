@@ -23,7 +23,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a texture
-Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Engine::InvalidId), mImpl(Texture::Impl::MakeUniquePtr()) {}
+Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Id::Invalid), mImpl(Texture::Impl::MakeUniquePtr()) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -34,10 +34,10 @@ Texture::~Texture()
 /// release a texture
 void Texture::Release()
 {
-    if (Engine::InvalidId != mTexId)
+    if (Id::Invalid != mTexId)
     {
-        Engine::IdType texId = mTexId;
-        mTexId = Engine::InvalidId;
+        Id::Type texId = mTexId;
+        mTexId = Id::Invalid;
         if (auto engineLock = mEngine.lock())
         {
             engineLock->ReleaseTexture(texId);

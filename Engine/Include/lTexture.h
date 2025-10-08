@@ -23,7 +23,7 @@ namespace Lumen
 
     public:
         /// destroys texture
-        virtual ~Texture() override;
+        ~Texture() override;
 
         /// release a texture
         void Release();
@@ -39,7 +39,7 @@ namespace Lumen
         EngineWeakPtr mEngine;
 
         /// engine texture id
-        Engine::IdType mTexId;
+        Id::Type mTexId;
 
     private:
         /// private implementation

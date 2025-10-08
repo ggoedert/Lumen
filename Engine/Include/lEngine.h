@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lId.h"
 #include "lFileSystem.h"
 #include "lApplication.h"
 
@@ -16,6 +17,8 @@ namespace Lumen
     CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Application);
     CLASS_PTR_DEF(Texture);
+    CLASS_PTR_DEF(Shader);
+    CLASS_PTR_DEF(Mesh);
 
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
@@ -25,12 +28,6 @@ namespace Lumen
         class Impl;
 
     public:
-        /// id type
-        using IdType = size_t;
-
-        /// invalid id
-        static constexpr IdType InvalidId = static_cast<IdType>(SIZE_MAX);
-
         /// destructor
         ~Engine() = default;
 
@@ -65,10 +62,22 @@ namespace Lumen
         IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const;
 
         /// create a texture
-        IdType CreateTexture(const TexturePtr &texture, int width, int height);
+        Id::Type CreateTexture(const TexturePtr &texture, int width, int height);
 
         /// release a texture
-        void ReleaseTexture(IdType texID);
+        void ReleaseTexture(Id::Type texId);
+
+        /// create a shader
+        Id::Type CreateShader(const ShaderPtr &shader);
+
+        /// release a shader
+        void ReleaseShader(Id::Type shaderId);
+
+        /// create a mesh
+        Id::Type CreateMesh(const MeshPtr &mesh);
+
+        /// release a mesh
+        void ReleaseMesh(Id::Type meshId);
 
     protected:
         /// protected constructor

@@ -51,9 +51,21 @@ namespace Lumen
         virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
 
         /// create a texture
-        virtual IdType CreateTexture(const TexturePtr &texture, int width, int height) = 0;
+        virtual Id::Type CreateTexture(const TexturePtr &texture, int width, int height) = 0;
 
         /// release a texture
-        virtual void ReleaseTexture(IdType texID) = 0;
+        virtual void ReleaseTexture(Id::Type texId) = 0;
+
+        /// create a shader
+        virtual Id::Type CreateShader(const ShaderPtr &shader) = 0;
+
+        /// release a shader
+        virtual void ReleaseShader(Id::Type shaderId) = 0;
+
+        /// create a mesh
+        virtual Id::Type CreateMesh(const MeshPtr &mesh) = 0;
+
+        /// release a mesh
+        virtual void ReleaseMesh(Id::Type meshId) = 0;
     };
 }

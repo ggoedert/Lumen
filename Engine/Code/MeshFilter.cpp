@@ -29,7 +29,10 @@ public:
 
 private:
     /// run component
-    void Run() {}
+    void Run()
+    {
+        //??engine->Draw();
+    }
 
     /// mesh
     MeshPtr mMesh;

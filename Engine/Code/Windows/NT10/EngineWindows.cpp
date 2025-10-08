@@ -7,6 +7,8 @@
 #include "lEngineWindows.h"
 #include "lFolderFileSystem.h"
 #include "lTexture.h"
+#include "lShader.h"
+#include "lMesh.h"
 #include "lEngine.h"
 
 #include "EngineImpl.h"
@@ -36,7 +38,7 @@ namespace Lumen::WindowsNT10
 
     public:
         explicit EngineWindowsNT10();
-        ~EngineWindowsNT10();
+        ~EngineWindowsNT10() override;
 
         // initialization and management
         bool Initialize(const Object &config) override;
@@ -73,19 +75,31 @@ namespace Lumen::WindowsNT10
         }
 
         /// create a texture
-        Engine::IdType CreateTexture(const TexturePtr &texture, int width, int height) override;
+        Id::Type CreateTexture(const TexturePtr &texture, int width, int height) override;
 
         /// release a texture
-        void ReleaseTexture(Engine::IdType texID) override;
+        void ReleaseTexture(Id::Type texId) override;
+
+        /// create a shader
+        Id::Type CreateShader(const ShaderPtr &shader) override;
+
+        /// release a shader
+        void ReleaseShader(Id::Type shaderId) override;
+
+        /// create a mesh
+        Id::Type CreateMesh(const MeshPtr &mesh) override;
+
+        /// release a mesh
+        void ReleaseMesh(Id::Type meshId) override;
 
     private:
-        /// generate next texture id
-        Engine::IdType GenerateNextTextureID();
-
         bool Update(StepTimer const &timer);
         void Render();
 
         void Clear();
+
+        void CreateNewDeviceDependentResources();
+        void CreateNewWindowSizeDependentResources();
 
         void CreateDeviceDependentResources();
         void CreateWindowSizeDependentResources();
@@ -103,14 +117,37 @@ namespace Lumen::WindowsNT10
         SimpleMath::Matrix mView;
         SimpleMath::Matrix mProj;
 
-        std::unique_ptr<GeometricPrimitive> mShape;
-
-        std::unique_ptr<IEffect> mEffect;
-
         std::unique_ptr<DynamicDescriptorHeap> mResourceDescriptors;
 
-        /// next texture id
-        Engine::IdType mNextTextureID;
+        /// texture id generator
+        Id::Generator mTexIdGenerator;
+
+        /// shader id generator
+        Id::Generator mShaderIdGenerator;
+
+        /// mesh id generator
+        Id::Generator mMeshIdGenerator;
+
+        /// map of mesh
+        struct MeshData
+        {
+            MeshPtr mMesh;
+            std::unique_ptr<GeometricPrimitive> mShape;
+        };
+        using MeshMapType = std::unordered_map<Id::Type, MeshData>;
+        MeshMapType mMeshMap;
+        std::vector<MeshMapType::iterator> mNewDeviceMeshMap;
+
+        /// map of shader
+        struct ShaderData
+        {
+            ShaderPtr mShader;
+            std::unique_ptr<IEffect> mEffect;
+        };
+        using ShaderMapType = std::unordered_map<Id::Type, ShaderData>;
+        ShaderMapType mShaderMap;
+        std::vector<ShaderMapType::iterator> mNewDeviceShaderMap;
+        std::vector<ShaderMapType::iterator> mNewWindowShaderMap;
 
         /// map of texture
         struct TextureData
@@ -121,12 +158,13 @@ namespace Lumen::WindowsNT10
             int mWidth;
             int mHeight;
         };
-        std::unordered_map<Engine::IdType, TextureData> mTextureMap;
+        using TextureMapType = std::unordered_map<Id::Type, TextureData>;
+        TextureMapType mTextureMap;
+        std::vector<TextureMapType::iterator> mNewDeviceTextureMap;
     };
 
     EngineWindowsNT10::EngineWindowsNT10() :
-        mDeviceResources(std::make_unique<DeviceResources>()),
-        mNextTextureID(0)
+        mDeviceResources(std::make_unique<DeviceResources>())
     {
         // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
         //   Add DeviceResources::c_AllowTearing to opt-in to variable rate displays.
@@ -177,11 +215,40 @@ namespace Lumen::WindowsNT10
     /// shutdown
     void EngineWindowsNT10::Shutdown()
     {
-        // release textures
-        auto keyView = std::views::keys(mTextureMap);
-        for (auto &texID : std::vector<Engine::IdType>(keyView.begin(), keyView.end()))
+        mNewDeviceMeshMap.clear();
+        mNewDeviceShaderMap.clear();
+        mNewWindowShaderMap.clear();
+        mNewDeviceTextureMap.clear();
+
+        // release meshes
+        auto mesKeyView = std::views::keys(mMeshMap);
+        for (auto &meshId : std::vector<Id::Type>(mesKeyView.begin(), mesKeyView.end()))
         {
-            auto it = mTextureMap.find(texID);
+            auto it = mMeshMap.find(meshId);
+            if (it != mMeshMap.end())
+            {
+                it->second.mMesh->Release();
+            }
+        }
+        L_ASSERT(mMeshMap.empty());
+
+        // release shaders
+        auto shaKeyView = std::views::keys(mShaderMap);
+        for (auto &shaderID : std::vector<Id::Type>(shaKeyView.begin(), shaKeyView.end()))
+        {
+            auto it = mShaderMap.find(shaderID);
+            if (it != mShaderMap.end())
+            {
+                it->second.mShader->Release();
+            }
+        }
+        L_ASSERT(mShaderMap.empty());
+
+        // release textures
+        auto texKeyView = std::views::keys(mTextureMap);
+        for (auto &texId : std::vector<Id::Type>(texKeyView.begin(), texKeyView.end()))
+        {
+            auto it = mTextureMap.find(texId);
             if (it != mTextureMap.end())
             {
                 it->second.mTexture->Release();
@@ -259,10 +326,34 @@ namespace Lumen::WindowsNT10
         ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
         commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
-        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
-        basicEffect->SetWorld(mWorld);
-        basicEffect->Apply(commandList);
-        mShape->Draw(commandList);
+        Id::Type meshId = 0;//??
+        Id::Type shaderId = 0;//??
+        Id::Type texId = 0;//??
+        SimpleMath::Matrix world = mWorld; //??
+
+        auto meshIt = mMeshMap.find(meshId);
+        if (meshIt != mMeshMap.end())
+        {
+            bool setupDone = false;
+            auto shaderIt = mShaderMap.find(shaderId);
+            if (shaderIt != mShaderMap.end())
+            {
+                BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderIt->second.mEffect.get());
+                auto texIt = mTextureMap.find(texId);
+                if (texIt != mTextureMap.end())
+                {
+                    basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
+                        mStates->AnisotropicWrap());
+                    setupDone = true;
+                }
+
+                basicEffect->SetWorld(world);
+                basicEffect->Apply(commandList);
+            }
+
+            L_ASSERT(setupDone);
+            meshIt->second.mShape->Draw(commandList);
+        }
 
         PIXEndEvent(commandList);
 
@@ -351,21 +442,21 @@ namespace Lumen::WindowsNT10
 #pragma endregion
 
     /// create a texture
-    Engine::IdType EngineWindowsNT10::CreateTexture(const TexturePtr &texture, int width, int height)
+    Id::Type EngineWindowsNT10::CreateTexture(const TexturePtr &texture, int width, int height)
     {
-        Engine::IdType texID = GenerateNextTextureID();
+        Id::Type texId = mTexIdGenerator.Next();
         TextureData textureData;
         textureData.mTexture = texture;
         textureData.mWidth = width;
         textureData.mHeight = width;
-        mTextureMap[texID] = textureData;
-        return texID;
+        mNewDeviceTextureMap.push_back(mTextureMap.insert_or_assign(texId, std::move(textureData)).first);
+        return texId;
     }
 
     /// release a texture
-    void EngineWindowsNT10::ReleaseTexture(Engine::IdType texID)
+    void EngineWindowsNT10::ReleaseTexture(Id::Type texId)
     {
-        auto it = mTextureMap.find(texID);
+        auto it = mTextureMap.find(texId);
         if (it != mTextureMap.end())
         {
             mResourceDescriptors->Free(it->second.mIndex);
@@ -373,13 +464,150 @@ namespace Lumen::WindowsNT10
         }
     }
 
-    /// generate next texture id
-    Engine::IdType EngineWindowsNT10::GenerateNextTextureID()
+    /// create a shader
+    Id::Type EngineWindowsNT10::CreateShader(const ShaderPtr &shader)
     {
-        return mNextTextureID++;
+        Id::Type shaderID = mShaderIdGenerator.Next();
+        ShaderData shaderData;
+        shaderData.mShader = shader;
+        shaderData.mEffect;
+        auto it = mShaderMap.insert_or_assign(shaderID, std::move(shaderData)).first;
+        mNewDeviceShaderMap.push_back(it);
+        mNewWindowShaderMap.push_back(it);
+        return shaderID;
+    }
+
+    /// release a shader
+    void EngineWindowsNT10::ReleaseShader(Id::Type shaderID)
+    {
+        auto it = mShaderMap.find(shaderID);
+        if (it != mShaderMap.end())
+        {
+            mShaderMap.erase(it);
+        }
+    }
+
+    /// create a mesh
+    Id::Type EngineWindowsNT10::CreateMesh(const MeshPtr &mesh)
+    {
+        Id::Type meshId = mMeshIdGenerator.Next();
+        MeshData meshData;
+        meshData.mMesh = mesh;
+        mNewDeviceMeshMap.push_back(mMeshMap.insert_or_assign(meshId, std::move(meshData)).first);
+        return meshId;
+    }
+
+    /// release a mesh
+    void EngineWindowsNT10::ReleaseMesh(Id::Type meshId)
+    {
+        auto it = mMeshMap.find(meshId);
+        if (it != mMeshMap.end())
+        {
+            mMeshMap.erase(it);
+        }
     }
 
 #pragma region Direct3D Resources
+    void EngineWindowsNT10::CreateNewDeviceDependentResources()
+    {
+        auto device = mDeviceResources->GetD3DDevice();
+
+        for (auto &meshDataIt : mNewDeviceMeshMap)
+        {
+            meshDataIt->second.mShape = GeometricPrimitive::CreateSphere();
+#if 0
+            meshDataIt->second.mShape = GeometricPrimitive::CreateTorus();
+#endif
+        }
+
+        ResourceUploadBatch resourceUpload(device);
+
+        resourceUpload.Begin();
+
+        // ???
+        for (auto &textureDataIt : mNewDeviceTextureMap)
+        {
+            static constexpr int ddsPrefix = sizeof(DWORD) + sizeof(DDS_HEADER);
+            static constexpr int elements = 4;
+            static constexpr int BPElem = 8;
+            int width = textureDataIt->second.mWidth;
+            int height = textureDataIt->second.mHeight;
+            int screenTexPitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
+
+            std::vector<byte> ddsTexture(ddsPrefix + width * height * elements);
+            *((DWORD *)ddsTexture.data()) = DDS_MAGIC;
+            DDS_HEADER *header = (DDS_HEADER *)(ddsTexture.data() + sizeof(DWORD));
+
+            memset(header, 0, sizeof(DDS_HEADER));
+            header->size = sizeof(DDS_HEADER);
+            header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
+            header->height = height;
+            header->width = width;
+            header->pitchOrLinearSize = screenTexPitch;
+            header->mipMapCount = 1;
+            header->ddspf = DDSPF_A8B8G8R8;
+            header->caps = DDS_SURFACE_FLAGS_TEXTURE;
+
+            // ??? fill texture with a pattern
+            textureDataIt->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
+            textureDataIt->second.mIndex = mResourceDescriptors->Allocate();
+            ThrowIfFailed(
+                CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), textureDataIt->second.mResource.ReleaseAndGetAddressOf(), true));
+
+            CreateShaderResourceView(device, textureDataIt->second.mResource.Get(), mResourceDescriptors->GetCpuHandle(textureDataIt->second.mIndex));
+        }
+
+#if 1
+        for (auto &meshDataIt : mNewDeviceMeshMap)
+        {
+            meshDataIt->second.mShape->LoadStaticBuffers(device, resourceUpload);
+        }
+#endif
+
+        auto uploadResourcesFinished = resourceUpload.End(
+            mDeviceResources->GetCommandQueue());
+
+        uploadResourcesFinished.wait();
+
+        RenderTargetState rtState(mDeviceResources->GetBackBufferFormat(),
+            mDeviceResources->GetDepthBufferFormat());
+
+        EffectPipelineStateDescription pd(
+            &GeometricPrimitive::VertexType::InputLayout,
+            CommonStates::Opaque,
+            CommonStates::DepthDefault,
+            CommonStates::CullNone,
+            rtState);
+
+        for (auto &shaderDataIt : mNewDeviceShaderMap)
+        {
+            //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
+            //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
+            shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
+            BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderDataIt->second.mEffect.get());
+            basicEffect->EnableDefaultLighting();
+            //basicEffect->SetLightEnabled(0, true);
+            //basicEffect->SetLightDiffuseColor(0, Colors::White);
+            //basicEffect->SetLightDirection(0, -Vector3::UnitZ);
+        }
+
+        mNewDeviceMeshMap.clear();
+        mNewDeviceTextureMap.clear();
+        mNewDeviceShaderMap.clear();
+    }
+
+    void EngineWindowsNT10::CreateNewWindowSizeDependentResources()
+    {
+        for (auto &shaderDataIt : mNewWindowShaderMap)
+        {
+            BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderDataIt->second.mEffect.get());
+            basicEffect->SetView(mView);
+            basicEffect->SetProjection(mProj);
+        }
+
+        mNewWindowShaderMap.clear();
+    }
+
     /// these are the resources that depend on the device.
     void EngineWindowsNT10::CreateDeviceDependentResources()
     {
@@ -402,86 +630,9 @@ namespace Lumen::WindowsNT10
         mStates = std::make_unique<CommonStates>(device);
 
         mResourceDescriptors = std::make_unique<DynamicDescriptorHeap>(device, 256);
-
-        mShape = GeometricPrimitive::CreateSphere();
-
-#if 0
-        mShape = GeometricPrimitive::CreateTorus();
-#endif
-
-        ResourceUploadBatch resourceUpload(device);
-
-        resourceUpload.Begin();
-
-        // ???
-        auto texIt = mTextureMap.find(0/*mTextureIndex*/);
-        if (texIt != mTextureMap.end())
-        {
-            static constexpr int ddsPrefix = sizeof(DWORD) + sizeof(DDS_HEADER);
-            static constexpr int elements = 4;
-            static constexpr int BPElem = 8;
-            int width = texIt->second.mWidth;
-            int height = texIt->second.mHeight;
-            int screenTexPitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
-
-            std::vector<byte> ddsTexture(ddsPrefix + width * height * elements);
-            *((DWORD *)ddsTexture.data()) = DDS_MAGIC;
-            DDS_HEADER *header = (DDS_HEADER *)(ddsTexture.data() + sizeof(DWORD));
-
-            memset(header, 0, sizeof(DDS_HEADER));
-            header->size = sizeof(DDS_HEADER);
-            header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
-            header->height = height;
-            header->width = width;
-            header->pitchOrLinearSize = screenTexPitch;
-            header->mipMapCount = 1;
-            header->ddspf = DDSPF_A8B8G8R8;
-            header->caps = DDS_SURFACE_FLAGS_TEXTURE;
-
-            // ??? fill texture with a pattern
-            texIt->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
-            texIt->second.mIndex = mResourceDescriptors->Allocate();
-            ThrowIfFailed(
-                CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), texIt->second.mResource.ReleaseAndGetAddressOf(), true));
-
-            CreateShaderResourceView(device, texIt->second.mResource.Get(), mResourceDescriptors->GetCpuHandle(texIt->second.mIndex));
-        }
-
-#if 1
-        mShape->LoadStaticBuffers(device, resourceUpload);
-#endif
-
-        auto uploadResourcesFinished = resourceUpload.End(
-            mDeviceResources->GetCommandQueue());
-
-        uploadResourcesFinished.wait();
-
-        RenderTargetState rtState(mDeviceResources->GetBackBufferFormat(),
-            mDeviceResources->GetDepthBufferFormat());
-
-        EffectPipelineStateDescription pd(
-            &GeometricPrimitive::VertexType::InputLayout,
-            CommonStates::Opaque,
-            CommonStates::DepthDefault,
-            CommonStates::CullNone,
-            rtState);
-
-        //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
-        //mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
-        mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
-        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
-        basicEffect->EnableDefaultLighting();
-        //basicEffect->SetLightEnabled(0, true);
-        //basicEffect->SetLightDiffuseColor(0, Colors::White);
-        //basicEffect->SetLightDirection(0, -Vector3::UnitZ);
-
-        if (texIt != mTextureMap.end())
-        {
-            basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
-                mStates->AnisotropicWrap());
-        }
-
         mWorld = Matrix::Identity;
+
+        CreateNewDeviceDependentResources();
     }
 
     /// allocate all memory resources that change on a window SizeChanged event
@@ -495,19 +646,27 @@ namespace Lumen::WindowsNT10
         mProj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
             float(size.right) / float(size.bottom), 0.1f, 10.f);
 
-        BasicEffect *basicEffect = static_cast<BasicEffect *>(mEffect.get());
-        basicEffect->SetView(mView);
-        basicEffect->SetProjection(mProj);
+        CreateNewWindowSizeDependentResources();
     }
 
     void EngineWindowsNT10::OnDeviceLost()
     {
         // TODO: add Direct3D resource cleanup here
-        mShape.reset();
-        mEffect.reset();
+        mNewDeviceMeshMap.clear();
+        mNewDeviceShaderMap.clear();
+        mNewWindowShaderMap.clear();
+        mNewDeviceTextureMap.clear();
         for (auto &textureData : std::views::values(mTextureMap))
         {
             textureData.mResource.Reset();
+        }
+        for (auto &shaderData : std::views::values(mShaderMap))
+        {
+            shaderData.mEffect.reset();
+        }
+        for (auto &meshData : std::views::values(mMeshMap))
+        {
+            meshData.mShape.reset();
         }
         mResourceDescriptors.reset();
         mStates.reset();
@@ -517,7 +676,6 @@ namespace Lumen::WindowsNT10
     void EngineWindowsNT10::OnDeviceRestored()
     {
         CreateDeviceDependentResources();
-
         CreateWindowSizeDependentResources();
     }
 #pragma endregion
