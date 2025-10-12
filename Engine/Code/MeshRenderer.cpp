@@ -7,7 +7,7 @@
 #include "lDefs.h"
 #include "lMeshRenderer.h"
 #include "lMeshFilter.h"
-#include "lTexture.h"
+#include "lShader.h"
 #include "lStringMap.h"
 
 using namespace Lumen;

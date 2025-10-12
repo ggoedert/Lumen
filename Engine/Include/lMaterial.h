@@ -6,13 +6,14 @@
 #pragma once
 
 #include "lDefs.h"
-#include "lComponent.h"
-#include "lShader.h"
+#include "lExpected.h"
+#include "lObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(Material);
+    CLASS_PTR_DEF(Shader);
 
     /// Material class
     class Material : public Object

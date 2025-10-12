@@ -8,7 +8,6 @@
 #include "lMeshFilter.h"
 #include "lMeshRenderer.h"
 #include "lTransform.h"
-#include "lSceneManager.h"
 
 using namespace Lumen;
 

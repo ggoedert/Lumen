@@ -320,9 +320,6 @@
     <ClInclude Include="..\..\Include\lMeshFilter.h" />
     <ClInclude Include="..\..\Include\lMeshRenderer.h" />
     <ClInclude Include="..\..\Include\lObject.h" />
-    <ClInclude Include="..\..\Include\lProperty.h" />
-    <ClInclude Include="..\..\Include\lPropertyArray.h" />
-    <ClInclude Include="..\..\Include\lPropertyBase.h" />
     <ClInclude Include="..\..\Include\lSceneManager.h" />
     <ClInclude Include="..\..\Include\lScene.h" />
     <ClInclude Include="..\..\Include\lShader.h" />
