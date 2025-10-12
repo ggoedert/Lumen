@@ -69,8 +69,7 @@ Shader::~Shader()
 Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
 {
     // load simple diffuse shader
-    Expected<ObjectPtr> shaderExp = Assets::Import(
-        std::nullopt,
+    Expected<ObjectPtr> shaderExp = Assets::GlobalImport(
         Shader::Type(),
         shaderName
     );

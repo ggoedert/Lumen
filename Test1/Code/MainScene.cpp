@@ -6,7 +6,6 @@
 
 #include "MainScene.h"
 
-#include <lDebugLog.h>
 #include <lCamera.h>
 #include <lMesh.h>
 #include <lMeshFilter.h>

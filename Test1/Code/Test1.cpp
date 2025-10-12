@@ -51,11 +51,13 @@ private:
 /// Test1Factory class
 class Test1Factory : public Lumen::AssetFactory
 {
+    CLASS_NO_DEFAULT_CTOR(Test1Factory);
+
 public:
     /// creates a smart pointer version of the builtin extra
-    static Lumen::AssetFactoryPtr MakePtr()
+    static Lumen::AssetFactoryPtr MakePtr(float priority)
     {
-        return Lumen::AssetFactoryPtr(new Test1Factory());
+        return Lumen::AssetFactoryPtr(new Test1Factory(priority));
     }
 
     /// get asset infos
@@ -70,10 +72,10 @@ public:
 
 private:
     /// constructor
-    explicit Test1Factory()
+    explicit Test1Factory(float priority) : Lumen::AssetFactory(priority)
     {
         auto materialInfo = MaterialInfo::MakePtr();
-        Lumen::Assets::RegisterAssetInfo(materialInfo->Type(), materialInfo->Name(), materialInfo);
+        Lumen::Assets::RegisterAssetInfo(materialInfo->Type(), materialInfo->Name(), materialInfo, priority);
         mAssetInfos.push_back(materialInfo);
     }
 
@@ -89,7 +91,7 @@ bool Test1::Initialize()
         return false;
     }
 
-    Lumen::Assets::RegisterFactory(Test1Factory::MakePtr(), 1.0f);
+    Lumen::Assets::RegisterFactory(Test1Factory::MakePtr(2.0f));
 
     if (auto engineLock = GetEngine().lock())
     {

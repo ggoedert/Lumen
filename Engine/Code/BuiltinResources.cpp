@@ -84,15 +84,16 @@ private:
 /// DefaultResources::Impl class
 class DefaultResources::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
 
 public:
     /// constructor
-    explicit Impl()
+    explicit Impl(float priority)
     {
         auto sphereMeshInfo = SphereMeshInfo::MakePtr();
-        Assets::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo);
+        Assets::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo, priority);
         mAssetInfos.push_back(sphereMeshInfo);
     }
 
@@ -117,12 +118,12 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs default resources
-DefaultResources::DefaultResources() : mImpl(DefaultResources::Impl::MakeUniquePtr()) {}
+DefaultResources::DefaultResources(float priority) : AssetFactory(priority), mImpl(DefaultResources::Impl::MakeUniquePtr(priority)) {}
 
 /// creates a smart pointer version of the default resources
-AssetFactoryPtr DefaultResources::MakePtr()
+AssetFactoryPtr DefaultResources::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new DefaultResources());
+    return AssetFactoryPtr(new DefaultResources(priority));
 }
 
 /// get asset infos
@@ -288,18 +289,19 @@ private:
 /// BuiltinExtra::Impl class
 class BuiltinExtra::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
 
 public:
     /// constructor
-    explicit Impl()
+    explicit Impl(float priority)
     {
         auto checkerGrayTextureInfo = CheckerGrayTextureInfo::MakePtr();
-        Assets::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo);
+        Assets::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo, priority);
         mAssetInfos.push_back(checkerGrayTextureInfo);
         auto simpleDiffuseShaderInfo = SimpleDiffuseShaderInfo::MakePtr();
-        Assets::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo);
+        Assets::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo, priority);
         mAssetInfos.push_back(simpleDiffuseShaderInfo);
     }
 
@@ -324,12 +326,12 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs builtin extra
-BuiltinExtra::BuiltinExtra() : mImpl(BuiltinExtra::Impl::MakeUniquePtr()) {}
+BuiltinExtra::BuiltinExtra(float priority) : AssetFactory(priority), mImpl(BuiltinExtra::Impl::MakeUniquePtr(priority)) {}
 
 /// creates a smart pointer version of the builtin extra
-AssetFactoryPtr BuiltinExtra::MakePtr()
+AssetFactoryPtr BuiltinExtra::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new BuiltinExtra());
+    return AssetFactoryPtr(new BuiltinExtra(priority));
 }
 
 /// get asset infos

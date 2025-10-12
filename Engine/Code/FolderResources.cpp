@@ -45,12 +45,12 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs folder resources
-FolderResources::FolderResources() : mImpl(FolderResources::Impl::MakeUniquePtr()) {}
+FolderResources::FolderResources(float priority) : AssetFactory(priority), mImpl(FolderResources::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the folder resources
-AssetFactoryPtr FolderResources::MakePtr()
+AssetFactoryPtr FolderResources::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new FolderResources());
+    return AssetFactoryPtr(new FolderResources(priority));
 }
 
 /// get asset infos
