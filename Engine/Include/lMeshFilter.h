@@ -9,7 +9,6 @@
 #include "lComponent.h"
 #include "lMesh.h"
 #include "lSceneManager.h"
-#include "lProperty.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -33,9 +32,6 @@ namespace Lumen
             explicit Params(MeshPtr mesh) : Object(Type()), mMesh(mesh) {}
             MeshPtr mMesh;
         };
-
-        /// mesh property
-        PROPERTY(MeshPtr, Mesh, GetMesh, SetMesh);
 
         /// get mesh
         [[nodiscard]] const MeshPtr GetMesh() const;

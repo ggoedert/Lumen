@@ -7,7 +7,6 @@
 
 #include "lMath.h"
 #include "lAssets.h"
-#include "lEngine.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -41,7 +40,7 @@ namespace Lumen
         [[nodiscard]] float Time() const;
 
         /// get application's background color
-        [[nodiscard]] Math::Vector BackgroundColor() const;
+        [[nodiscard]] const Math::Vector &BackgroundColor() const;
 
     protected:
         /// constructs application

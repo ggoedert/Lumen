@@ -42,7 +42,7 @@ public:
     [[nodiscard]] float Time() const { return mTime; }
 
     /// get background color
-    [[nodiscard]] Math::Vector BackgroundColor() const;
+    [[nodiscard]] const Math::Vector &BackgroundColor() const;
 
 protected:
     /// run application
@@ -111,14 +111,14 @@ void Application::Impl::Quit()
 }
 
 /// get background color
-Math::Vector Application::Impl::BackgroundColor() const
+const Math::Vector &Application::Impl::BackgroundColor() const
 {
     Components cameras = SceneManager::GetComponents(Camera::Type());
     if (!cameras.empty())
     {
         if (ComponentPtr cameraPtr = cameras.front().lock())
         {
-            return std::static_pointer_cast<Camera>(cameraPtr)->BackgroundColor();
+            return std::static_pointer_cast<Camera>(cameraPtr)->GetBackgroundColor();
         }
     }
     return cDefaultBackgroundColor;
@@ -169,7 +169,7 @@ float Application::Time() const
 }
 
 /// get background color
-Math::Vector Application::BackgroundColor() const
+const Math::Vector &Application::BackgroundColor() const
 {
     return mImpl->BackgroundColor();
 }

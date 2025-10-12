@@ -6,6 +6,7 @@
 
 #include "lDefs.h"
 #include "lMaterial.h"
+#include "lShader.h"
 
 using namespace Lumen;
 

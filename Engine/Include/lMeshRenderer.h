@@ -8,6 +8,7 @@
 #include "lDefs.h"
 #include "lComponent.h"
 #include "lMaterial.h"
+#include "lTexture.h"
 #include "lSceneManager.h"
 
 /// Lumen namespace
