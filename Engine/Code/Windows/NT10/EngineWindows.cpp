@@ -69,10 +69,19 @@ namespace Lumen::WindowsNT10
         void GetDefaultSize(int &width, int &height) const noexcept override;
 
         /// create a folder file system
-        IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const override
+        IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const override
         {
             return FolderFileSystem::MakePtr(name, path);
         }
+
+        /// begin scene
+        void BeginScene() override;
+
+        /// push render command
+        void PushRenderCommand(Engine::RenderCommand renderCommand) override;
+
+        /// end scene
+        void EndScene() override;
 
         /// create a texture
         Id::Type CreateTexture(const TexturePtr &texture, int width, int height) override;
@@ -161,6 +170,8 @@ namespace Lumen::WindowsNT10
         using TextureMapType = std::unordered_map<Id::Type, TextureData>;
         TextureMapType mTextureMap;
         std::vector<TextureMapType::iterator> mNewDeviceTextureMap;
+
+        std::vector<Engine::RenderCommand> mRenderCommands;
     };
 
     EngineWindowsNT10::EngineWindowsNT10() :
@@ -183,7 +194,7 @@ namespace Lumen::WindowsNT10
     /// initialize the Direct3D resources required to run
     bool EngineWindowsNT10::Initialize(const Object &config)
     {
-        if (config.Type() != Lumen::Windows::Config::Type())
+        if (config.Type() != Windows::Config::Type())
         {
 #ifdef TYPEINFO
             DebugLog::Error("Initialize engine, unknown config type: {}", config.Type().mName);
@@ -193,7 +204,7 @@ namespace Lumen::WindowsNT10
             return false;
         }
 
-        const auto &initializeConfig = static_cast<const Lumen::Windows::Config &>(config);
+        const auto &initializeConfig = static_cast<const Windows::Config &>(config);
         mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
 
         mDeviceResources->CreateDeviceResources();
@@ -326,34 +337,43 @@ namespace Lumen::WindowsNT10
         ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
         commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
-        Id::Type meshId = 0;//??
-        Id::Type shaderId = 0;//??
-        Id::Type texId = 0;//??
-        SimpleMath::Matrix world = mWorld; //??
-
-        auto meshIt = mMeshMap.find(meshId);
-        if (meshIt != mMeshMap.end())
+        for (auto &cmd : mRenderCommands)
         {
-            bool setupDone = false;
-            auto shaderIt = mShaderMap.find(shaderId);
-            if (shaderIt != mShaderMap.end())
+            if (auto pDrawPrimitiveData = std::get_if<Engine::DrawPrimitive>(&cmd))
             {
-                BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderIt->second.mEffect.get());
-                auto texIt = mTextureMap.find(texId);
-                if (texIt != mTextureMap.end())
+                auto &drawPrimitiveData = *pDrawPrimitiveData;
+
+                SimpleMath::Matrix &world = drawPrimitiveData.world;
+                Id::Type meshId = drawPrimitiveData.meshId;
+                Id::Type shaderId = drawPrimitiveData.shaderId;
+                Id::Type texId = drawPrimitiveData.texId;
+
+                auto meshIt = mMeshMap.find(meshId);
+                if (meshIt != mMeshMap.end())
                 {
-                    basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
-                        mStates->AnisotropicWrap());
-                    setupDone = true;
+                    bool setupDone = false;
+                    auto shaderIt = mShaderMap.find(shaderId);
+                    if (shaderIt != mShaderMap.end())
+                    {
+                        BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderIt->second.mEffect.get());
+                        auto texIt = mTextureMap.find(texId);
+                        if (texIt != mTextureMap.end())
+                        {
+                            basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
+                                mStates->AnisotropicWrap());
+                            setupDone = true;
+                        }
+
+                        basicEffect->SetWorld(world);
+                        basicEffect->Apply(commandList);
+                    }
+
+                    L_ASSERT(setupDone);
+                    meshIt->second.mShape->Draw(commandList);
                 }
-
-                basicEffect->SetWorld(world);
-                basicEffect->Apply(commandList);
             }
-
-            L_ASSERT(setupDone);
-            meshIt->second.mShape->Draw(commandList);
         }
+        mRenderCommands.clear();
 
         PIXEndEvent(commandList);
 
@@ -440,6 +460,22 @@ namespace Lumen::WindowsNT10
         height = 900;
     }
 #pragma endregion
+
+    /// begin scene
+    void EngineWindowsNT10::BeginScene()
+    {
+    }
+
+    /// push render command
+    void EngineWindowsNT10::PushRenderCommand(Engine::RenderCommand renderCommand)
+    {
+        mRenderCommands.push_back(std::move(renderCommand));
+    }
+
+    /// end scene
+    void EngineWindowsNT10::EndScene()
+    {
+    }
 
     /// create a texture
     Id::Type EngineWindowsNT10::CreateTexture(const TexturePtr &texture, int width, int height)
@@ -684,9 +720,9 @@ namespace Lumen::WindowsNT10
 //==============================================================================================================================================================================
 
 /// allocate smart pointer version of the engine, implemented at platform level
-Lumen::EnginePtr Engine::MakePtr(const ApplicationPtr &application)
+EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
-    return EnginePtr(new Lumen::Engine(application, new Lumen::WindowsNT10::EngineWindowsNT10()));
+    return EnginePtr(new Engine(application, new WindowsNT10::EngineWindowsNT10()));
 }
 
 /// debug log, implemented at platform level

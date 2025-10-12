@@ -14,6 +14,7 @@
 #include <lMeshFilter.h>
 #include <lTexture.h>
 #include <lMaterial.h>
+#include <lMeshRenderer.h>
 #include <lShader.h>
 
 class Player
@@ -191,7 +192,10 @@ bool MainScene::Load()
         {
             transformLock->Position() = { 0.f, 0.f, -10.f };
         }
-        cameraLock->AddComponent(Lumen::Camera::Type(), Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
+        cameraLock->AddComponent(
+            mApplication.GetEngine(),
+            Lumen::Camera::Type(),
+            Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
     }
 
     // setup sphere
@@ -209,8 +213,11 @@ bool MainScene::Load()
             return false;
         }
 
-        // add sphere mesh filter component
-        sphereLock->AddComponent(Lumen::MeshFilter::Type(), Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(meshExp.Value()) });
+        // add sphere mesh filter component, with mesh
+        sphereLock->AddComponent(
+            mApplication.GetEngine(),
+            Lumen::MeshFilter::Type(),
+            Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(meshExp.Value()) });
 
         // load default checker gray texture
         Lumen::Expected<Lumen::ObjectPtr> textureExp = Lumen::Assets::Import(
@@ -225,14 +232,26 @@ bool MainScene::Load()
         }
         const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
 
-        // FIXME: rethink this
-        // MATERIAL IS NOT A COMPONENT (SHOULD BE A OBJECT LIKE MESH AND SHADER)
-        // COMPONENT IS A MESH RENDERER THAT HAS A MATERIAL
-        // add material component
-        if (auto materialLock = static_pointer_cast<Lumen::Material>(sphereLock->AddComponent(Lumen::Material::Type(), Lumen::Material::Params { "Simple/Diffuse" }).lock()))
+        // load material material
+        Lumen::Expected<Lumen::ObjectPtr> materialExp = Lumen::Assets::Import(
+            "Assets",
+            Lumen::Material::Type(),
+            "Material"
+        );
+        if (!materialExp.HasValue())
+        {
+            Lumen::DebugLog::Error("Unable to load material resource, {}", materialExp.Error());
+            return false;
+        }
+
+        // add mesh renderer component, with material
+        if (auto meshRendererLock = static_pointer_cast<Lumen::MeshRenderer>(sphereLock->AddComponent(
+            mApplication.GetEngine(),
+            Lumen::MeshRenderer::Type(),
+            Lumen::MeshRenderer::Params { static_pointer_cast<Lumen::Material>(materialExp.Value()) }).lock()))
         {
             // set texture property
-            materialLock->SetProperty("_MainTex", texture);
+            meshRendererLock->SetProperty("_MainTex", texture);
         }
     }
 

@@ -18,12 +18,45 @@ class Texture::Impl
 public:
     /// constructs a texture
     explicit Impl() {}
+    explicit Impl(const EngineWeakPtr &engine) : mEngine(engine), mTextureId(Id::Invalid) {}
+
+    /// release a texture
+    void Release()
+    {
+        if (Id::Invalid != mTextureId)
+        {
+            Id::Type textureId = mTextureId;
+            mTextureId = Id::Invalid;
+            if (auto engineLock = mEngine.lock())
+            {
+                engineLock->ReleaseTexture(textureId);
+            }
+        }
+    }
+
+    /// get texture id
+    Id::Type GetTextureId()
+    {
+        return mTextureId;
+    }
+
+    /// set texture id
+    void SetTexture(Id::Type textureId)
+    {
+        mTextureId = textureId;
+    }
+
+    /// engine pointer
+    EngineWeakPtr mEngine;
+
+    /// engine texture id
+    Id::Type mTextureId;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs a texture
-Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mEngine(engine), mTexId(Id::Invalid), mImpl(Texture::Impl::MakeUniquePtr()) {}
+Texture::Texture(const EngineWeakPtr &engine) : Object(Type()), mImpl(Texture::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -34,13 +67,17 @@ Texture::~Texture()
 /// release a texture
 void Texture::Release()
 {
-    if (Id::Invalid != mTexId)
-    {
-        Id::Type texId = mTexId;
-        mTexId = Id::Invalid;
-        if (auto engineLock = mEngine.lock())
-        {
-            engineLock->ReleaseTexture(texId);
-        }
-    }
+    mImpl->Release();
+}
+
+/// get texture id
+Id::Type Texture::GetTextureId()
+{
+    return mImpl->GetTextureId();
+}
+
+/// set texture id
+void Texture::SetTextureId(Id::Type textureId)
+{
+    mImpl->SetTexture(textureId);
 }

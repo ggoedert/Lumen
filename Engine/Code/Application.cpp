@@ -42,7 +42,7 @@ public:
     [[nodiscard]] float Time() const { return mTime; }
 
     /// get background color
-    [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
+    [[nodiscard]] Math::Vector BackgroundColor() const;
 
 protected:
     /// run application
@@ -111,7 +111,7 @@ void Application::Impl::Quit()
 }
 
 /// get background color
-const Math::Vector &Application::Impl::GetBackgroundColor() const
+Math::Vector Application::Impl::BackgroundColor() const
 {
     Components cameras = SceneManager::GetComponents(Camera::Type());
     if (!cameras.empty())
@@ -169,9 +169,9 @@ float Application::Time() const
 }
 
 /// get background color
-const Math::Vector Application::BackgroundColor() const
+Math::Vector Application::BackgroundColor() const
 {
-    return mImpl->GetBackgroundColor();
+    return mImpl->BackgroundColor();
 }
 
 /// run application

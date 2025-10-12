@@ -7,7 +7,6 @@
 
 #include "lDefs.h"
 #include "lObject.h"
-#include "lTexture.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -31,15 +30,15 @@ namespace Lumen
         /// release a shader
         void Release();
 
+        /// get shader id
+        Id::Type GetShaderId();
+
+        /// set shader id
+        void SetShaderId(Id::Type shaderId);
+
     protected:
         /// constructs a shader
         explicit Shader(const EngineWeakPtr &engine);
-
-        /// engine pointer
-        EngineWeakPtr mEngine;
-
-        /// engine shader id
-        Id::Type mShaderId;
 
     private:
         /// private implementation

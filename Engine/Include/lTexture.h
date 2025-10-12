@@ -13,7 +13,6 @@
 namespace Lumen
 {
     CLASS_PTR_DEF(Texture);
-    CLASS_WEAK_PTR_DEF(Texture);
 
     /// Texture class
     class Texture : public Object
@@ -31,15 +30,15 @@ namespace Lumen
         /// get texture data
         virtual void GetTextureData(byte *data, int pitch) = 0;
 
+        /// get texture id
+        Id::Type GetTextureId();
+
+        /// set texture id
+        void SetTextureId(Id::Type textureId);
+
     protected:
         /// constructs a texture
         explicit Texture(const EngineWeakPtr &engine);
-
-        /// engine pointer
-        EngineWeakPtr mEngine;
-
-        /// engine texture id
-        Id::Type mTexId;
 
     private:
         /// private implementation

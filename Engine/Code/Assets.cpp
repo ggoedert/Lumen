@@ -4,8 +4,8 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
+#include "lStringMap.h"
 #include "lAssets.h"
-#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -28,17 +28,14 @@ public:
     /// set engine
     void SetEngine(const EngineWeakPtr &engine);
 
+    /// register an asset info (for built-in assets)
+    void RegisterAssetInfo(HashType hashType, std::string_view name, AssetInfoPtr &assetInfoPtr);
+
     /// register an asset factory
     void RegisterFactory(const AssetFactoryPtr &assetFactory, float priority = 0.5f);
 
-    /// get the asset factory for the given path
-    std::optional<AssetFactoryPtr> GetAssetFactory(std::filesystem::path path);
-
     /// list asset info for the given path
-    std::vector<Lumen::AssetInfoPtr> ListAssetInfo(std::filesystem::path path);
-
-    /// find asset info for the given type and name
-    Expected<Lumen::AssetInfoPtr> FindAssetInfo(const HashType type, std::string_view name);
+    std::vector<AssetInfoPtr> ListAssetInfo(const std::filesystem::path &path);
 
     /// import asset
     Expected<ObjectPtr> Import(std::optional<std::filesystem::path> path, const HashType type, std::string_view name);
@@ -47,9 +44,18 @@ private:
     /// engine pointer
     EngineWeakPtr mEngine;
 
+    /// registered asset info map
+    std::map<HashType, StringMap<AssetInfoPtr>> mRegisteredAssetInfo;
+
     /// asset factories
     std::multimap<float, AssetFactoryPtr> mAssetFactories;
 };
+
+/// register an asset info (for built-in assets)
+void AssetsImpl::RegisterAssetInfo(HashType hashType, std::string_view name, AssetInfoPtr &assetInfoPtr)
+{
+    mRegisteredAssetInfo[hashType].insert_or_assign(std::string(name), assetInfoPtr);
+}
 
 /// register an asset factory
 void AssetsImpl::RegisterFactory(const AssetFactoryPtr &assetFactory, float priority)
@@ -58,68 +64,22 @@ void AssetsImpl::RegisterFactory(const AssetFactoryPtr &assetFactory, float prio
     mAssetFactories.emplace(priority, assetFactory);
 }
 
-/// get the asset factory for the given path
-std::optional<AssetFactoryPtr> AssetsImpl::GetAssetFactory(std::filesystem::path path)
+/// list asset info for the given path
+std::vector<AssetInfoPtr> AssetsImpl::ListAssetInfo(const std::filesystem::path &path)
 {
-    // construct key from the file extension
-    std::string key = path.extension().string();
-    if (!key.empty())
-    {
-        // remove the dot
-        key = key.substr(1);
-        std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
-    }
+    // combined asset infos from all factories
+    std::vector<AssetInfoPtr> combinedAssetInfos;
 
-    // get the first factory with the highest priority
+    // get asset infos that are on the path from all factories
     for (auto &priorityFactory : mAssetFactories)
     {
-        auto &factoryPtr = priorityFactory.second;
-        if (factoryPtr->Accepts(path))
-        {
-            // return the first factory that accepts the path
-            return factoryPtr;
-        }
+        auto &assetFactory = priorityFactory.second;
+        std::span<const AssetInfoPtr> assetInfos = assetFactory->GetAssetInfos(path);
+        combinedAssetInfos.insert(combinedAssetInfos.end(), assetInfos.begin(), assetInfos.end());
     }
 
-    // if no asset factory is found, return nullopt
-    return std::nullopt;
-}
-
-/// list asset info for the given path
-std::vector<Lumen::AssetInfoPtr> AssetsImpl::ListAssetInfo(std::filesystem::path path)
-{
-    // get the asset factory for the given path
-    std::optional<AssetFactoryPtr> assetFactory = GetAssetFactory(path);
-    if (!assetFactory.has_value())
-    {
-        // if no asset factory is found, return empty
-        return {};
-    }
-
-    // use the asset factory to get assets
-    return assetFactory.value()->GetAssetInfos();
-}
-
-/// find asset info for the given type and name
-Expected<Lumen::AssetInfoPtr> AssetsImpl::FindAssetInfo(const HashType type, std::string_view name)
-{
-    // iterate over all asset factories
-    for (const auto &priorityFactoryPair : mAssetFactories)
-    {
-        // iterate over asset infos in the factory
-        const auto &factoryPtr = priorityFactoryPair.second;
-        for (const auto &assetInfoPtr : factoryPtr->GetAssetInfos())
-        {
-            if (assetInfoPtr->Type() == type && assetInfoPtr->Name() == name)
-            {
-                // return the first asset infos that matches the type and name
-                return assetInfoPtr;
-            }
-        }
-    }
-
-    // none found, return empty
-    return Expected<Lumen::AssetInfoPtr>::Unexpected("Asset Information not found");
+    // return combined asset infos
+    return combinedAssetInfos;
 }
 
 /// import asset
@@ -128,30 +88,31 @@ Expected<ObjectPtr> AssetsImpl::Import(std::optional<std::filesystem::path> path
     if (path.has_value())
     {
         // normalize the path
-        //std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
-        for (Lumen::AssetInfoPtr &assetInfo : ListAssetInfo(path.value()))
+        std::string normalizedPath = std::filesystem::path(path.value()).lexically_normal().generic_string();
+
+        for (AssetInfoPtr &assetInfo : ListAssetInfo(normalizedPath))
         {
             if (assetInfo->Type() == type && (!name.empty() || assetInfo->Name() == name))
             {
                 return assetInfo->Import(mEngine);
             }
         }
-
-        // none found, return empty
-        return Expected<ObjectPtr>::Unexpected("Asset Information not found");
     }
     else
     {
-        // search all asset infos for the given type and name
-        Expected<Lumen::AssetInfoPtr> assetInfoExp = FindAssetInfo(type, name);
-        if (assetInfoExp.HasValue())
+        auto typeIt = mRegisteredAssetInfo.find(type);
+        if (typeIt != mRegisteredAssetInfo.end())
         {
-            return assetInfoExp.Value()->Import(mEngine);
+            StringMap<AssetInfoPtr>::iterator nameIt = typeIt->second.find(name);
+            if (nameIt != typeIt->second.end())
+            {
+                return nameIt->second->Import(mEngine);
+            }
         }
-
-        // not found, return empty
-        return Expected<ObjectPtr>::Unexpected(assetInfoExp.Error());
     }
+
+    // none found, return empty
+    return Expected<ObjectPtr>::Unexpected("Asset Information not found");
 }
 
 //==============================================================================================================================================================================
@@ -182,6 +143,12 @@ void Assets::Shutdown()
 {
     L_ASSERT(Hidden::gAssetsImpl);
     Hidden::gAssetsImpl.reset();
+}
+
+/// register an asset info (for built-in assets)
+void Assets::RegisterAssetInfo(HashType hashType, std::string_view name, AssetInfoPtr &assetInfoPtr)
+{
+    Hidden::gAssetsImpl->RegisterAssetInfo(hashType, name, assetInfoPtr);
 }
 
 /// register an asset factory

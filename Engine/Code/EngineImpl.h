@@ -48,7 +48,16 @@ namespace Lumen
         virtual void GetDefaultSize(int &width, int &height) const = 0;
 
         /// create a folder file system
-        virtual IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const = 0;
+        virtual IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const = 0;
+
+        /// begin scene
+        virtual void BeginScene() = 0;
+
+        /// push render command
+        virtual void PushRenderCommand(RenderCommand renderCommand) = 0;
+
+        /// end scene
+        virtual void EndScene() = 0;
 
         /// create a texture
         virtual Id::Type CreateTexture(const TexturePtr &texture, int width, int height) = 0;

@@ -11,54 +11,60 @@
 
 #include <functional>
 
-/// Lumen SceneManager namespace
-namespace Lumen::SceneManager
+/// Lumen namespace
+namespace Lumen
 {
-    /// component maker function type
-    using ComponentMaker = std::function<ComponentPtr(const GameObjectWeakPtr &gameObject, const Object &params)>;
+    CLASS_WEAK_PTR_DEF(Engine);
 
-    /// initialize scene manager namespace
-    void Initialize();
+    /// SceneManager namespace
+    namespace SceneManager
+    {
+        /// component maker function type
+        using ComponentMaker = std::function<ComponentPtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)>;
 
-    /// shutdown scene manager namespace
-    void Shutdown();
+        /// initialize scene manager namespace
+        void Initialize();
 
-    /// load scene
-    bool Load(ScenePtr scene);
+        /// shutdown scene manager namespace
+        void Shutdown();
 
-    /// unload current scene
-    void Unload();
+        /// load scene
+        bool Load(ScenePtr scene);
 
-    /// get the current scene
-    [[nodiscard]] ScenePtr CurrentScene();
+        /// unload current scene
+        void Unload();
 
-    /// register component maker
-    void RegisterComponentMaker(const HashType type, const ComponentMaker &maker);
+        /// get the current scene
+        [[nodiscard]] ScenePtr CurrentScene();
 
-    /// create component of a specific type
-    ComponentWeakPtr CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+        /// register component maker
+        void RegisterComponentMaker(const HashType type, const ComponentMaker &maker);
 
-    /// register game object in the current scene
-    [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
+        /// create component of a specific type
+        ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
 
-    /// unregister game object from the current scene
-    bool UnregisterGameObject(const GameObjectWeakPtr &gameObject);
+        /// register game object in the current scene
+        [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
 
-    /// get the count of game objects
-    [[nodiscard]] size_t GameObjectCount();
+        /// unregister game object from the current scene
+        bool UnregisterGameObject(const GameObjectWeakPtr &gameObject);
 
-    /// register component
-    [[nodiscard]] ComponentWeakPtr RegisterComponent(const ComponentPtr &component);
+        /// get the count of game objects
+        [[nodiscard]] size_t GameObjectCount();
 
-    /// unregister component
-    bool UnregisterComponent(const ComponentWeakPtr &component);
+        /// register component
+        [[nodiscard]] ComponentWeakPtr RegisterComponent(const ComponentPtr &component);
 
-    /// get the count of components of a specific type
-    [[nodiscard]] size_t ComponentCount(const HashType type);
+        /// unregister component
+        bool UnregisterComponent(const ComponentWeakPtr &component);
 
-    /// get all components of type
-    [[nodiscard]] Components GetComponents(const HashType type);
+        /// get the count of components of a specific type
+        [[nodiscard]] size_t ComponentCount(const HashType type);
 
-    /// run application
-    void Run();
+        /// get all components of type
+        [[nodiscard]] Components GetComponents(const HashType type);
+
+        /// run application
+        void Run();
+    }
 }

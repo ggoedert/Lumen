@@ -27,11 +27,11 @@ public:
 
 private:
     /// constructor
-    explicit MainScene(const Lumen::Application &application) :
+    explicit MainScene(Lumen::Application &application) :
         Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr()), mSphere(Lumen::GameObject::MakePtr()) {}
 
     /// application reference
-    const Lumen::Application &mApplication;
+    Lumen::Application &mApplication;
 
     /// components
     Lumen::GameObjectWeakPtr mCamera;

@@ -38,10 +38,10 @@ namespace Lumen
 
     private:
         /// start component
-        virtual void Start();
+        virtual void Start() {};
 
         /// run component
-        virtual void Run() = 0;
+        virtual void Run() {};
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

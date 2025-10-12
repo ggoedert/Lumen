@@ -25,6 +25,17 @@ namespace Lumen::Hidden
     static std::unique_ptr<FileState> gFileState;
 }
 
+/// checks if a path starts with a prefix
+bool IFileSystem::StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix)
+{
+    for (auto itPath = path.begin(), itPrefix = prefix.begin(); itPrefix != prefix.end(); ++itPath, ++itPrefix)
+    {
+        if (itPath == path.end() || *itPath != *itPrefix)
+            return false;
+    }
+    return true;
+}
+
 /// initialize file namespace
 void FileSystem::Initialize()
 {
@@ -47,4 +58,4 @@ void FileSystem::RegisterFileSystem(const IFileSystemPtr &fileSystem)
 }
 
 /// opens a file on the specified path
-void FileSystem::Open(std::string_view path) {}
+void FileSystem::Open(const std::filesystem::path &path) {}

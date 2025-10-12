@@ -7,8 +7,7 @@
 
 #include "lExpected.h"
 #include "lObject.h"
-
-#include <filesystem>
+#include "lFileSystem.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -28,7 +27,7 @@ namespace Lumen
         [[nodiscard]] virtual std::string_view Name() const = 0;
 
         /// import the asset
-        [[nodiscard]] virtual ObjectPtr Import(EngineWeakPtr &engine) = 0;
+        [[nodiscard]] virtual Lumen::Expected<ObjectPtr> Import(EngineWeakPtr &engine) = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);
@@ -38,11 +37,8 @@ namespace Lumen
     {
     public:
 
-        /// accepts a path
-        [[nodiscard]] virtual bool Accepts(std::filesystem::path path) const = 0;
-
         /// get asset infos
-        [[nodiscard]] virtual const std::vector<AssetInfoPtr> &GetAssetInfos() const = 0;
+        [[nodiscard]] virtual std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const = 0;
     };
 
     /// Assets namespace
@@ -53,6 +49,9 @@ namespace Lumen
 
         /// shutdown assets namespace
         void Shutdown();
+
+        /// register an asset info (for built-in assets)
+        void RegisterAssetInfo(HashType hashType, std::string_view name, AssetInfoPtr &assetInfoPtr);
 
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory, float priority = 0.5f);

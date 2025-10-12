@@ -19,7 +19,7 @@ class MeshFilter::Impl
 
 public:
     /// constructs a mesh filter
-    explicit Impl(MeshPtr mesh) :mMesh(mesh) {}
+    explicit Impl(const MeshPtr &mesh) : mMesh(mesh) {}
 
     /// get mesh
     [[nodiscard]] const MeshPtr GetMesh() const { return mMesh;  }
@@ -28,12 +28,6 @@ public:
     void SetMesh(const MeshPtr &mesh) { mMesh = mesh; }
 
 private:
-    /// run component
-    void Run()
-    {
-        //??engine->Draw();
-    }
-
     /// mesh
     MeshPtr mMesh;
 };
@@ -43,11 +37,11 @@ private:
 DEFINE_COMPONENT_TYPEINFO(MeshFilter);
 
 /// constructs a mesh filter with a mesh
-MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh) :
+MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, const MeshPtr &mesh) :
     Component(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr(mesh)) {}
 
 /// creates a smart pointer version of the mesh filter component
-ComponentPtr MeshFilter::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
+ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)
 {
     if (params.Type() == MeshFilter::Params::Type())
     {
@@ -67,6 +61,3 @@ const MeshPtr MeshFilter::GetMesh() const { return mImpl->GetMesh(); }
 
 /// set mesh
 void MeshFilter::SetMesh(const MeshPtr &mesh) { mImpl->SetMesh(mesh); }
-
-/// run component
-void MeshFilter::Run() { mImpl->Run(); }

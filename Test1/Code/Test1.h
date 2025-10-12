@@ -23,33 +23,10 @@ class Test1 : public Lumen::Application
 
 public:
     /// initialize and load our test scene
-    bool Initialize() override
-    {
-        if (!Lumen::Application::Initialize())
-        {
-            return false;
-        }
-
-        if (auto engineLock = GetEngine().lock())
-        {
-            Lumen::FileSystem::RegisterFileSystem(engineLock->FolderFileSystem("Assets", "Assets"));
-        }
-
-        mMainScene = MainScene::MakePtr(*this);
-        bool loadResult = Lumen::SceneManager::Load(mMainScene);
-        if (!loadResult)
-        {
-            Shutdown();
-        }
-        return loadResult;
-    }
+    bool Initialize() override;
 
     /// shutdown and unload our test scene
-    void Shutdown() override
-    {
-        Lumen::SceneManager::Unload();
-        Lumen::Application::Shutdown();
-    }
+    void Shutdown() override;
 
 private:
     /// constructor

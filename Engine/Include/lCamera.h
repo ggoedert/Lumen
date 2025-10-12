@@ -15,6 +15,10 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_PTR_DEF(Behavior);
+    CLASS_WEAK_PTR_DEF(Behavior);
+
     /// Camera class
     class Camera : public Behavior
     {
@@ -40,10 +44,7 @@ namespace Lumen
         explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
 
         /// creates a smart pointer version of the camera component
-        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const Object &params);
-
-        /// run component
-        void Run() override;
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
 
         /// get the camera's background color
         [[nodiscard]] const Math::Vector &GetBackgroundColor() const;

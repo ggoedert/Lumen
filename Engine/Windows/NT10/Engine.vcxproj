@@ -312,11 +312,13 @@
     <ClInclude Include="..\..\Include\lExpected.h" />
     <ClInclude Include="..\..\Include\lFileSystem.h" />
     <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
+    <ClInclude Include="..\..\Include\lFolderResources.h" />
     <ClInclude Include="..\..\Include\lGameObject.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
     <ClInclude Include="..\..\Include\lMeshFilter.h" />
+    <ClInclude Include="..\..\Include\lMeshRenderer.h" />
     <ClInclude Include="..\..\Include\lObject.h" />
     <ClInclude Include="..\..\Include\lProperty.h" />
     <ClInclude Include="..\..\Include\lPropertyArray.h" />
@@ -341,9 +343,11 @@
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
     <ClCompile Include="..\..\Code\Engine.cpp" />
     <ClCompile Include="..\..\Code\FileSystem.cpp" />
+    <ClCompile Include="..\..\Code\FolderResources.cpp" />
     <ClCompile Include="..\..\Code\GameObject.cpp" />
     <ClCompile Include="..\..\Code\Mesh.cpp" />
     <ClCompile Include="..\..\Code\MeshFilter.cpp" />
+    <ClCompile Include="..\..\Code\MeshRenderer.cpp" />
     <ClCompile Include="..\..\Code\Object.cpp" />
     <ClCompile Include="..\..\Code\SceneManager.cpp" />
     <ClCompile Include="..\..\Code\Shader.cpp" />

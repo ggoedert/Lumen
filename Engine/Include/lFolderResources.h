@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     BuiltinResources interface
+/// \brief     FolderResources interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -10,11 +10,11 @@
 /// Lumen namespace
 namespace Lumen
 {
-    /// DefaultResources class
-    class DefaultResources : public AssetFactory
+    /// FolderResources class
+    class FolderResources : public AssetFactory
     {
     public:
-        /// creates a smart pointer version of the default resources
+        /// creates a smart pointer version of the folder resources
         static AssetFactoryPtr MakePtr();
 
         /// get asset infos
@@ -22,25 +22,7 @@ namespace Lumen
 
     private:
         /// constructor
-        explicit DefaultResources();
-
-        /// private implementation
-        CLASS_PIMPL_DEF(Impl);
-    };
-
-    /// BuiltinExtra class
-    class BuiltinExtra : public AssetFactory
-    {
-    public:
-        /// creates a smart pointer version of the builtin extra
-        static AssetFactoryPtr MakePtr();
-
-        /// get asset infos
-        [[nodiscard]] std::span<const Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override;
-
-    private:
-        /// constructor
-        explicit BuiltinExtra();
+        explicit FolderResources();
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

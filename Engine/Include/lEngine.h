@@ -7,6 +7,7 @@
 
 #include "lDefs.h"
 #include "lId.h"
+#include "SimpleMath.h"
 #include "lFileSystem.h"
 #include "lApplication.h"
 
@@ -28,6 +29,15 @@ namespace Lumen
         class Impl;
 
     public:
+        struct DrawPrimitive
+        {
+            Id::Type meshId;
+            Id::Type shaderId;
+            Id::Type texId;
+            DirectX::SimpleMath::Matrix world;
+        };
+        using RenderCommand = std::variant<DrawPrimitive>;
+
         /// destructor
         ~Engine() = default;
 
@@ -59,7 +69,16 @@ namespace Lumen
         void GetDefaultSize(int &width, int &height) const;
 
         /// create a folder file system
-        IFileSystemPtr FolderFileSystem(std::string_view name, std::string_view path) const;
+        IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const;
+
+        /// begin scene
+        void BeginScene();
+
+        /// push render command
+        void PushRenderCommand(RenderCommand renderCommand);
+
+        /// end scene
+        void EndScene();
 
         /// create a texture
         Id::Type CreateTexture(const TexturePtr &texture, int width, int height);

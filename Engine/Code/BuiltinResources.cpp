@@ -15,7 +15,7 @@ using namespace Lumen;
 CLASS_PTR_DEF(SphereMesh);
 
 /// SphereMesh class
-class SphereMesh : public Lumen::Mesh
+class SphereMesh : public Mesh
 {
     CLASS_NO_COPY_MOVE(SphereMesh);
 
@@ -30,9 +30,9 @@ public:
 
         if (auto engineLock = engine.lock())
         {
-            L_ASSERT_MSG(
-                (ptr->mMeshId = engineLock->CreateMesh(ptr)) != Id::Invalid,
-                "Failed to create sphere mesh");
+            Id::Type meshId = engineLock->CreateMesh(ptr);
+            L_ASSERT_MSG(meshId != Id::Invalid, "Failed to create sphere mesh");
+            ptr->SetMeshId(meshId);
         }
 
         return ptr;
@@ -47,7 +47,7 @@ private:
 };
 
 /// SphereMeshInfo class
-class SphereMeshInfo : public Lumen::AssetInfo
+class SphereMeshInfo : public AssetInfo
 {
 public:
     /// creates a smart pointer version of the sphere mesh info
@@ -59,7 +59,7 @@ public:
     /// get type
     [[nodiscard]] HashType Type() const
     {
-        return Lumen::Mesh::Type();
+        return Mesh::Type();
     }
 
     /// get name
@@ -69,7 +69,7 @@ public:
     }
 
     /// import the sphere mesh
-    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
     {
         return SphereMesh::MakePtr(engine);
     }
@@ -91,27 +91,27 @@ public:
     /// constructor
     explicit Impl()
     {
-        mAssetInfos.push_back(SphereMeshInfo::MakePtr());
+        auto sphereMeshInfo = SphereMeshInfo::MakePtr();
+        Assets::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo);
+        mAssetInfos.push_back(sphereMeshInfo);
     }
 
     /// destructor
     ~Impl() = default;
 
-    /// accepts a path
-    [[nodiscard]] bool Accepts(std::filesystem::path path) const
-    {
-        return path == "Library/lumen default resources";
-    }
-
     /// get asset infos
-    [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const
+    [[nodiscard]] std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
     {
-        return mAssetInfos;
+        if (path == "Library/lumen default resources")
+        {
+            return mAssetInfos;
+        }
+        return {};
     }
 
 private:
     /// asset infos
-    std::vector<Lumen::AssetInfoPtr> mAssetInfos;
+    std::vector<AssetInfoPtr> mAssetInfos;
 };
 
 //==============================================================================================================================================================================
@@ -125,22 +125,16 @@ AssetFactoryPtr DefaultResources::MakePtr()
     return AssetFactoryPtr(new DefaultResources());
 }
 
-/// accepts a path
-bool DefaultResources::Accepts(std::filesystem::path path) const
-{
-    return mImpl->Accepts(path);
-}
-
 /// get asset infos
-const std::vector<Lumen::AssetInfoPtr> &DefaultResources::GetAssetInfos() const
+std::span<const AssetInfoPtr> DefaultResources::GetAssetInfos(const std::filesystem::path &path) const
 {
-    return mImpl->GetAssetInfos();
+    return mImpl->GetAssetInfos(path);
 }
 
 CLASS_PTR_DEF(CheckerGrayTexture);
 
 /// CheckerGrayTexture class
-class CheckerGrayTexture : public Lumen::Texture
+class CheckerGrayTexture : public Texture
 {
     CLASS_NO_COPY_MOVE(CheckerGrayTexture);
 
@@ -155,9 +149,9 @@ public:
 
         if (auto engineLock = engine.lock())
         {
-            L_ASSERT_MSG(
-                (ptr->mTexId = engineLock->CreateTexture(ptr, 64, 64)) != Id::Invalid,
-                "Failed to create checker gray texture");
+            Id::Type texId = engineLock->CreateTexture(ptr, 64, 64);
+            L_ASSERT_MSG(texId != Id::Invalid, "Failed to create checker gray texture");
+            ptr->SetTextureId(texId);
         }
 
         return ptr;
@@ -193,7 +187,7 @@ private:
 };
 
 /// CheckerGrayTextureInfo class
-class CheckerGrayTextureInfo : public Lumen::AssetInfo
+class CheckerGrayTextureInfo : public AssetInfo
 {
 public:
     /// creates a smart pointer version of the checker gray texture info
@@ -205,7 +199,7 @@ public:
     /// get type
     [[nodiscard]] HashType Type() const
     {
-        return Lumen::Texture::Type();
+        return Texture::Type();
     }
 
     /// get name
@@ -215,7 +209,7 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
     {
         return CheckerGrayTexture::MakePtr(engine);
     }
@@ -228,7 +222,7 @@ private:
 CLASS_PTR_DEF(SimpleDiffuseShader);
 
 /// SimpleDiffuseShader class
-class SimpleDiffuseShader : public Lumen::Shader
+class SimpleDiffuseShader : public Shader
 {
     CLASS_NO_COPY_MOVE(SimpleDiffuseShader);
 
@@ -243,9 +237,9 @@ public:
 
         if (auto engineLock = engine.lock())
         {
-            L_ASSERT_MSG(
-                (ptr->mShaderId = engineLock->CreateShader(ptr/*, Engine::SimpleDiffuseShader*/)) != Id::Invalid,
-                "Failed to create simple diffuse shader");
+            Id::Type shaderId = engineLock->CreateShader(ptr/*, Engine::SimpleDiffuseShader*/);
+            L_ASSERT_MSG(shaderId != Id::Invalid, "Failed to create simple diffuse shader");
+            ptr->SetShaderId(shaderId);
         }
 
         return ptr;
@@ -253,11 +247,11 @@ public:
 
 private:
     /// constructs a simple diffuse shader
-    explicit SimpleDiffuseShader(EngineWeakPtr &engine) : Lumen::Shader(engine) {}
+    explicit SimpleDiffuseShader(EngineWeakPtr &engine) : Shader(engine) {}
 };
 
 /// SimpleDiffuseShaderInfo class
-class SimpleDiffuseShaderInfo : public Lumen::AssetInfo
+class SimpleDiffuseShaderInfo : public AssetInfo
 {
 public:
     /// creates a smart pointer version of the simple diffuse shader info
@@ -269,7 +263,7 @@ public:
     /// get type
     [[nodiscard]] HashType Type() const
     {
-        return Lumen::Shader::Type();
+        return Shader::Type();
     }
 
     /// get name
@@ -279,7 +273,7 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] ObjectPtr Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
     {
         return SimpleDiffuseShader::MakePtr(engine);
     }
@@ -301,28 +295,30 @@ public:
     /// constructor
     explicit Impl()
     {
-        mAssetInfos.push_back(CheckerGrayTextureInfo::MakePtr());
-        mAssetInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
+        auto checkerGrayTextureInfo = CheckerGrayTextureInfo::MakePtr();
+        Assets::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo);
+        mAssetInfos.push_back(checkerGrayTextureInfo);
+        auto simpleDiffuseShaderInfo = SimpleDiffuseShaderInfo::MakePtr();
+        Assets::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo);
+        mAssetInfos.push_back(simpleDiffuseShaderInfo);
     }
 
     /// destructor
     ~Impl() = default;
 
-    /// accepts a path
-    [[nodiscard]] bool Accepts(std::filesystem::path path) const
-    {
-        return path == "Resources/lumen_builtin_extra";
-    }
-
     /// get asset infos
-    [[nodiscard]] const std::vector<Lumen::AssetInfoPtr> &GetAssetInfos() const
+    [[nodiscard]] std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
     {
-        return mAssetInfos;
+        if (path == "Resources/lumen_builtin_extra")
+        {
+            return mAssetInfos;
+        }
+        return {};
     }
 
 private:
     /// asset infos
-    std::vector<Lumen::AssetInfoPtr> mAssetInfos;
+    std::vector<AssetInfoPtr> mAssetInfos;
 };
 
 //==============================================================================================================================================================================
@@ -336,14 +332,8 @@ AssetFactoryPtr BuiltinExtra::MakePtr()
     return AssetFactoryPtr(new BuiltinExtra());
 }
 
-/// accepts a path
-bool BuiltinExtra::Accepts(std::filesystem::path path) const
-{
-    return mImpl->Accepts(path);
-}
-
 /// get asset infos
-const std::vector<Lumen::AssetInfoPtr> &BuiltinExtra::GetAssetInfos() const
+std::span<const AssetInfoPtr> BuiltinExtra::GetAssetInfos(const std::filesystem::path &path) const
 {
-    return mImpl->GetAssetInfos();
+    return mImpl->GetAssetInfos(path);
 }

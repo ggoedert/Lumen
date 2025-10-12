@@ -27,9 +27,6 @@ public:
     void SetBackgroundColor(const Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
 
 private:
-    /// run component
-    void Run() {}
-
     /// background color
     Math::Vector mBackgroundColor;
 };
@@ -43,7 +40,7 @@ Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor
     Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
 /// creates a smart pointer version of the camera component
-ComponentPtr Camera::MakePtr(const GameObjectWeakPtr &gameObject, const Object &params)
+ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)
 {
     if (params.Type() == Camera::Params::Type())
     {
@@ -69,6 +66,3 @@ void Camera::SetBackgroundColor(const Math::Vector &backgroundColor)
 {
     mImpl->SetBackgroundColor(backgroundColor);
 }
-
-/// run component
-void Camera::Run() { mImpl->Run(); }

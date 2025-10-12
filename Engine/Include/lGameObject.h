@@ -10,6 +10,7 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(GameObject);
     CLASS_WEAK_PTR_DEF(GameObject);
     CLASS_WEAK_PTR_DEF(Transform);
@@ -37,7 +38,7 @@ namespace Lumen
         [[nodiscard]] ComponentWeakPtr Component(const HashType type) const;
 
         /// add a component
-        [[maybe_unused]] ComponentWeakPtr AddComponent(const HashType type, const Object &params);
+        [[maybe_unused]] ComponentWeakPtr AddComponent(const EngineWeakPtr &engine, const HashType type, const Object &params);
 
     protected:
         /// run game object

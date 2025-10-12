@@ -7,7 +7,7 @@
 #include "lSceneManager.h"
 #include "lCamera.h"
 #include "lMeshFilter.h"
-#include "lMaterial.h"
+#include "lMeshRenderer.h"
 
 using namespace Lumen;
 
@@ -48,7 +48,7 @@ void SceneManager::Initialize()
 
     SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
     SceneManager::RegisterComponentMaker(MeshFilter::Type(), MeshFilter::MakePtr);
-    SceneManager::RegisterComponentMaker(Material::Type(), Material::MakePtr);
+    SceneManager::RegisterComponentMaker(MeshRenderer::Type(), MeshRenderer::MakePtr);
 }
 
 /// shutdown scene manager namespace
@@ -91,7 +91,7 @@ void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMa
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
+ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -101,7 +101,7 @@ ComponentWeakPtr SceneManager::CreateComponent(const GameObjectWeakPtr &gameObje
     {
         return {};
     }
-    return RegisterComponent(it->second(gameObject, params));
+    return RegisterComponent(it->second(engine, gameObject, params));
 }
 
 /// register game object in the current scene

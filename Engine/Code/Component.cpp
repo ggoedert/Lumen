@@ -32,9 +32,6 @@ public:
     [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
 
 private:
-    /// start component
-    void Start() {}
-
     /// name
     const std::string mName;
 
@@ -61,10 +58,4 @@ std::string_view Component::Name() const noexcept
 GameObjectWeakPtr Component::GameObject() const
 {
     return mImpl->GameObject();
-}
-
-/// start component
-void Component::Start()
-{
-    mImpl->Start();
 }

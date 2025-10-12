@@ -13,7 +13,6 @@
 namespace Lumen
 {
     CLASS_PTR_DEF(Mesh);
-    CLASS_WEAK_PTR_DEF(Mesh);
 
     /// Mesh class
     class Mesh : public Object
@@ -31,15 +30,15 @@ namespace Lumen
         /// get mesh data
         virtual void GetMeshData(byte *data) = 0;
 
+        /// get mesh id
+        Id::Type GetMeshId();
+
+        /// set mesh id
+        void SetMeshId(Id::Type meshId);
+
     protected:
         /// constructs a mesh
         explicit Mesh(const EngineWeakPtr &engine);
-
-        /// engine pointer
-        EngineWeakPtr mEngine;
-
-        /// engine mesh id
-        Id::Type mMeshId;
 
     private:
         /// private implementation

@@ -10,6 +10,7 @@
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_PTR_DEF(Behavior);
     CLASS_WEAK_PTR_DEF(Behavior);
 
     /// Behavior class

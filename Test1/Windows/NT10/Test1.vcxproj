@@ -364,6 +364,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\MainScene.cpp" />
+    <ClCompile Include="..\..\Code\Test1.cpp" />
     <ClCompile Include="..\..\Code\Windows\Main.cpp" />
   </ItemGroup>
   <ItemGroup>

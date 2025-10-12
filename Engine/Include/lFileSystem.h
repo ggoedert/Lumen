@@ -7,6 +7,8 @@
 
 #include "lDefs.h"
 
+#include <filesystem>
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -19,7 +21,10 @@ namespace Lumen
 
     public:
         /// opens a file on the specified path
-        virtual void Open(std::string_view path) const = 0;
+        virtual void Open(const std::filesystem::path &path) const = 0;
+
+        /// checks if a path starts with a prefix
+        static bool StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix);
 
     protected:
         /// default constructor
@@ -42,6 +47,6 @@ namespace Lumen
         void RegisterFileSystem(const IFileSystemPtr &fileSystem);
 
         /// opens a file on the specified path
-        void Open(std::string_view path);
+        void Open(const std::filesystem::path &path);
     };
 }

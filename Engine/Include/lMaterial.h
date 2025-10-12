@@ -8,8 +8,6 @@
 #include "lDefs.h"
 #include "lComponent.h"
 #include "lShader.h"
-#include "lSceneManager.h"
-#include "lProperty.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -17,17 +15,13 @@ namespace Lumen
     CLASS_PTR_DEF(Material);
 
     /// Material class
-    class Material : public Component
+    class Material : public Object
     {
         CLASS_NO_DEFAULT_CTOR(Material);
         CLASS_NO_COPY_MOVE(Material);
-        COMPONENT_TYPEINFO;
-        friend void SceneManager::Initialize();
+        OBJECT_TYPEINFO;
 
     public:
-        /// property value type
-        using PropertyValue = std::variant<int, float, Lumen::TexturePtr>;
-
         /// material creation parameters
         struct Params : Object
         {
@@ -36,21 +30,18 @@ namespace Lumen
             std::string_view mShaderName;
         };
 
-        /// set property
-        void SetProperty(std::string_view name, const PropertyValue &property);
+        /// creates a smart pointer version of the Material
+        static Expected<MaterialPtr> MakePtr(std::string_view shaderName);
 
-        /// get property
-        [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const;
+        /// get shader
+        [[nodiscard]] ShaderPtr GetShader() const;
+
+        /// set shader
+        void SetShader(const ShaderPtr &shader);
 
     private:
         /// constructs a material with an shader
-        explicit Material(const GameObjectWeakPtr &gameObject, ShaderPtr shader);
-
-        /// creates a smart pointer version of the material component
-        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const Object &params);
-
-        /// run component
-        void Run() override;
+        explicit Material(ShaderPtr shader);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

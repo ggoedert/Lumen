@@ -131,6 +131,12 @@
     <ClInclude Include="..\..\Include\lId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lMeshRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lFolderResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -198,6 +204,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.cpp">
       <Filter>Source Files\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\MeshRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\FolderResources.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

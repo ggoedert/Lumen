@@ -15,6 +15,7 @@
 namespace Lumen
 {
     CLASS_PTR_DEF(MeshFilter);
+    CLASS_WEAK_PTR_DEF(MeshFilter);
 
     /// MeshFilter class
     class MeshFilter : public Component
@@ -36,21 +37,18 @@ namespace Lumen
         /// mesh property
         PROPERTY(MeshPtr, Mesh, GetMesh, SetMesh);
 
-    private:
-        /// constructs a mesh filter with a mesh
-        explicit MeshFilter(const GameObjectWeakPtr &gameObject, MeshPtr mesh);
-
-        /// creates a smart pointer version of the mesh filter component
-        static ComponentPtr MakePtr(const GameObjectWeakPtr &gameObject, const Object &params);
-
         /// get mesh
         [[nodiscard]] const MeshPtr GetMesh() const;
 
         /// set mesh
         void SetMesh(const MeshPtr &mesh);
 
-        /// run component
-        void Run() override;
+    private:
+        /// constructs a mesh filter with a mesh
+        explicit MeshFilter(const GameObjectWeakPtr &gameObject, const MeshPtr &mesh);
+
+        /// creates a smart pointer version of the mesh filter component
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

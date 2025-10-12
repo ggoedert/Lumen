@@ -18,33 +18,33 @@ class FolderFileSystem::Impl
 
 public:
     /// constructs a folder file system implementation
-    explicit Impl(std::string_view name, std::string_view path) : mName(name), mPath(path) {}
+    explicit Impl(std::string_view name, const std::filesystem::path &path) : mName(name), mPath(path) {}
 
     /// opens a file on the specified path
-    void Open(std::string_view path) const {}
+    void Open(const std::filesystem::path &path) const {}
 
 private:
     /// name
     const std::string mName;
 
     /// path
-    const std::string mPath;
+    const std::filesystem::path mPath;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs a folder file system
-FolderFileSystem::FolderFileSystem(std::string_view name, std::string_view path) :
+FolderFileSystem::FolderFileSystem(std::string_view name, const std::filesystem::path &path) :
     IFileSystem(), mImpl(FolderFileSystem::Impl::MakeUniquePtr(name, path)) {}
 
 /// creates a smart pointer version of the folder file system
-IFileSystemPtr FolderFileSystem::MakePtr(std::string_view name, std::string_view path)
+IFileSystemPtr FolderFileSystem::MakePtr(std::string_view name, const std::filesystem::path &path)
 {
     return IFileSystemPtr(new FolderFileSystem(name, path));
 }
 
 /// opens a file on the specified path
-void FolderFileSystem::Open(std::string_view path) const
+void FolderFileSystem::Open(const std::filesystem::path &path) const
 {
     return mImpl->Open(path);
 }

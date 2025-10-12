@@ -5,6 +5,8 @@
 //==============================================================================================================================================================================
 
 #include "lGameObject.h"
+#include "lMeshFilter.h"
+#include "lMeshRenderer.h"
 #include "lTransform.h"
 #include "lSceneManager.h"
 
@@ -32,7 +34,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
 
 protected:
     /// run game object
@@ -78,9 +80,9 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
+ComponentWeakPtr GameObject::Impl::AddComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
-    ComponentWeakPtr component = Lumen::SceneManager::CreateComponent(gameObject, type, params);
+    ComponentWeakPtr component = SceneManager::CreateComponent(engine, gameObject, type, params);
     mComponents.push_back(component);
     return component;
 }
@@ -88,11 +90,27 @@ ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObj
 /// run game object
 void GameObject::Impl::Run()
 {
+    MeshFilterPtr meshFilterPtr;
+    MeshRendererPtr meshRendererPtr;
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
         L_ASSERT(componentPtr);
+        if (componentPtr->Type() == MeshFilter::Type())
+        {
+            L_ASSERT(meshFilterPtr == nullptr);
+            meshFilterPtr = static_pointer_cast<MeshFilter>(componentPtr);
+        }
+        if (componentPtr->Type() == MeshRenderer::Type())
+        {
+            L_ASSERT(meshRendererPtr == nullptr);
+            meshRendererPtr = static_pointer_cast<MeshRenderer>(componentPtr);
+        }
         componentPtr->Run();
+    }
+    if (meshFilterPtr && meshRendererPtr)
+    {
+        meshRendererPtr->Render(meshFilterPtr);
     }
 }
 
@@ -126,9 +144,9 @@ ComponentWeakPtr GameObject::Component(const HashType type) const
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(const HashType type, const Object &params)
+ComponentWeakPtr GameObject::AddComponent(const EngineWeakPtr &engine, const HashType type, const Object &params)
 {
-    return mImpl->AddComponent(shared_from_this(), type, params);
+    return mImpl->AddComponent(engine, shared_from_this(), type, params);
 }
 
 /// run game object

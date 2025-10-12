@@ -47,6 +47,9 @@
     <ClCompile Include="..\..\Code\Windows\Main.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Code\Test1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Code\Windows\NT10\Application.rc">

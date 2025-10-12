@@ -82,9 +82,27 @@ void Engine::GetDefaultSize(int &width, int &height) const
 }
 
 /// create a folder file system
-IFileSystemPtr Engine::FolderFileSystem(std::string_view name, std::string_view path) const
+IFileSystemPtr Engine::FolderFileSystem(std::string_view name, const std::filesystem::path &path) const
 {
     return mImpl->FolderFileSystem(name, path);
+}
+
+/// begin scene
+void Engine::BeginScene()
+{
+    return mImpl->BeginScene();
+}
+
+/// push render command
+void Engine::PushRenderCommand(Engine::RenderCommand renderCommand)
+{
+    return mImpl->PushRenderCommand(renderCommand);
+}
+
+/// end scene
+void Engine::EndScene()
+{
+    return mImpl->EndScene();
 }
 
 /// create a texture
