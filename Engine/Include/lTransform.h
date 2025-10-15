@@ -43,11 +43,17 @@ namespace Lumen
         /// set position
         void SetPosition(const Math::Vector3 &position);
 
+        /// translate by x, y, z
+        void Translate(float x, float y, float z);
+
         /// get rotation
         [[nodiscard]] const Math::Quaternion &GetRotation() const;
 
         /// set rotation
         void SetRotation(const Math::Quaternion &rotation);
+
+        /// rotate by euler angles in degrees
+        void Rotate(float xAngle, float yAngle, float zAngle);
 
         /// get world matrix
         void GetWorldMatrix(Math::Matrix44 &world) const;

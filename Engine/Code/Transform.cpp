@@ -41,6 +41,30 @@ public:
     /// set position
     void SetPosition(const Math::Vector3 &position) { mPosition = position; }
 
+    /// translate by x, y, z
+    void Translate(float x, float y, float z)
+    {
+        mPosition.x += x;
+        mPosition.y += y;
+        mPosition.z += z;
+    }
+
+    /// get rotation
+    [[nodiscard]] const Math::Quaternion &GetRotation() const { return mRotation; }
+
+    /// set rotation
+    void SetRotation(const Math::Quaternion &rotation) { mRotation = rotation; }
+
+    /// rotate by euler angles in degrees
+    void Rotate(float xAngle, float yAngle, float zAngle)
+    {
+        // apply rotation incrementally
+        mRotation = mRotation * Math::Quaternion::FromYawPitchRoll(yAngle, xAngle, zAngle);
+
+        // normalize to avoid drift over time
+        mRotation.Normalize();
+    }
+
     /// get world matrix
     void GetWorldMatrix(Math::Matrix44 &world) const
     {
@@ -123,16 +147,28 @@ void Transform::SetPosition(const Math::Vector3 &position)
     return mImpl->SetPosition(position);
 }
 
+/// translate by x, y, z
+void Transform::Translate(float x, float y, float z)
+{
+    mImpl->Translate(x, y, z);
+}
+
 /// get rotation
 [[nodiscard]] const Math::Quaternion &Transform::GetRotation() const
 {
-    return mImpl->mRotation;
+    return mImpl->GetRotation();
 }
 
 /// set rotation
 void Transform::SetRotation(const Math::Quaternion &rotation)
 {
-    mImpl->mRotation = rotation;
+    return mImpl->SetRotation(rotation);
+}
+
+/// rotate by euler angles in degrees
+void Transform::Rotate(float xAngle, float yAngle, float zAngle)
+{
+    mImpl->Rotate(xAngle, yAngle, zAngle);
 }
 
 /// get world matrix

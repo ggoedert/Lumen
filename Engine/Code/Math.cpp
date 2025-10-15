@@ -99,12 +99,12 @@ Math::Matrix44 Math::operator*(const Math::Matrix44 &m1, const Math::Matrix44 &m
 Math::Quaternion Math::Quaternion::FromYawPitchRoll(float yaw, float pitch, float roll) noexcept
 {
     // Half angles
-    float cy = std::cos(yaw * 0.5f);
-    float sy = std::sin(yaw * 0.5f);
-    float cp = std::cos(pitch * 0.5f);
-    float sp = std::sin(pitch * 0.5f);
-    float cr = std::cos(roll * 0.5f);
-    float sr = std::sin(roll * 0.5f);
+    float cy = std::cos(ToRadians(yaw * 0.5f));
+    float sy = std::sin(ToRadians(yaw * 0.5f));
+    float cp = std::cos(ToRadians(pitch * 0.5f));
+    float sp = std::sin(ToRadians(pitch * 0.5f));
+    float cr = std::cos(ToRadians(roll * 0.5f));
+    float sr = std::sin(ToRadians(roll * 0.5f));
 
     Math::Quaternion q;
     q.w = cr * cp * cy + sr * sp * sy;
@@ -112,4 +112,40 @@ Math::Quaternion Math::Quaternion::FromYawPitchRoll(float yaw, float pitch, floa
     q.y = cr * sp * cy + sr * cp * sy;
     q.z = cr * cp * sy - sr * sp * cy;
     return q;
+}
+
+float Math::Quaternion::Length() const noexcept
+{
+    return std::sqrt(x * x + y * y + z * z + w * w);
+}
+
+void Math::Quaternion::Normalize() noexcept
+{
+    const float len = Length();
+    if (len > 0.f)
+    {
+        const float invLen = 1.f / len;
+        x *= invLen;
+        y *= invLen;
+        z *= invLen;
+        w *= invLen;
+    }
+    else
+    {
+        // zero length quaternion, set to identity
+        x = 0.f;
+        y = 0.f;
+        z = 0.f;
+        w = 1.f;
+    }
+}
+
+Math::Quaternion Math::operator*(const Math::Quaternion &q1, const Math::Quaternion &q2) noexcept
+{
+    Math::Quaternion result;
+    result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+    result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+    result.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
+    result.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+    return result;
 }

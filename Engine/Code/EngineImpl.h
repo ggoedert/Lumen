@@ -33,7 +33,7 @@ namespace Lumen
         virtual float GetElapsedTime() = 0;
 
         /// basic game loop
-        virtual bool Run() = 0;
+        virtual bool Run(std::function<bool()> update) = 0;
 
         /// messages
         virtual void OnActivated() = 0;

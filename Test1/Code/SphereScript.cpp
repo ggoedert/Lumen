@@ -32,33 +32,19 @@ ComponentPtr SphereScript::MakePtr(const EngineWeakPtr &engine, const GameObject
     return {};
 }
 
-/// Start is called before the first frame update
+/// start is called before the first frame update
 void SphereScript::Start()
 {
 }
 
-/// Update is called once per frame
+/// update is called once per frame
 void SphereScript::Update()
 {
-    /// WE NEED THE ENGINE TO GIVE US DELTA TIME IN THE UPDATE FUNCTION TO MAKE THIS WORK PROPERLY
-    /// PROBLEM: WE CANNOT GET THE ENGINE FROM THE GAME OBJECT, AS IT IS NOT STORED THERE
-    /// FIX: STORE A WEAK POINTER TO THE ENGINE IN THE GAME OBJECT WHEN CREATING IT, SO WE CAN GET IT HERE
-
-    const auto transform = GameObject().lock()->Transform().lock();
-    if (!transform)
+    if (auto gameObject = GameObject().lock())
     {
-        DebugLog::Error("SphereScript::Update, could not get transform");
-        return;
+        if (auto transform = gameObject->Transform().lock())
+        {
+            transform->Rotate(0.f, 90.f * gameObject->GetApplication().DeltaTime(), 0.f);
+        }
     }
-
-    constexpr float XM_PI = 3.141592654f;
-    float ToRad = (XM_PI / 180.0f);
-
-    // Rotate the sphere around its Y axis at 90 degrees per second
-    float angle = static_cast<float>(rand()) / RAND_MAX * 360.0f;
-    float randrand = (XM_PI / 180.0f) * angle;
-    transform->SetRotation(Math::Quaternion::FromYawPitchRoll(0, 90.f * randrand, 0));
-
-    // we need to just rotate the transform, insted of setting it directly, just incremently do it by the amount
-    //something like -> transform.Rotate(0, 90 * Time.deltaTime, 0);
 }

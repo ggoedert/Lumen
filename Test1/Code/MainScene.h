@@ -28,7 +28,7 @@ public:
 private:
     /// constructor
     explicit MainScene(Lumen::Application &application) :
-        Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr()), mSphere(Lumen::GameObject::MakePtr()) {}
+        Lumen::Scene(), mApplication(application), mCamera(Lumen::GameObject::MakePtr(application)), mSphere(Lumen::GameObject::MakePtr(application)) {}
 
     /// application reference
     Lumen::Application &mApplication;

@@ -60,8 +60,8 @@ void Engine::Shutdown()
 bool Engine::Run()
 {
     // run application
-    if (mApplication && mApplication->Run(mImpl->GetElapsedTime()))
-        return mImpl->Run();
+    if (mApplication)
+        return mImpl->Run(std::function<bool()>([&]() { return mApplication->Run(mImpl->GetElapsedTime()); }));
 
     return false;
 }

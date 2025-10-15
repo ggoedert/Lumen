@@ -21,10 +21,13 @@ class GameObject::Impl
 
 public:
     /// constructs a game object
-    explicit Impl(GameObjectWeakPtr &gameObject);
+    explicit Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application);
 
     /// destroys game object
     ~Impl();
+
+    /// get transform
+    [[nodiscard]] Application &GetApplication() { return mApplication; }
 
     /// get transform
     [[nodiscard]] TransformWeakPtr Transform() const noexcept { return mTransform; }
@@ -33,7 +36,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    [[maybe_unused]] ComponentWeakPtr AddComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
 
 protected:
     /// run game object
@@ -43,6 +46,9 @@ private:
     /// owner
     GameObjectWeakPtr mOwner;
 
+    /// application reference
+    Lumen::Application &mApplication;
+
     /// transform
     TransformPtr mTransform;
 
@@ -51,7 +57,7 @@ private:
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mOwner(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application) : mOwner(gameObject), mApplication(application), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
 GameObject::Impl::~Impl()
@@ -79,9 +85,9 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
+ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
 {
-    ComponentWeakPtr component = SceneManager::CreateComponent(engine, gameObject, type, params);
+    ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), gameObject, type, params);
     mComponents.push_back(component);
     return component;
 }
@@ -116,12 +122,17 @@ GameObject::GameObject() : Object(Type()) {}
 GameObject::~GameObject() {}
 
 /// custom smart pointer maker, self registers into scene manager
-GameObjectWeakPtr GameObject::MakePtr()
+GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application)
 {
     GameObjectPtr gameObject = std::shared_ptr<GameObject>(new GameObject());
     GameObjectWeakPtr gameObjectWeak = SceneManager::RegisterGameObject(gameObject);
-    gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak);
+    gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak, application);
     return gameObjectWeak;
+}
+
+Application &GameObject::GetApplication()
+{
+    return mImpl->GetApplication();
 }
 
 /// get transform
@@ -137,9 +148,9 @@ ComponentWeakPtr GameObject::Component(const HashType type) const
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(const EngineWeakPtr &engine, const HashType type, const Object &params)
+ComponentWeakPtr GameObject::AddComponent(const HashType type, const Object &params)
 {
-    return mImpl->AddComponent(engine, shared_from_this(), type, params);
+    return mImpl->AddComponent(shared_from_this(), type, params);
 }
 
 /// run game object

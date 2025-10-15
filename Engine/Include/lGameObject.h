@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lObject.h"
+#include "lApplication.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -29,7 +30,10 @@ namespace Lumen
         ~GameObject() override;
 
         /// custom smart pointer maker, self registers into scene manager
-        static GameObjectWeakPtr MakePtr();
+        static GameObjectWeakPtr MakePtr(Lumen::Application &application);
+
+        /// get application
+        [[nodiscard]] Application &GetApplication();
 
         /// get transform
         [[nodiscard]] TransformWeakPtr Transform() const;
@@ -38,7 +42,7 @@ namespace Lumen
         [[nodiscard]] ComponentWeakPtr Component(const HashType type) const;
 
         /// add a component
-        [[maybe_unused]] ComponentWeakPtr AddComponent(const EngineWeakPtr &engine, const HashType type, const Object &params);
+        [[maybe_unused]] ComponentWeakPtr AddComponent(const HashType type, const Object &params);
 
     protected:
         /// run game object

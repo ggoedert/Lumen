@@ -27,7 +27,6 @@ bool MainScene::Load()
             transformLock->SetPosition({ 0.f, 0.f, -10.f });
         }
         cameraLock->AddComponent(
-            mApplication.GetEngine(),
             Lumen::Camera::Type(),
             Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
     }
@@ -49,7 +48,6 @@ bool MainScene::Load()
 
         // add sphere mesh filter component, with mesh
         sphereLock->AddComponent(
-            mApplication.GetEngine(),
             Lumen::MeshFilter::Type(),
             Lumen::MeshFilter::Params { static_pointer_cast<Lumen::Mesh>(meshExp.Value()) });
 
@@ -80,7 +78,6 @@ bool MainScene::Load()
 
         // add mesh renderer component, with material
         if (auto meshRendererLock = static_pointer_cast<Lumen::MeshRenderer>(sphereLock->AddComponent(
-            mApplication.GetEngine(),
             Lumen::MeshRenderer::Type(),
             Lumen::MeshRenderer::Params { static_pointer_cast<Lumen::Material>(materialExp.Value()) }).lock()))
         {
@@ -90,7 +87,6 @@ bool MainScene::Load()
 
         // add sphere behaviour script
         sphereLock->AddComponent(
-            mApplication.GetEngine(),
             SphereScript::Type(),
             SphereScript::Params {});
     }

@@ -50,7 +50,7 @@ namespace Lumen::WindowsNT10
         float GetElapsedTime() override;
 
         // basic game loop
-        bool Run() override;
+        bool Run(std::function<bool()> update) override;
 
         // IDeviceNotify
         void OnDeviceLost() override;
@@ -102,7 +102,6 @@ namespace Lumen::WindowsNT10
         void ReleaseMesh(Id::Type meshId) override;
 
     private:
-        bool Update(StepTimer const &timer);
         void Render();
 
         void Clear();
@@ -122,7 +121,6 @@ namespace Lumen::WindowsNT10
         std::unique_ptr<GraphicsMemory> mGraphicsMemory;
         std::unique_ptr<CommonStates> mStates;
 
-        SimpleMath::Matrix mWorld;
         SimpleMath::Matrix mView;
         SimpleMath::Matrix mProj;
 
@@ -276,43 +274,24 @@ namespace Lumen::WindowsNT10
 
 #pragma region Frame Update
     /// executes the basic game loop
-    bool EngineWindowsNT10::Run()
+    bool EngineWindowsNT10::Run(std::function<bool()> update)
     {
         bool updateResult = true;
 
         mTimer.Tick([&]()
         {
             if (updateResult)
-                updateResult = Update(mTimer);
+            {
+                PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
+                updateResult = update();
+                PIXEndEvent();
+            }
         });
         if (!updateResult)
             return false;
 
         Render();
         return true;
-    }
-
-    /// updates the world
-    bool EngineWindowsNT10::Update(StepTimer const &timer)
-    {
-        bool runResult = true;
-
-        PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
-
-        auto time = static_cast<float>(timer.GetTotalSeconds());
-
-        // TODO: add your game logic here
-#if 0
-        mWorld = Matrix::CreateRotationZ(cosf(time) * 2.f);
-#endif
-
-#if 1
-        mWorld = Matrix::CreateRotationY(time);
-#endif
-
-        PIXEndEvent();
-
-        return runResult;
     }
 #pragma endregion
 
@@ -560,7 +539,7 @@ namespace Lumen::WindowsNT10
 
         resourceUpload.Begin();
 
-        // ???
+        // load textures
         for (auto &textureDataIt : mNewDeviceTextureMap)
         {
             static constexpr int ddsPrefix = sizeof(DWORD) + sizeof(DDS_HEADER);
@@ -584,7 +563,7 @@ namespace Lumen::WindowsNT10
             header->ddspf = DDSPF_A8B8G8R8;
             header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
-            // ??? fill texture with a pattern
+            // create texture
             textureDataIt->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
             textureDataIt->second.mIndex = mResourceDescriptors->Allocate();
             ThrowIfFailed(
@@ -666,7 +645,6 @@ namespace Lumen::WindowsNT10
         mStates = std::make_unique<CommonStates>(device);
 
         mResourceDescriptors = std::make_unique<DynamicDescriptorHeap>(device, 256);
-        mWorld = Matrix::Identity;
 
         CreateNewDeviceDependentResources();
     }

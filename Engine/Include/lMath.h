@@ -53,6 +53,10 @@ namespace Lumen::Math
     };
 #endif
 
+    constexpr float PI = 3.14159265358979323846f;
+    constexpr float ToRadians(float degrees) noexcept { return degrees * (PI / 180.f); }
+    constexpr float ToDegrees(float radians) noexcept { return radians * (180.f / PI); }
+
     /// SIMD Vector with 16-byte alignment
     struct alignas(16) Vector
     {
@@ -440,7 +444,28 @@ namespace Lumen::Math
 
         static Quaternion FromRotationMatrix(const Matrix44 &M) noexcept;
 
+        // Quaternion operations
+        float Length() const noexcept;
+
+        void Normalize() noexcept;
+
+        void Conjugate() noexcept;
+
+        void Inverse(Quaternion &result) const noexcept;
+
+        float Dot(const Quaternion &Q) const noexcept;
+
+        void RotateTowards(const Quaternion &target, float maxAngle) noexcept;
+
         /// constants
         static const Quaternion cIdentity;
     };
+
+    /// binary operators
+    Quaternion operator+(const Quaternion &q1, const Quaternion &q2) noexcept;
+    Quaternion operator-(const Quaternion &q1, const Quaternion &q2) noexcept;
+    Quaternion operator*(const Quaternion &q1, const Quaternion &q2) noexcept;
+    Quaternion operator*(const Quaternion &q, float s) noexcept;
+    Quaternion operator*(float s, const Quaternion &q) noexcept;
+    Quaternion operator/(const Quaternion &q1, const Quaternion &q2) noexcept;
 }
