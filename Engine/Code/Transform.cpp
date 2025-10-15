@@ -31,7 +31,7 @@ public:
     /// set parent
     void SetParent(const TransformWeakPtr &parent)
     {
-        L_ASSERT(parent.lock() != mInterface.lock());
+        L_ASSERT(parent.lock() != mOwner.lock());
         mParent = parent;
     }
 
@@ -41,9 +41,24 @@ public:
     /// set position
     void SetPosition(const Math::Vector3 &position) { mPosition = position; }
 
-private:
-    /// interface
-    TransformWeakPtr mInterface;
+    /// get world matrix
+    void GetWorldMatrix(Math::Matrix44 &world) const
+    {
+        world = Math::Matrix44::cIdentity;
+        if (auto parentLock = mParent.lock())
+        {
+            Math::Matrix44 parentWorld;
+            parentLock->mImpl->GetWorldMatrix(parentWorld);
+            world = parentWorld;
+        }
+        Math::Float44 translation = Math::Matrix44::Translation(mPosition);
+        Math::Float44 rotation = Math::Matrix44::FromQuaternion(mRotation);
+        Math::Float44 scale = Math::Matrix44::Scale(mScale);
+        world = world * translation * rotation * scale;
+    }
+
+    /// owner
+    TransformWeakPtr mOwner;
 
     /// owning game object
     GameObjectWeakPtr mGameObject;
@@ -53,6 +68,12 @@ private:
 
     /// position
     Math::Vector3 mPosition;
+
+    /// rotation
+    Math::Quaternion mRotation;
+
+    /// scale
+    Math::Vector3 mScale = Math::Vector3::cOne;
 };
 
 //==============================================================================================================================================================================
@@ -63,10 +84,13 @@ Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(Type()), mImp
 /// destructor
 Transform::~Transform() = default;
 
-/// creates a smart pointer version of the camera component
+/// creates a smart pointer version of the transform component
 TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
 {
-    return TransformPtr(new Transform(gameObject));
+    auto pTransform = new Transform(gameObject);
+    auto transformPtr = TransformPtr(pTransform);
+    pTransform->mImpl->mOwner = transformPtr;
+    return transformPtr;
 }
 
 /// get owning game object
@@ -97,4 +121,22 @@ const Math::Vector3 &Transform::GetPosition() const
 void Transform::SetPosition(const Math::Vector3 &position)
 {
     return mImpl->SetPosition(position);
+}
+
+/// get rotation
+[[nodiscard]] const Math::Quaternion &Transform::GetRotation() const
+{
+    return mImpl->mRotation;
+}
+
+/// set rotation
+void Transform::SetRotation(const Math::Quaternion &rotation)
+{
+    mImpl->mRotation = rotation;
+}
+
+/// get world matrix
+void Transform::GetWorldMatrix(Math::Matrix44 &world) const
+{
+    return mImpl->GetWorldMatrix(world);
 }

@@ -8,6 +8,7 @@
 #include "lMeshRenderer.h"
 #include "lMeshFilter.h"
 #include "lShader.h"
+#include "lTransform.h"
 #include "lStringMap.h"
 
 using namespace Lumen;
@@ -49,34 +50,46 @@ public:
     }
 
     /// render with a mesh filter
-    void Render(const MeshFilterPtr &meshFilter)
+    void Render()
     {
         if (auto engineLock = mEngine.lock())
         {
-            ShaderPtr shader = mMaterial->GetShader();
-            MeshPtr mesh = meshFilter->GetMesh();
-            TexturePtr texture;
-            auto textureProperty = GetProperty("_MainTex");
-            if (textureProperty.HasValue())
+            if (auto meshRenderer = mOwner.lock())
             {
-                if (auto pTexture = std::get_if<Lumen::TexturePtr>(&textureProperty.Value()))
+                if (auto gameObject = meshRenderer->GameObject().lock())
                 {
-                    texture = *pTexture;
+                    if (auto meshFilter = std::static_pointer_cast<MeshFilter>(gameObject->Component(MeshFilter::Type()).lock()))
+                    {
+                        ShaderPtr shader = mMaterial->GetShader();
+                        MeshPtr mesh = meshFilter->GetMesh();
+                        TexturePtr texture;
+                        auto textureProperty = GetProperty("_MainTex");
+                        if (textureProperty.HasValue())
+                        {
+                            if (auto pTexture = std::get_if<Lumen::TexturePtr>(&textureProperty.Value()))
+                            {
+                                texture = *pTexture;
+                            }
+                        }
+                        if (mesh && shader && texture)
+                        {
+                            Engine::DrawPrimitive drawPrimitive;
+                            drawPrimitive.meshId = mesh->GetMeshId();
+                            drawPrimitive.shaderId = shader->GetShaderId();
+                            drawPrimitive.texId = texture->GetTextureId();
+                            gameObject->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
+                            engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
+                        }
+
+                    }
                 }
-            }
-            if (mesh && shader && texture)
-            {
-                Engine::DrawPrimitive drawPrimitive;
-                drawPrimitive.meshId = mesh->GetMeshId();
-                drawPrimitive.shaderId = shader->GetShaderId();
-                drawPrimitive.texId = texture->GetTextureId();
-                //??drawPrimitive.world = worldMatrix;
-                engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
             }
         }
     }
 
-private:
+    /// owner
+    MeshRendererWeakPtr mOwner;
+
     /// engine pointer
     EngineWeakPtr mEngine;
 
@@ -101,7 +114,10 @@ ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObject
     if (params.Type() == MeshRenderer::Params::Type())
     {
         const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new MeshRenderer(engine, gameObject, createParams.mMaterial));
+        auto pMeshRenderer = new MeshRenderer(engine, gameObject, createParams.mMaterial);
+        auto meshRendererPtr = ComponentPtr(pMeshRenderer);
+        pMeshRenderer->mImpl->mOwner = static_pointer_cast<MeshRenderer>(meshRendererPtr);
+        return meshRendererPtr;
     }
 #ifdef TYPEINFO
     DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
@@ -118,4 +134,7 @@ void MeshRenderer::SetProperty(std::string_view name, const PropertyValue &prope
 [[nodiscard]] Expected<MeshRenderer::PropertyValue> MeshRenderer::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
 
 /// render with a mesh filter
-void MeshRenderer::Render(const MeshFilterPtr &meshFilter) { mImpl->Render(meshFilter); }
+void MeshRenderer::Render()
+{
+    mImpl->Render();
+}

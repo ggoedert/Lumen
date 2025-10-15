@@ -34,7 +34,7 @@ namespace Lumen
             Id::Type meshId;
             Id::Type shaderId;
             Id::Type texId;
-            DirectX::SimpleMath::Matrix world;
+            Math::Matrix44 world;
         };
         using RenderCommand = std::variant<DrawPrimitive>;
 

@@ -32,6 +32,12 @@ namespace Lumen
         /// return enabled
         [[nodiscard]] bool Enabled();
 
+        /// update is called once per frame
+        virtual void Update() {}
+
+        /// run component
+        void Run() override;
+
     private:
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

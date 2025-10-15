@@ -342,6 +342,7 @@
     <ClCompile Include="..\..\Code\FileSystem.cpp" />
     <ClCompile Include="..\..\Code\FolderResources.cpp" />
     <ClCompile Include="..\..\Code\GameObject.cpp" />
+    <ClCompile Include="..\..\Code\Math.cpp" />
     <ClCompile Include="..\..\Code\Mesh.cpp" />
     <ClCompile Include="..\..\Code\MeshFilter.cpp" />
     <ClCompile Include="..\..\Code\MeshRenderer.cpp" />

@@ -43,6 +43,15 @@ namespace Lumen
         /// set position
         void SetPosition(const Math::Vector3 &position);
 
+        /// get rotation
+        [[nodiscard]] const Math::Quaternion &GetRotation() const;
+
+        /// set rotation
+        void SetRotation(const Math::Quaternion &rotation);
+
+        /// get world matrix
+        void GetWorldMatrix(Math::Matrix44 &world) const;
+
     private:
         /// constructor
         explicit Transform(const GameObjectWeakPtr &gameObject);

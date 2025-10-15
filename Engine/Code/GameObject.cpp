@@ -40,8 +40,8 @@ protected:
     void Run();
 
 private:
-    /// interface
-    GameObjectWeakPtr mInterface;
+    /// owner
+    GameObjectWeakPtr mOwner;
 
     /// transform
     TransformPtr mTransform;
@@ -51,7 +51,7 @@ private:
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mInterface(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject) : mOwner(gameObject), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
 GameObject::Impl::~Impl()
@@ -60,7 +60,7 @@ GameObject::Impl::~Impl()
     {
         SceneManager::UnregisterComponent(component);
     }
-    SceneManager::UnregisterGameObject(mInterface);
+    SceneManager::UnregisterGameObject(mOwner);
 }
 
 /// get component
@@ -89,17 +89,11 @@ ComponentWeakPtr GameObject::Impl::AddComponent(const EngineWeakPtr &engine, con
 /// run game object
 void GameObject::Impl::Run()
 {
-    MeshFilterPtr meshFilterPtr;
     MeshRendererPtr meshRendererPtr;
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
         L_ASSERT(componentPtr);
-        if (componentPtr->Type() == MeshFilter::Type())
-        {
-            L_ASSERT(meshFilterPtr == nullptr);
-            meshFilterPtr = static_pointer_cast<MeshFilter>(componentPtr);
-        }
         if (componentPtr->Type() == MeshRenderer::Type())
         {
             L_ASSERT(meshRendererPtr == nullptr);
@@ -107,9 +101,9 @@ void GameObject::Impl::Run()
         }
         componentPtr->Run();
     }
-    if (meshFilterPtr && meshRendererPtr)
+    if (meshRendererPtr)
     {
-        meshRendererPtr->Render(meshFilterPtr);
+        meshRendererPtr->Render();
     }
 }
 

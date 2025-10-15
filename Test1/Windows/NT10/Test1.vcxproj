@@ -357,6 +357,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Code\SphereScript.h" />
     <ClInclude Include="..\..\Code\Test1.h" />
     <ClInclude Include="..\..\Code\MainScene.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\Resource.h" />
@@ -364,6 +365,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\MainScene.cpp" />
+    <ClCompile Include="..\..\Code\SphereScript.cpp" />
     <ClCompile Include="..\..\Code\Test1.cpp" />
     <ClCompile Include="..\..\Code\Windows\Main.cpp" />
   </ItemGroup>

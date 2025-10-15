@@ -37,7 +37,7 @@ DEFINE_COMPONENT_TYPEINFO(Camera);
 
 /// constructs a camera with a background color
 Camera::Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor) :
-    Behavior(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
+    Component(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr(backgroundColor)) {}
 
 /// creates a smart pointer version of the camera component
 ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)

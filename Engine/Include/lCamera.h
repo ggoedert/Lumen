@@ -19,7 +19,7 @@ namespace Lumen
     CLASS_WEAK_PTR_DEF(Behavior);
 
     /// Camera class
-    class Camera : public Behavior
+    class Camera : public Component
     {
         CLASS_NO_DEFAULT_CTOR(Camera);
         CLASS_NO_COPY_MOVE(Camera);
@@ -40,7 +40,6 @@ namespace Lumen
 
         /// set the camera's background color
         void SetBackgroundColor(const Math::Vector &backgroundColor);
-
 
     private:
         /// constructs a camera with a background color

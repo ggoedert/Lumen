@@ -5,14 +5,15 @@
 //==============================================================================================================================================================================
 
 #include "MainScene.h"
+#include "SphereScript.h"
 
-#include <lCamera.h>
-#include <lMesh.h>
-#include <lMeshFilter.h>
-#include <lTexture.h>
-#include <lMaterial.h>
-#include <lMeshRenderer.h>
-#include <lTransform.h>
+#include "lCamera.h"
+#include "lMesh.h"
+#include "lMeshFilter.h"
+#include "lTexture.h"
+#include "lMaterial.h"
+#include "lMeshRenderer.h"
+#include "lTransform.h"
 
 bool MainScene::Load()
 {
@@ -86,6 +87,12 @@ bool MainScene::Load()
             // set texture property
             meshRendererLock->SetProperty("_MainTex", texture);
         }
+
+        // add sphere behaviour script
+        sphereLock->AddComponent(
+            mApplication.GetEngine(),
+            SphereScript::Type(),
+            SphereScript::Params {});
     }
 
     return true;

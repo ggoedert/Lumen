@@ -44,8 +44,8 @@ namespace Lumen
         /// get property
         [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const;
 
-        /// render with a mesh filter
-        void Render(const MeshFilterPtr &meshFilter);
+        /// render
+        void Render();
 
     private:
         /// constructs a mesh renderer with an material

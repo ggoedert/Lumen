@@ -343,7 +343,7 @@ namespace Lumen::WindowsNT10
             {
                 auto &drawPrimitiveData = *pDrawPrimitiveData;
 
-                SimpleMath::Matrix &world = drawPrimitiveData.world;
+                SimpleMath::Matrix world(*drawPrimitiveData.world);
                 Id::Type meshId = drawPrimitiveData.meshId;
                 Id::Type shaderId = drawPrimitiveData.shaderId;
                 Id::Type texId = drawPrimitiveData.texId;

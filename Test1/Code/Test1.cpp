@@ -4,11 +4,12 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include <lExpected.h>
-#include <lAssets.h>
-#include <lMaterial.h>
-
 #include "Test1.h"
+#include "SphereScript.h"
+
+#include "lMaterial.h"
+#include "lSceneManager.h"
+#include "lEngine.h"
 
 /// MaterialInfo class
 class MaterialInfo : public Lumen::AssetInfo
@@ -86,6 +87,8 @@ private:
 /// initialize and load our test scene
 bool Test1::Initialize()
 {
+    Lumen::SceneManager::RegisterComponentMaker(SphereScript::Type(), SphereScript::MakePtr);
+
     if (!Lumen::Application::Initialize())
     {
         return false;

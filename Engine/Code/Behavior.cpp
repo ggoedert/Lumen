@@ -47,3 +47,12 @@ void Behavior::Enable(bool enable) { mImpl->Enable(enable); }
 
 /// return enabled
 bool Behavior::Enabled() { return mImpl->Enabled(); }
+
+/// run component
+void Behavior::Run()
+{
+    if (Enabled())
+    {
+        Update();
+    }
+}

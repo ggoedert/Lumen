@@ -11,12 +11,13 @@
 #endif
 #include "resource.h"
 
+#include <DirectXMath.h>
+
 #include "Test1.h"
 
 #include "lEngineWindows.h"
 #include "lFramework.h"
-
-#include <DirectXMath.h>
+#include "lEngine.h"
 
 // misc app setup
 #ifdef __clang__

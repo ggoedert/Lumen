@@ -8,9 +8,6 @@
 #include "MainScene.h"
 
 #include "lApplication.h"
-#include "lSceneManager.h"
-#include "lFileSystem.h"
-#include "lEngine.h"
 
 CLASS_PTR_DEF(Test1);
 
