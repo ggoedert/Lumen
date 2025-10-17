@@ -43,12 +43,10 @@ namespace Lumen::Hidden
 /// initialize scene manager namespace
 void SceneManager::Initialize()
 {
-    L_ASSERT(!Hidden::gSceneManagerState);
-    Hidden::gSceneManagerState = std::make_unique<Hidden::SceneManagerState>();
-
-    SceneManager::RegisterComponentMaker(Camera::Type(), Camera::MakePtr);
-    SceneManager::RegisterComponentMaker(MeshFilter::Type(), MeshFilter::MakePtr);
-    SceneManager::RegisterComponentMaker(MeshRenderer::Type(), MeshRenderer::MakePtr);
+    if (!Hidden::gSceneManagerState)
+    {
+        Hidden::gSceneManagerState = std::make_unique<Hidden::SceneManagerState>();
+    }
 }
 
 /// shutdown scene manager namespace
@@ -57,6 +55,14 @@ void SceneManager::Shutdown()
     L_ASSERT(Hidden::gSceneManagerState);
     Unload();
     Hidden::gSceneManagerState.reset();
+}
+
+/// register component maker
+void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
+{
+    SceneManager::Initialize();
+    L_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
+    Hidden::gSceneManagerState->mComponentMakers[type] = maker;
 }
 
 /// load scene
@@ -80,14 +86,6 @@ void SceneManager::Unload()
         Hidden::gSceneManagerState->mComponentsMap.clear();
         Hidden::gSceneManagerState->mCurrentScene.reset();
     }
-}
-
-/// register component maker
-void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
-{
-    L_ASSERT(Hidden::gSceneManagerState);
-    L_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
-    Hidden::gSceneManagerState->mComponentMakers[type] = maker;
 }
 
 /// create component of a specific type

@@ -6,7 +6,7 @@
 
 #include "DynamicDescriptorHeap.h"
 
-#include <lDefs.h>
+#include "lDefs.h"
 
 Lumen::WindowsNT10::DynamicDescriptorHeap::DynamicDescriptorHeap(ID3D12Device *device, int initialSize)
 {

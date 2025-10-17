@@ -87,8 +87,6 @@ private:
 /// initialize and load our test scene
 bool Test1::Initialize()
 {
-    Lumen::SceneManager::RegisterComponentMaker(SphereScript::Type(), SphereScript::MakePtr);
-
     if (!Lumen::Application::Initialize())
     {
         return false;

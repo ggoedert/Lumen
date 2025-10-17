@@ -24,7 +24,6 @@ namespace Lumen
         CLASS_NO_DEFAULT_CTOR(MeshRenderer);
         CLASS_NO_COPY_MOVE(MeshRenderer);
         COMPONENT_TYPEINFO;
-        friend void SceneManager::Initialize();
 
     public:
         /// property value type

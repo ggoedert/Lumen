@@ -22,7 +22,6 @@ namespace Lumen
         CLASS_NO_DEFAULT_CTOR(MeshFilter);
         CLASS_NO_COPY_MOVE(MeshFilter);
         COMPONENT_TYPEINFO;
-        friend void SceneManager::Initialize();
 
     public:
         /// mesh filter creation parameters

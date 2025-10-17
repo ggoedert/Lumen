@@ -28,6 +28,9 @@ namespace Lumen
         /// shutdown scene manager namespace
         void Shutdown();
 
+        /// register component maker
+        void RegisterComponentMaker(const HashType type, const ComponentMaker &maker);
+
         /// load scene
         bool Load(ScenePtr scene);
 
@@ -36,9 +39,6 @@ namespace Lumen
 
         /// get the current scene
         [[nodiscard]] ScenePtr CurrentScene();
-
-        /// register component maker
-        void RegisterComponentMaker(const HashType type, const ComponentMaker &maker);
 
         /// create component of a specific type
         ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);

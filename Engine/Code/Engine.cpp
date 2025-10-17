@@ -148,19 +148,25 @@ void Engine::ReleaseMesh(Id::Type meshId)
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
-    static std::unordered_map<Hash, std::string> gTypeHashRegistry;
+    /// function-local static to avoid static initialization order issues
+    inline std::unordered_map<Hash, std::string> &GetTypeHashRegistry()
+    {
+        static std::unordered_map<Hash, std::string> registry;
+        return registry;
+    }
 
     /// hash (FNV-1a) name from current type, typeinfo version
     void RegisterTypeHash(Hash hash, std::string_view name)
     {
-        auto it = gTypeHashRegistry.find(hash);
-        if (it != gTypeHashRegistry.end())
+        auto registry = GetTypeHashRegistry();
+        auto it = registry.find(hash);
+        if (it != registry.end())
         {
             L_ASSERT_MSG(it->second == name, "Hash collision detected for type names '{}' and '{}'", it->second, name);
         }
         else
         {
-            gTypeHashRegistry[hash] = name;
+            registry[hash] = name;
         }
     }
 }

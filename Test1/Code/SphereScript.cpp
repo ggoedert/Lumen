@@ -7,8 +7,7 @@
 #include "SphereScript.h"
 
 #include "lTransform.h"
-
-using namespace Lumen;
+#include "lSceneManager.h"
 
 DEFINE_COMPONENT_TYPEINFO(SphereScript);
 

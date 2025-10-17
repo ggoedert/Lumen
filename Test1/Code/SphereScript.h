@@ -16,7 +16,6 @@ class SphereScript : public Behavior
     CLASS_NO_DEFAULT_CTOR(SphereScript);
     CLASS_NO_COPY_MOVE(SphereScript);
     COMPONENT_TYPEINFO;
-    friend bool Test1::Initialize();
 
 public:
     /// sphere script creation parameters

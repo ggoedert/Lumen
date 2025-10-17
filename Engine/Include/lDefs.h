@@ -279,7 +279,11 @@ TYPE_METHOD                                                                     
 static std::string_view Name() { return mName; }                                      \
 private:                                                                              \
 static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \
-static const std::string mName
+static const std::string mName;                                                       \
+static bool Register();                                                               \
+static const bool mRegistered
 
-#define DEFINE_COMPONENT_TYPEINFO(TYPE)                          \
-const std::string TYPE::mName = std::string(TYPE::CacheName())
+#define DEFINE_COMPONENT_TYPEINFO(TYPE)                                                                          \
+const std::string TYPE::mName = std::string(TYPE::CacheName());                                                  \
+const bool TYPE::mRegistered = TYPE::Register();                                                                 \
+bool TYPE::Register() { Lumen::SceneManager::RegisterComponentMaker(TYPE::Type(), TYPE::MakePtr); return true; }

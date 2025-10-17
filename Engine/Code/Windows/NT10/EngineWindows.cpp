@@ -655,7 +655,7 @@ namespace Lumen::WindowsNT10
         // TODO: initialize windows-size dependent objects here
         auto size = mDeviceResources->GetOutputSize();
 
-        mView = Matrix::CreateLookAt(Vector3(2.f, 2.f, 2.f),
+        mView = Matrix::CreateLookAt(Vector3(0.f, 1.f, -2.f),
             Vector3::Zero, Vector3::UnitY);
         mProj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
             float(size.right) / float(size.bottom), 0.1f, 10.f);
