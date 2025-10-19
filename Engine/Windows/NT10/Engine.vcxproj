@@ -352,10 +352,11 @@
     <ClCompile Include="..\..\Code\Texture.cpp" />
     <ClCompile Include="..\..\Code\Material.cpp" />
     <ClCompile Include="..\..\Code\Transform.cpp" />
+    <ClCompile Include="..\..\Code\Windows\EngineWindows.cpp" />
     <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp" />
-    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp" />
     <ClCompile Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\README.md" />

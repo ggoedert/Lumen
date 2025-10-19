@@ -178,9 +178,6 @@
     <ClCompile Include="..\..\Code\DebugLog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindows.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
@@ -204,6 +201,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Math.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\EngineWindows.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp">
+      <Filter>Source Files\Windows\NT10</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

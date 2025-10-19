@@ -5,9 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lObject.h"
-
 #include <Windows.h>
+
+#include "lObject.h"
+#include "lEngine.h"
 
 /// Lumen Windows namespace
 namespace Lumen::Windows
@@ -19,4 +20,7 @@ namespace Lumen::Windows
         explicit Config(HWND window, int width, int height) : Object(Type()), mWindow(window), mWidth(width), mHeight(height) {}
         HWND mWindow; int mWidth; int mHeight;
     };
+
+    /// start engine
+    int Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, EnginePtr engine);
 }
