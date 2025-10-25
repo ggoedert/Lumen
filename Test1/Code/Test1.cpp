@@ -84,13 +84,10 @@ private:
     std::vector<Lumen::AssetInfoPtr> mAssetInfos;
 };
 
-/// initialize and load our test scene
-bool Test1::Initialize()
+/// initialize test1
+void Test1::Initialize()
 {
-    if (!Lumen::Application::Initialize())
-    {
-        return false;
-    }
+    Lumen::Application::Initialize();
 
     Lumen::Assets::RegisterFactory(Test1Factory::MakePtr(2.0f));
 
@@ -98,19 +95,34 @@ bool Test1::Initialize()
     {
         Lumen::FileSystem::RegisterFileSystem(engineLock->FolderFileSystem("Assets", "Assets"));
     }
+}
 
-    mMainScene = MainScene::MakePtr(*this);
-    bool loadResult = Lumen::SceneManager::Load(mMainScene);
-    if (!loadResult)
+/// shutdown test1
+void Test1::Shutdown()
+{
+    /// TEMP DELME!
+    if (auto engineLock = GetEngine().lock())
+    {
+        engineLock->New();
+    }
+}
+
+/// TEMP DELME!
+void Test1::New()
+{
+    mMainScene.reset();
+}
+
+/// TEMP DELME!
+void Test1::Open()
+{
+    if (auto engineLock = GetEngine().lock())
+    {
+        engineLock->New();
+    }
+    mMainScene = Lumen::Scene::MakePtr(*this);
+    if (!Lumen::SceneManager::Load(mMainScene, "Assets/MainScene.json"))
     {
         Shutdown();
     }
-    return loadResult;
-}
-
-/// shutdown and unload our test scene
-void Test1::Shutdown()
-{
-    Lumen::SceneManager::Unload();
-    Lumen::Application::Shutdown();
 }

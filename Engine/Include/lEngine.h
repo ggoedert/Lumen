@@ -42,7 +42,7 @@ namespace Lumen
         ~Engine() = default;
 
         /// allocate smart pointer version of the engine, implemented at platform level
-        static EnginePtr MakePtr(const ApplicationPtr &application);
+        [[nodiscard]] static EnginePtr MakePtr(const ApplicationPtr &application);
 
         /// debug log, implemented at platform level
         static void DebugOutput(const std::string &message);
@@ -52,6 +52,12 @@ namespace Lumen
 
         /// shutdown
         void Shutdown();
+
+        /// new project
+        bool New();
+
+        /// open project
+        bool Open();
 
         /// basic game loop
         bool Run();
@@ -69,7 +75,7 @@ namespace Lumen
         void GetDefaultSize(int &width, int &height) const;
 
         /// create a folder file system
-        IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const;
+        [[nodiscard]] IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const;
 
         /// begin scene
         void BeginScene();
@@ -81,19 +87,19 @@ namespace Lumen
         void EndScene();
 
         /// create a texture
-        Id::Type CreateTexture(const TexturePtr &texture, int width, int height);
+        [[nodiscard]] Id::Type CreateTexture(const TexturePtr &texture, int width, int height);
 
         /// release a texture
         void ReleaseTexture(Id::Type texId);
 
         /// create a shader
-        Id::Type CreateShader(const ShaderPtr &shader);
+        [[nodiscard]] Id::Type CreateShader(const ShaderPtr &shader);
 
         /// release a shader
         void ReleaseShader(Id::Type shaderId);
 
         /// create a mesh
-        Id::Type CreateMesh(const MeshPtr &mesh);
+        [[nodiscard]] Id::Type CreateMesh(const MeshPtr &mesh);
 
         /// release a mesh
         void ReleaseMesh(Id::Type meshId);

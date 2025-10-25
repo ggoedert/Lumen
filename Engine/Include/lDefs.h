@@ -5,6 +5,8 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lDebugLog.h"
+
 #include <string_view>
 #include <string>
 #include <cstdint>
@@ -15,8 +17,6 @@
 #include <algorithm>
 #include <any>
 #include <optional>
-
-#include "lDebugLog.h"
 
 /// enable type info in debug or editor builds
 #if !defined(NDEBUG) || defined(EDITOR)
@@ -69,10 +69,10 @@ namespace Lumen
     struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h.mHash); } };
     struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a.mHash < b.mHash; } };
 
-    /// hash (FNV-1a) name from current type, typeinfo version
-    HashType PodType(const char *currentType);
+    /// hash (FNV-1a) type from type name, typeinfo version
+    HashType EncodeType(const char *typeName);
 
-    /// hash (FNV-1a) class name from current function name, typeinfo version
+    /// hash (FNV-1a) type from current function name, typeinfo version
     HashType ClassType(const char *currentFunction);
 #else
     /// lean version of HashType
@@ -80,13 +80,13 @@ namespace Lumen
     struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h); } };
     struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a < b; } };
 
-    /// hash (FNV-1a) name from current type evaluated at compile time
-    consteval HashType PodType(const char *currentType)
+    /// hash (FNV-1a) type from type name evaluated at compile time
+    consteval HashType EncodeType(const char *typeName)
     {
-        return HashType(HashString(currentType));
+        return HashType(HashString(typeName));
     }
 
-    /// hash (FNV-1a) class name from current function name evaluated at compile time
+    /// hash (FNV-1a) type from current function name evaluated at compile time
     consteval HashType ClassType(const char *currentFunction)
     {
         size_t end = std::string_view(currentFunction).find_last_of('(');
@@ -264,23 +264,23 @@ template <typename...Args>                                                      
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
 #ifdef TYPEINFO
-#define TYPE_METHOD static const HashType Type() { return ClassType(CURRENT_FUNCTION); }
+#define TYPE_METHOD static const Lumen::HashType Type() { return Lumen::ClassType(CURRENT_FUNCTION); }
 #else
-#define TYPE_METHOD static constexpr HashType Type() { return ClassType(CURRENT_FUNCTION); }
+#define TYPE_METHOD static constexpr Lumen::HashType Type() { return Lumen::ClassType(CURRENT_FUNCTION); }
 #endif
 
 #define OBJECT_TYPEINFO \
 public:                 \
 TYPE_METHOD
 
-#define COMPONENT_TYPEINFO                                                            \
-public:                                                                               \
-TYPE_METHOD                                                                           \
-static std::string_view Name() { return mName; }                                      \
-private:                                                                              \
-static consteval std::string_view CacheName() { return ClassName(CURRENT_FUNCTION); } \
-static const std::string mName;                                                       \
-static bool Register();                                                               \
+#define COMPONENT_TYPEINFO                                                                   \
+public:                                                                                      \
+TYPE_METHOD                                                                                  \
+static std::string_view Name() { return mName; }                                             \
+private:                                                                                     \
+static consteval std::string_view CacheName() { return Lumen::ClassName(CURRENT_FUNCTION); } \
+static const std::string mName;                                                              \
+static bool Register();                                                                      \
 static const bool mRegistered
 
 #define DEFINE_COMPONENT_TYPEINFO(TYPE)                                                                          \

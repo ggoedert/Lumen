@@ -22,6 +22,49 @@ public:
     /// destroys transform
     ~Impl() = default;
 
+    /// serialize
+    void Serialize(json &out) const
+    {
+        //mImpl->Serialize(out);
+    }
+
+    /// deserialize
+    void Deserialize(const json &in)
+    {
+        // set position
+        mPosition = {};
+        if (in.contains("Position"))
+        {
+            auto arr = in["Position"].get<std::vector<float>>();
+            if (arr.size() == 3)
+            {
+                mPosition = Math::Vector3(arr[0], arr[1], arr[2]);
+            }
+        }
+
+        // set rotation
+        mRotation = {};
+        if (in.contains("Rotation"))
+        {
+            auto arr = in["Rotation"].get<std::vector<float>>();
+            if (arr.size() == 4)
+            {
+                mRotation = Math::Vector4(arr[0], arr[1], arr[2], arr[3]);
+            }
+        }
+
+        // set scale
+        mScale = Math::Vector3::cOne;
+        if (in.contains("Scale"))
+        {
+            auto arr = in["Scale"].get<std::vector<float>>();
+            if (arr.size() == 3)
+            {
+                mScale = Math::Vector3(arr[0], arr[1], arr[2]);
+            }
+        }
+    }
+
     /// get owning game object
     [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
 
@@ -78,7 +121,8 @@ public:
         Math::Float44 translation = Math::Matrix44::Translation(mPosition);
         Math::Float44 rotation = Math::Matrix44::FromQuaternion(mRotation);
         Math::Float44 scale = Math::Matrix44::Scale(mScale);
-        world = world * translation * rotation * scale;
+        //world = world * translation * rotation * scale;
+        world = world * scale * rotation * translation;
     }
 
     /// owner
@@ -115,6 +159,18 @@ TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
     auto transformPtr = TransformPtr(pTransform);
     pTransform->mImpl->mOwner = transformPtr;
     return transformPtr;
+}
+
+/// serialize
+void Transform::Serialize(json &out) const
+{
+    mImpl->Serialize(out);
+}
+
+/// deserialize
+void Transform::Deserialize(const json &in)
+{
+    mImpl->Deserialize(in);
 }
 
 /// get owning game object

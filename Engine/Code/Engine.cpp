@@ -35,8 +35,7 @@ bool Engine::Initialize(const Object &config)
 #endif
 
     // initialize application
-    if (!mApplication->Initialize())
-        return false;
+    mApplication->Initialize();
 
     return mImpl->Initialize(config);
 }
@@ -54,6 +53,20 @@ void Engine::Shutdown()
     Assets::Shutdown();
 
     mImpl->Shutdown();
+}
+
+/// new project
+bool Engine::New()
+{
+    mApplication->New();
+    return true;
+}
+
+/// open project
+bool Engine::Open()
+{
+    mApplication->Open();
+    return mImpl->CreateNewResources();
 }
 
 /// basic game loop
@@ -144,7 +157,6 @@ void Engine::ReleaseMesh(Id::Type meshId)
 //==============================================================================================================================================================================
 
 #ifdef TYPEINFO
-
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
@@ -158,7 +170,7 @@ namespace Lumen::Hidden
     /// hash (FNV-1a) name from current type, typeinfo version
     void RegisterTypeHash(Hash hash, std::string_view name)
     {
-        auto registry = GetTypeHashRegistry();
+        auto &registry = GetTypeHashRegistry();
         auto it = registry.find(hash);
         if (it != registry.end())
         {
@@ -171,24 +183,24 @@ namespace Lumen::Hidden
     }
 }
 
-/// hash (FNV-1a) name from current type, typeinfo version
-HashType Lumen::PodType(const char *currentType)
+/// hash (FNV-1a) type from type name, typeinfo version
+HashType Lumen::EncodeType(const char *typeName)
 {
-    size_t end = std::string_view(currentType).size();
+    size_t end = std::string_view(typeName).size();
     Hash hash = HASH_OFFSET;
     size_t hashPos = 0;
     while (hashPos < end)
     {
-        hash ^= *(currentType + hashPos);
+        hash ^= *(typeName + hashPos);
         hash *= HASH_PRIME;
         hashPos++;
     }
-    std::string_view name(currentType, end);
+    std::string_view name(typeName, end);
     Hidden::RegisterTypeHash(hash, name);
     return HashType(hash, name);
 }
 
-/// hash (FNV-1a) class name from current function name, typeinfo version
+/// hash (FNV-1a) type from current function name, typeinfo version
 HashType Lumen::ClassType(const char *currentFunction)
 {
     size_t end = std::string_view(currentFunction).find_last_of('(');

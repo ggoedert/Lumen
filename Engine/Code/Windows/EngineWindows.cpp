@@ -70,6 +70,9 @@ namespace Lumen::Windows
 
             if (!engine->Initialize(Lumen::Windows::Config(hwnd, rc.right - rc.left, rc.bottom - rc.top)))
                 return 1;
+
+            if (!engine->Open())
+                return 1;
         }
 
         // main message loop

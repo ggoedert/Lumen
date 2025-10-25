@@ -28,10 +28,16 @@ namespace Lumen
         void SetEngine(const EngineWeakPtr &engine);
 
         /// initialize application
-        [[nodiscard]] virtual bool Initialize();
+        virtual void Initialize();
 
-        /// shutdown application
+        /// shutdown aplication
         virtual void Shutdown();
+
+        /// TEMP DELME!
+        virtual void New() = 0;
+
+        /// TEMP DELME!
+        virtual void Open() = 0;
 
         /// get delta time
         [[nodiscard]] float DeltaTime() const;

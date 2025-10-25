@@ -43,6 +43,9 @@ namespace Lumen::WindowsNT10
         // initialization and management
         bool Initialize(const Object &config) override;
 
+        /// create new resources
+        bool CreateNewResources() override;
+
         /// shutdown
         void Shutdown() override;
 
@@ -211,13 +214,14 @@ namespace Lumen::WindowsNT10
         mDeviceResources->CreateWindowSizeDependentResources();
         CreateWindowSizeDependentResources();
 
-        // TODO: change the timer settings if you want something other than the default variable timestep mode
-        // e.g. for 60 FPS fixed timestep update logic, call:
-        /*
-        mTimer.SetFixedTimeStep(true);
-        mTimer.SetTargetElapsedSeconds(1.0 / 60);
-        */
+        return true;
+    }
 
+    /// create resources
+    bool EngineWindowsNT10::CreateNewResources()
+    {
+        CreateNewDeviceDependentResources();
+        CreateNewWindowSizeDependentResources();
         return true;
     }
 

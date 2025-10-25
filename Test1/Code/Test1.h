@@ -5,9 +5,8 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "MainScene.h"
-
 #include "lApplication.h"
+#include "lScene.h"
 
 CLASS_PTR_DEF(Test1);
 
@@ -19,16 +18,22 @@ class Test1 : public Lumen::Application
     CLASS_PTR_MAKER(Test1);
 
 public:
-    /// initialize and load our test scene
-    bool Initialize() override;
+    /// initialize test1
+    void Initialize() override;
 
-    /// shutdown and unload our test scene
+    /// shutdown test1
     void Shutdown() override;
+
+    /// TEMP DELME!
+    void New() override;
+
+    /// TEMP DELME!
+    void Open() override;
 
 private:
     /// constructor
     explicit Test1(std::string_view name, const int version) : Lumen::Application() {}
 
     /// main scene
-    MainScenePtr mMainScene;
+    Lumen::ScenePtr mMainScene;
 };

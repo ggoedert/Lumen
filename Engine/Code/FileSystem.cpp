@@ -58,4 +58,6 @@ void FileSystem::RegisterFileSystem(const IFileSystemPtr &fileSystem)
 }
 
 /// opens a file on the specified path
-void FileSystem::Open(const std::filesystem::path &path) {}
+void FileSystem::Open(const std::filesystem::path &path)
+{
+}

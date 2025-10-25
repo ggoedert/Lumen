@@ -66,12 +66,12 @@ void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMa
 }
 
 /// load scene
-bool SceneManager::Load(ScenePtr scene)
+bool SceneManager::Load(ScenePtr scene, const std::filesystem::path &file)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     Unload();
     Hidden::gSceneManagerState->mCurrentScene = std::move(scene);
-    return Hidden::gSceneManagerState->mCurrentScene->Load();
+    return Hidden::gSceneManagerState->mCurrentScene->Load(file);
 }
 
 /// unload current scene

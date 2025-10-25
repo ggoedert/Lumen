@@ -12,21 +12,21 @@
 DEFINE_COMPONENT_TYPEINFO(SphereScript);
 
 /// constructs a sphere script with a background color
-SphereScript::SphereScript(const GameObjectWeakPtr &gameObject) :
+SphereScript::SphereScript(const Lumen::GameObjectWeakPtr &gameObject) :
     Behavior(Type(), Name(), gameObject) {}
 
 /// creates a smart pointer version of the sphere script component
-ComponentPtr SphereScript::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)
+Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject, const Object &params)
 {
     if (params.Type() == SphereScript::Params::Type())
     {
         const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new SphereScript(gameObject));
+        return Lumen::ComponentPtr(new SphereScript(gameObject));
     }
 #ifdef TYPEINFO
-    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
+    Lumen::DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
 #else
-    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
+    Lumen::DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
 #endif
     return {};
 }

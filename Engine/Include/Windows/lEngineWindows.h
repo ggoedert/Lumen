@@ -5,10 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include <Windows.h>
-
 #include "lObject.h"
 #include "lEngine.h"
+
+#include <Windows.h>
 
 /// Lumen Windows namespace
 namespace Lumen::Windows

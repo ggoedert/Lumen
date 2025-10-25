@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lGameObject.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -15,19 +16,25 @@ namespace Lumen
     /// Scene class
     class Scene
     {
+        CLASS_NO_DEFAULT_CTOR(Scene);
         CLASS_NO_COPY_MOVE(Scene);
+        CLASS_PTR_MAKER(Scene);
 
     public:
         /// constructor
-        explicit Scene() = default;
+        explicit Scene(Lumen::Application &application);
 
         /// virtual destructor
-        virtual ~Scene() = default;
+        virtual ~Scene();
 
         /// load scene
-        virtual bool Load() = 0;
+        virtual bool Load(const std::filesystem::path &file);
 
         /// unload scene
-        virtual void Unload() = 0;
+        virtual void Unload();
+
+    private:
+        /// private implementation
+        CLASS_PIMPL_DEF(Impl);
     };
 }

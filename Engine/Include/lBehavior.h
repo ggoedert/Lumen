@@ -20,6 +20,13 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Behavior);
 
     public:
+        /// behavior creation parameters
+        struct Params : Object
+        {
+            OBJECT_TYPEINFO;
+            explicit Params() : Object(Type()) {}
+        };
+
         /// constructor
         explicit Behavior(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 

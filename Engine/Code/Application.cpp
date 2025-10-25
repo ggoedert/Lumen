@@ -30,9 +30,9 @@ public:
     void SetEngine(const EngineWeakPtr &engine);
 
     /// initialize application
-    [[nodiscard]] bool Initialize();
+    void Initialize();
 
-    /// shutdown application
+    /// shutdown aplication
     void Shutdown();
 
     /// get delta time
@@ -81,12 +81,11 @@ void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 }
 
 /// initialize application
-bool Application::Impl::Initialize()
+void Application::Impl::Initialize()
 {
-    return true;
 }
 
-/// shutdown application
+/// shutdown aplication
 void Application::Impl::Shutdown()
 {
 }
@@ -145,15 +144,15 @@ void Application::SetEngine(const EngineWeakPtr &engine)
 }
 
 /// initialize application
-bool Application::Initialize()
+void Application::Initialize()
 {
-    return mImpl->Initialize();
+    mImpl->Initialize();
 }
 
-/// shutdown application
+/// shutdown aplication
 void Application::Shutdown()
 {
-    return mImpl->Shutdown();
+    mImpl->Shutdown();
 }
 
 /// get delta time

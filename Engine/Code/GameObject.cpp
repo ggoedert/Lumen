@@ -26,6 +26,52 @@ public:
     /// destroys game object
     ~Impl();
 
+    /// unregister game object from scene manager
+    void Unregister() { SceneManager::UnregisterGameObject(mOwner); }
+
+    /// serialize
+    void Serialize(json &out) const
+    {
+        //mImpl->Serialize(out);
+    }
+
+    /// deserialize
+    void Deserialize(const json &in)
+    {
+        // set name
+        mName = in["Name"].get<std::string>();
+
+        // set transform
+        json transformIn = {};
+        if (in.contains("Transform"))
+        {
+            transformIn = in["Transform"];
+        }
+        mTransform->Deserialize(transformIn);
+
+        // set components
+        mComponents.clear();
+#ifdef nonnon
+        if (in.contains("Components"))
+        {
+            for (auto inComponent : in["Components"].items())
+            {
+                const std::string componentTypeName = inComponent.key();
+                const HashType componentType = Lumen::Object::TypeFromName(componentTypeName);
+                const json &componentParams = inComponent.value();
+                AddComponent(mOwner, componentType, Object::FromJson(componentParams));
+            }
+            /*for (int i = 0; i<in["Components"].size(); ++i)
+            {
+                /*const auto &componentObj = obj["Components"].items().begin() + i;
+                const std::string componentTypeName = componentObj.key();
+                const HashType componentType = Lumen::Object::TypeFromName(componentTypeName);
+                const json &componentParams = componentObj.value();* /
+            }*/
+        }
+#endif
+    }
+
     /// get transform
     [[nodiscard]] Application &GetApplication() { return mApplication; }
 
@@ -44,10 +90,13 @@ protected:
 
 private:
     /// owner
-    GameObjectWeakPtr mOwner;
+    const GameObjectWeakPtr mOwner;
 
     /// application reference
     Lumen::Application &mApplication;
+
+    /// name
+    std::string mName;
 
     /// transform
     TransformPtr mTransform;
@@ -57,7 +106,8 @@ private:
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application) : mOwner(gameObject), mApplication(application), mTransform(Transform::MakePtr(gameObject)) {}
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application) :
+    mOwner(gameObject), mApplication(application), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
 GameObject::Impl::~Impl()
@@ -130,6 +180,19 @@ GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application)
     return gameObjectWeak;
 }
 
+/// serialize
+void GameObject::Serialize(json &out) const
+{
+    mImpl->Serialize(out);
+}
+
+/// deserialize
+void GameObject::Deserialize(const json &in)
+{
+    mImpl->Deserialize(in);
+}
+
+/// get application
 Application &GameObject::GetApplication()
 {
     return mImpl->GetApplication();

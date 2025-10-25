@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lMath.h"
+#include "lJson.h"
 #include "lObject.h"
 
 /// Lumen namespace
@@ -27,6 +28,12 @@ namespace Lumen
 
         /// creates a smart pointer version of the transform
         static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
+
+        /// serialize
+        void Serialize(json &out) const;
+
+        /// deserialize
+        void Deserialize(const json &in);
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;

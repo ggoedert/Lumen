@@ -133,7 +133,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -152,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -173,7 +173,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -236,7 +236,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -257,7 +257,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -280,7 +280,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -315,6 +315,7 @@
     <ClInclude Include="..\..\Include\lFolderResources.h" />
     <ClInclude Include="..\..\Include\lGameObject.h" />
     <ClInclude Include="..\..\Include\lId.h" />
+    <ClInclude Include="..\..\Include\lJson.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
     <ClInclude Include="..\..\Include\lMeshFilter.h" />
@@ -347,6 +348,7 @@
     <ClCompile Include="..\..\Code\MeshFilter.cpp" />
     <ClCompile Include="..\..\Code\MeshRenderer.cpp" />
     <ClCompile Include="..\..\Code\Object.cpp" />
+    <ClCompile Include="..\..\Code\Scene.cpp" />
     <ClCompile Include="..\..\Code\SceneManager.cpp" />
     <ClCompile Include="..\..\Code\Shader.cpp" />
     <ClCompile Include="..\..\Code\Texture.cpp" />

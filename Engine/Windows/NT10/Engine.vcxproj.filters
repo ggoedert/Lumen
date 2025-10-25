@@ -128,6 +128,9 @@
     <ClInclude Include="..\..\Include\lFolderResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lJson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -207,6 +210,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp">
       <Filter>Source Files\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Scene.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

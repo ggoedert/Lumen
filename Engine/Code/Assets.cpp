@@ -35,7 +35,7 @@ public:
     void RegisterAssetInfo(const HashType type, const std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
 
     /// import asset
-    Expected<ObjectPtr> Import(const std::filesystem::path path, const HashType type, std::string_view name);
+    Expected<ObjectPtr> Import(const std::filesystem::path &path, const HashType type, std::string_view name);
 
     /// import asset from name
     Expected<ObjectPtr> GlobalImport(const HashType type, const std::string_view name);
@@ -78,7 +78,7 @@ void AssetsImpl::RegisterAssetInfo(const HashType type, const std::string_view n
 }
 
 /// import asset
-Expected<ObjectPtr> AssetsImpl::Import(const std::filesystem::path path, const HashType type, std::string_view name)
+Expected<ObjectPtr> AssetsImpl::Import(const std::filesystem::path &path, const HashType type, std::string_view name)
 {
     // normalize the path
     std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
@@ -166,7 +166,7 @@ void Assets::RegisterAssetInfo(const HashType type, const std::string_view name,
 }
 
 /// import asset
-Expected<ObjectPtr> Assets::Import(const std::filesystem::path path, const HashType type, std::string_view name)
+Expected<ObjectPtr> Assets::Import(const std::filesystem::path &path, const HashType type, std::string_view name)
 {
     return Hidden::gAssetsImpl->Import(path, type, name);
 }

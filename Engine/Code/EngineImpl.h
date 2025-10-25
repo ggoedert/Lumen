@@ -26,6 +26,9 @@ namespace Lumen
         /// initialization and management
         virtual bool Initialize(const Object &config) = 0;
 
+        /// create new resources
+        virtual bool CreateNewResources() = 0;
+
         /// shutdown
         virtual void Shutdown() = 0;
 

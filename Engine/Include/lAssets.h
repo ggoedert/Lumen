@@ -69,7 +69,7 @@ namespace Lumen
         void RegisterAssetInfo(const HashType type, const std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
 
         /// import asset
-        Expected<ObjectPtr> Import(const std::filesystem::path path, const HashType type, std::string_view name);
+        Expected<ObjectPtr> Import(const std::filesystem::path &path, const HashType type, std::string_view name);
 
         /// import asset from name
         Expected<ObjectPtr> GlobalImport(const HashType type, const std::string_view name);

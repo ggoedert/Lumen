@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lJson.h"
 #include "lObject.h"
 #include "lApplication.h"
 
@@ -32,6 +33,12 @@ namespace Lumen
         /// custom smart pointer maker, self registers into scene manager
         static GameObjectWeakPtr MakePtr(Lumen::Application &application);
 
+        /// serialize
+        void Serialize(json &out) const;
+
+        /// deserialize
+        void Deserialize(const json &in);
+
         /// get application
         [[nodiscard]] Application &GetApplication();
 
@@ -55,4 +62,7 @@ namespace Lumen
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };
+
+    /// alias for collection of game objects
+    using GameObjects = std::vector<GameObjectWeakPtr>;
 }

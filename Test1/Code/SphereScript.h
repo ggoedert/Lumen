@@ -10,21 +10,13 @@
 #include "lBehavior.h"
 
 /// SphereScript class
-using namespace Lumen;
-class SphereScript : public Behavior
+class SphereScript : public Lumen::Behavior
 {
     CLASS_NO_DEFAULT_CTOR(SphereScript);
     CLASS_NO_COPY_MOVE(SphereScript);
     COMPONENT_TYPEINFO;
 
 public:
-    /// sphere script creation parameters
-    struct Params : Object
-    {
-        OBJECT_TYPEINFO;
-        explicit Params() : Object(Type()) {}
-    };
-
     /// Start is called before the first frame update
     void Start() override;
 
@@ -33,8 +25,8 @@ public:
 
 private:
     /// constructs a sphere script
-    explicit SphereScript(const GameObjectWeakPtr &gameObject);
+    explicit SphereScript(const Lumen::GameObjectWeakPtr &gameObject);
 
     /// creates a smart pointer version of the sphere script component
-    static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
+    static Lumen::ComponentPtr MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject, const Object &params);
 };

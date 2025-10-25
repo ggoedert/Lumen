@@ -4,9 +4,9 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include <cmath>
-
 #include "lMath.h"
+
+#include <cmath>
 
 using namespace Lumen;
 
