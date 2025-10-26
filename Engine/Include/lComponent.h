@@ -23,6 +23,12 @@ namespace Lumen
         friend void SceneManager::Run();
 
     public:
+        /// serialize
+        virtual void Serialize(json &out) const = 0;
+
+        /// deserialize
+        virtual void Deserialize(const json &in) = 0;
+
         /// get name
         [[nodiscard]] std::string_view Name() const noexcept;
 

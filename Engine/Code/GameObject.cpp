@@ -8,6 +8,7 @@
 #include "lMeshFilter.h"
 #include "lMeshRenderer.h"
 #include "lTransform.h"
+#include "lSceneManager.h"
 
 using namespace Lumen;
 
@@ -51,25 +52,16 @@ public:
 
         // set components
         mComponents.clear();
-#ifdef nonnon
         if (in.contains("Components"))
         {
             for (auto inComponent : in["Components"].items())
             {
-                const std::string componentTypeName = inComponent.key();
-                const HashType componentType = Lumen::Object::TypeFromName(componentTypeName);
-                const json &componentParams = inComponent.value();
-                AddComponent(mOwner, componentType, Object::FromJson(componentParams));
+                const std::string &componentTypeName = inComponent.key();
+                const HashType componentType = EncodeType(componentTypeName.c_str());
+                auto component = AddComponent(mOwner, componentType);
+                component.lock()->Deserialize(inComponent.value());
             }
-            /*for (int i = 0; i<in["Components"].size(); ++i)
-            {
-                /*const auto &componentObj = obj["Components"].items().begin() + i;
-                const std::string componentTypeName = componentObj.key();
-                const HashType componentType = Lumen::Object::TypeFromName(componentTypeName);
-                const json &componentParams = componentObj.value();* /
-            }*/
         }
-#endif
     }
 
     /// get transform
@@ -82,7 +74,7 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(const HashType type) const noexcept;
 
     /// add a component
-    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, const HashType type);
 
 protected:
     /// run game object
@@ -135,9 +127,9 @@ ComponentWeakPtr GameObject::Impl::Component(const HashType type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
+ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, const HashType type)
 {
-    ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), gameObject, type, params);
+    ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), gameObject, type);
     mComponents.push_back(component);
     return component;
 }
@@ -211,9 +203,9 @@ ComponentWeakPtr GameObject::Component(const HashType type) const
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(const HashType type, const Object &params)
+ComponentWeakPtr GameObject::AddComponent(const HashType type)
 {
-    return mImpl->AddComponent(shared_from_this(), type, params);
+    return mImpl->AddComponent(shared_from_this(), type);
 }
 
 /// run game object

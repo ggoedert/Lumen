@@ -58,20 +58,19 @@ bool Scene::Load(const std::filesystem::path &file)
     Lumen::DebugLog::Info("Scene::Load {}", file.string());
 
     /* NEW PORTING */
-
     const std::string mainScene = R"(
         [
             {
                 "Name": "Camera",
                 "Transform": { "Position": [ 0, 0, -10 ] },
-                "Components": { "Lumen::Camera": { "Params": { "BackgroundColor": [ 0.4509, 0.8431, 1, 1 ] } } }
+                "Components": { "Lumen::Camera": { "BackgroundColor": [ 0.4509, 0.8431, 1, 1 ] } }
             },
             {
                 "Name": "Sphere",
                 "Components": {
-                    "Lumen::MeshFilter": { "Params": { "Lumen::Mesh": { "Path": "Library/lumen default resources", "Name": "Sphere" } } },
+                    "Lumen::MeshFilter": { "Lumen::Mesh": { "Path": "Library/lumen default resources", "Name": "Sphere" } },
                     "Lumen::MeshRenderer": {
-                        "Params": { "Lumen::Material": { "Path": "Assets", "Name": "Material" } },
+                        "Lumen::Material": { "Path": "Assets", "Name": "Material" },
                         "Properties": { "_MainTex": { "Lumen::Texture": { "Path": "Resources/lumen_builtin_extra", "Name": "Default-Checker-Gray" } } }
                     },
                     "SphereScript": {}
@@ -80,35 +79,28 @@ bool Scene::Load(const std::filesystem::path &file)
         ]
         )";
 
-    // parse json
-    json parsed = json::parse(mainScene);
-
-    // You can optionally inspect/access data here:
-    for (auto &obj : parsed)
+    try
     {
-/*
-        Lumen::DebugLog::Info("Object name: {}", obj["Name"].get<std::string>());
-        if (obj.contains("Transform"))
-            Lumen::DebugLog::Info("Has Transform");
-        if (obj.contains("Components"))
-            Lumen::DebugLog::Info("Has {} components", obj["Components"].size());
-*/
-        if (obj.contains("Name")) // game objects must have a name
+        // parse json
+        json parsed = json::parse(mainScene);
+        for (auto &obj : parsed)
         {
-            if (auto gameObjectLock = mImpl->CreateGameObject().lock())
+            if (obj.contains("Name")) // game objects must have a name
             {
-                gameObjectLock->Deserialize(obj);
-/*
-                if (auto transformLock = gameObjectLock->Transform().lock())
+                if (auto gameObjectLock = mImpl->CreateGameObject().lock())
                 {
-                    transformLock->SetPosition({ 0.f, 0.f, -10.f });
+                    gameObjectLock->Deserialize(obj);
                 }
-                gameObjectLock->AddComponent(
-                    Lumen::Camera::Type(),
-                    Lumen::Camera::Params({ 0.4509f, 0.8431f, 1.f, 1.f }));
-*/
             }
         }
+    }
+    catch (const json::exception &e)
+    {
+        Lumen::DebugLog::Error("{}", e.what());
+    }
+    catch (const std::exception &e)
+    {
+        Lumen::DebugLog::Error("Deserialization error, {}", e.what());
     }
 
 #ifdef OLD_PORTING

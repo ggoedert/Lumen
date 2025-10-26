@@ -5,18 +5,14 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
 #include "lComponent.h"
-#include "lMaterial.h"
 #include "lTexture.h"
-#include "lSceneManager.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(MeshRenderer);
     CLASS_WEAK_PTR_DEF(MeshRenderer);
-    CLASS_PTR_DEF(MeshFilter);
 
     /// MeshRenderer class
     class MeshRenderer : public Component
@@ -29,13 +25,11 @@ namespace Lumen
         /// property value type
         using PropertyValue = std::variant<int, float, Lumen::TexturePtr>;
 
-        /// mesh renderer creation parameters
-        struct Params : Object
-        {
-            OBJECT_TYPEINFO;
-            explicit Params(MaterialPtr material) : Object(Type()), mMaterial(material) {}
-            MaterialPtr mMaterial;
-        };
+        /// serialize
+        void Serialize(json &out) const override;
+
+        /// deserialize
+        void Deserialize(const json &in) override;
 
         /// set property
         void SetProperty(std::string_view name, const PropertyValue &property);
@@ -48,10 +42,10 @@ namespace Lumen
 
     private:
         /// constructs a mesh renderer with an material
-        explicit MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, MaterialPtr material);
+        explicit MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
 
         /// creates a smart pointer version of the mesh renderer component
-        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

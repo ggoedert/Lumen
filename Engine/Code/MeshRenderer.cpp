@@ -4,12 +4,13 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lDefs.h"
 #include "lMeshRenderer.h"
+#include "lMaterial.h"
 #include "lMeshFilter.h"
 #include "lShader.h"
 #include "lTransform.h"
 #include "lStringMap.h"
+#include "lSceneManager.h"
 
 using namespace Lumen;
 
@@ -23,7 +24,81 @@ class MeshRenderer::Impl
 
 public:
     /// constructs a mesh renderer
-    explicit Impl(const EngineWeakPtr &engine, MaterialPtr material) : mEngine(engine), mMaterial(material) {}
+    explicit Impl(const EngineWeakPtr &engine) : mEngine(engine) {}
+
+    /// serialize
+    void Serialize(json &out) const
+    {
+    }
+
+    /// deserialize
+    void Deserialize(const json &in)
+    {
+        mMaterial.reset();
+        mProperties.clear();
+
+        for (auto inItem : in.items())
+        {
+            if (inItem.key() == Lumen::Material::Type().mName)
+            {
+                auto obj = inItem.value();
+
+                std::string path, name;
+                if (obj.contains("Path"))
+                {
+                    path = obj["Path"].get<std::string>();
+                }
+                if (obj.contains("Name"))
+                {
+                    name = obj["Name"].get<std::string>();
+                }
+                if (!path.empty() && !name.empty())
+                {
+                    // load material material
+                    Lumen::Expected<Lumen::ObjectPtr> materialExp = Lumen::Assets::Import(path, Lumen::Material::Type(), name);
+                    if (!materialExp.HasValue())
+                    {
+                        throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
+                    }
+                    mMaterial = static_pointer_cast<Lumen::Material>(materialExp.Value());
+                }
+            }
+
+            if (inItem.key() == "Properties")
+            {
+                for (auto inProperty : inItem.value().items())
+                {
+                    auto propertyValue = inProperty.value();
+                    if (propertyValue.contains("Lumen::Texture"))
+                    {
+                        auto propertyData = propertyValue["Lumen::Texture"];
+                        std::string path, name;
+                        if (propertyData.contains("Path"))
+                        {
+                            path = propertyData["Path"].get<std::string>();
+                        }
+                        if (propertyData.contains("Name"))
+                        {
+                            name = propertyData["Name"].get<std::string>();
+                        }
+                        if (!path.empty() && !name.empty())
+                        {
+                            // load texture
+                            Lumen::Expected<Lumen::ObjectPtr> textureExp = Lumen::Assets::Import(path, Lumen::Texture::Type(), name);
+                            if (!textureExp.HasValue())
+                            {
+                                throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
+                            }
+                            const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
+
+                            // set property
+                            SetProperty("_MainTex", texture);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /// get material
     [[nodiscard]] MaterialPtr GetMaterial() const { return mMaterial; }
@@ -105,26 +180,28 @@ public:
 DEFINE_COMPONENT_TYPEINFO(MeshRenderer);
 
 /// constructs a mesh renderer with an material
-MeshRenderer::MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, MaterialPtr material) :
-    Component(Type(), Name(), gameObject), mImpl(MeshRenderer::Impl::MakeUniquePtr(engine, material)) {}
+MeshRenderer::MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject) :
+    Component(Type(), Name(), gameObject), mImpl(MeshRenderer::Impl::MakeUniquePtr(engine)) {}
 
 /// creates a smart pointer version of the mesh renderer component
-ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)
+ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
 {
-    if (params.Type() == MeshRenderer::Params::Type())
-    {
-        const auto &createParams = static_cast<const Params &>(params);
-        auto pMeshRenderer = new MeshRenderer(engine, gameObject, createParams.mMaterial);
-        auto meshRendererPtr = ComponentPtr(pMeshRenderer);
-        pMeshRenderer->mImpl->mOwner = static_pointer_cast<MeshRenderer>(meshRendererPtr);
-        return meshRendererPtr;
-    }
-#ifdef TYPEINFO
-    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
-#else
-    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
-#endif
-    return {};
+    auto pMeshRenderer = new MeshRenderer(engine, gameObject);
+    auto meshRendererPtr = ComponentPtr(pMeshRenderer);
+    pMeshRenderer->mImpl->mOwner = static_pointer_cast<MeshRenderer>(meshRendererPtr);
+    return meshRendererPtr;
+}
+
+/// serialize
+void MeshRenderer::Serialize(json &out) const
+{
+    mImpl->Serialize(out);
+}
+
+/// deserialize
+void MeshRenderer::Deserialize(const json &in)
+{
+    mImpl->Deserialize(in);
 }
 
 /// set property

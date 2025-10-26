@@ -23,14 +23,6 @@ namespace Lumen
         OBJECT_TYPEINFO;
 
     public:
-        /// material creation parameters
-        struct Params : Object
-        {
-            OBJECT_TYPEINFO;
-            explicit Params(std::string_view shaderName) : Object(Type()), mShaderName(shaderName) {}
-            std::string_view mShaderName;
-        };
-
         /// creates a smart pointer version of the Material
         static Expected<MaterialPtr> MakePtr(std::string_view shaderName);
 

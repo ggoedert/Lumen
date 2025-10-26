@@ -6,6 +6,7 @@
 
 #include "lApplication.h"
 #include "lCamera.h"
+#include "lSceneManager.h"
 
 using namespace Lumen;
 

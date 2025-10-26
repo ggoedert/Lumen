@@ -4,22 +4,59 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lDefs.h"
 #include "lMeshFilter.h"
+#include "lTexture.h"
+#include "lSceneManager.h"
 
 using namespace Lumen;
 
 /// MeshFilter::Impl class
 class MeshFilter::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
     friend class MeshFilter;
 
 public:
     /// constructs a mesh filter
-    explicit Impl(const MeshPtr &mesh) : mMesh(mesh) {}
+    explicit Impl() = default;
+
+    /// serialize
+    void Serialize(json &out) const
+    {
+    }
+
+    /// deserialize
+    void Deserialize(const json &in)
+    {
+        mMesh.reset();
+
+        std::string_view meshTypeName = Lumen::Mesh::Type().mName;
+        if (in.contains(meshTypeName))
+        {
+            auto obj = in[meshTypeName];
+
+            std::string path, name;
+            if (obj.contains("Path"))
+            {
+                path = obj["Path"].get<std::string>();
+            }
+            if (obj.contains("Name"))
+            {
+                name = obj["Name"].get<std::string>();
+            }
+            if (!path.empty() && !name.empty())
+            {
+                // load sphere mesh
+                Lumen::Expected<Lumen::ObjectPtr> meshExp = Lumen::Assets::Import(path, Lumen::Mesh::Type(), name);
+                if (!meshExp.HasValue())
+                {
+                    throw std::runtime_error(std::format("Unable to load default sphere mesh resource, {}", meshExp.Error()));
+                }
+                mMesh = static_pointer_cast<Lumen::Mesh>(meshExp.Value());
+            }
+        }
+    }
 
     /// get mesh
     [[nodiscard]] const MeshPtr GetMesh() const { return mMesh;  }
@@ -37,23 +74,25 @@ private:
 DEFINE_COMPONENT_TYPEINFO(MeshFilter);
 
 /// constructs a mesh filter with a mesh
-MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject, const MeshPtr &mesh) :
-    Component(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr(mesh)) {}
+MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject) :
+    Component(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the mesh filter component
-ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)
+ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
 {
-    if (params.Type() == MeshFilter::Params::Type())
-    {
-        const auto &createParams = static_cast<const Params &>(params);
-        return ComponentPtr(new MeshFilter(gameObject, createParams.mMesh));
-    }
-#ifdef TYPEINFO
-    DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
-#else
-    DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
-#endif
-    return {};
+    return ComponentPtr(new MeshFilter(gameObject));
+}
+
+/// serialize
+void MeshFilter::Serialize(json &out) const
+{
+    mImpl->Serialize(out);
+}
+
+/// deserialize
+void MeshFilter::Deserialize(const json &in)
+{
+    mImpl->Deserialize(in);
 }
 
 /// get mesh

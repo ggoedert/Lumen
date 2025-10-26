@@ -16,19 +16,19 @@ SphereScript::SphereScript(const Lumen::GameObjectWeakPtr &gameObject) :
     Behavior(Type(), Name(), gameObject) {}
 
 /// creates a smart pointer version of the sphere script component
-Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject, const Object &params)
+Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject)
 {
-    if (params.Type() == SphereScript::Params::Type())
-    {
-        const auto &createParams = static_cast<const Params &>(params);
-        return Lumen::ComponentPtr(new SphereScript(gameObject));
-    }
-#ifdef TYPEINFO
-    Lumen::DebugLog::Error("Create component, unknown parameter type: {}", params.Type().mName);
-#else
-    Lumen::DebugLog::Error("Create component, unknown parameter hash type: 0x{:08X}", params.Type());
-#endif
-    return {};
+    return Lumen::ComponentPtr(new SphereScript(gameObject));
+}
+
+/// serialize
+void SphereScript::Serialize(json &out) const
+{
+}
+
+/// deserialize
+void SphereScript::Deserialize(const json &in)
+{
 }
 
 /// start is called before the first frame update

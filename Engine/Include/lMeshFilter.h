@@ -5,10 +5,8 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
 #include "lComponent.h"
 #include "lMesh.h"
-#include "lSceneManager.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -24,13 +22,11 @@ namespace Lumen
         COMPONENT_TYPEINFO;
 
     public:
-        /// mesh filter creation parameters
-        struct Params : Object
-        {
-            OBJECT_TYPEINFO;
-            explicit Params(MeshPtr mesh) : Object(Type()), mMesh(mesh) {}
-            MeshPtr mMesh;
-        };
+        /// serialize
+        void Serialize(json &out) const override;
+
+        /// deserialize
+        void Deserialize(const json &in) override;
 
         /// get mesh
         [[nodiscard]] const MeshPtr GetMesh() const;
@@ -40,10 +36,10 @@ namespace Lumen
 
     private:
         /// constructs a mesh filter with a mesh
-        explicit MeshFilter(const GameObjectWeakPtr &gameObject, const MeshPtr &mesh);
+        explicit MeshFilter(const GameObjectWeakPtr &gameObject);
 
         /// creates a smart pointer version of the mesh filter component
-        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

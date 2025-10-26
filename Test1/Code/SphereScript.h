@@ -17,6 +17,12 @@ class SphereScript : public Lumen::Behavior
     COMPONENT_TYPEINFO;
 
 public:
+    /// serialize
+    void Serialize(json &out) const override;
+
+    /// deserialize
+    void Deserialize(const json &in) override;
+
     /// Start is called before the first frame update
     void Start() override;
 
@@ -28,5 +34,5 @@ private:
     explicit SphereScript(const Lumen::GameObjectWeakPtr &gameObject);
 
     /// creates a smart pointer version of the sphere script component
-    static Lumen::ComponentPtr MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject, const Object &params);
+    static Lumen::ComponentPtr MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject);
 };

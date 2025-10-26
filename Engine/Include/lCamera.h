@@ -5,18 +5,13 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
-#include "lMath.h"
-#include "lBehavior.h"
-#include "lSceneManager.h"
-#include "lGameObject.h"
+#include "lComponent.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_WEAK_PTR_DEF(Engine);
-    CLASS_PTR_DEF(Behavior);
-    CLASS_WEAK_PTR_DEF(Behavior);
+    CLASS_PTR_DEF(Camera);
+    CLASS_WEAK_PTR_DEF(Camera);
 
     /// Camera class
     class Camera : public Component
@@ -26,13 +21,11 @@ namespace Lumen
         COMPONENT_TYPEINFO;
 
     public:
-        /// camera creation parameters
-        struct Params : Object
-        {
-            OBJECT_TYPEINFO;
-            explicit Params(const Math::Vector &backgroundColor) : Object(Type()), mBackgroundColor(backgroundColor) {}
-            Math::Vector mBackgroundColor;
-        };
+        /// serialize
+        void Serialize(json &out) const override;
+
+        /// deserialize
+        void Deserialize(const json &in) override;
 
         /// get the camera's background color
         [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
@@ -42,10 +35,10 @@ namespace Lumen
 
     private:
         /// constructs a camera with a background color
-        explicit Camera(const GameObjectWeakPtr &gameObject, Math::Vector backgroundColor);
+        explicit Camera(const GameObjectWeakPtr &gameObject);
 
         /// creates a smart pointer version of the camera component
-        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params);
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

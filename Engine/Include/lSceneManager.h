@@ -20,7 +20,7 @@ namespace Lumen
     namespace SceneManager
     {
         /// component maker function type
-        using ComponentMaker = std::function<ComponentPtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const Object &params)>;
+        using ComponentMaker = std::function<ComponentPtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)>;
 
         /// initialize scene manager namespace
         void Initialize();
@@ -41,7 +41,7 @@ namespace Lumen
         [[nodiscard]] ScenePtr CurrentScene();
 
         /// create component of a specific type
-        ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params);
+        ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type);
 
         /// register game object in the current scene
         [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);

@@ -36,10 +36,11 @@ public:
         if (in.contains("Position"))
         {
             auto arr = in["Position"].get<std::vector<float>>();
-            if (arr.size() == 3)
+            if (arr.size() != 3)
             {
-                mPosition = Math::Vector3(arr[0], arr[1], arr[2]);
+                throw std::runtime_error(std::format("Unable to read Transform::Position"));
             }
+            mPosition = Math::Vector3(arr[0], arr[1], arr[2]);
         }
 
         // set rotation
@@ -47,10 +48,11 @@ public:
         if (in.contains("Rotation"))
         {
             auto arr = in["Rotation"].get<std::vector<float>>();
-            if (arr.size() == 4)
+            if (arr.size() != 4)
             {
-                mRotation = Math::Vector4(arr[0], arr[1], arr[2], arr[3]);
+                throw std::runtime_error(std::format("Unable to read Transform::Rotation"));
             }
+            mRotation = Math::Vector4(arr[0], arr[1], arr[2], arr[3]);
         }
 
         // set scale
@@ -58,10 +60,11 @@ public:
         if (in.contains("Scale"))
         {
             auto arr = in["Scale"].get<std::vector<float>>();
-            if (arr.size() == 3)
+            if (arr.size() != 3)
             {
-                mScale = Math::Vector3(arr[0], arr[1], arr[2]);
+                throw std::runtime_error(std::format("Unable to read Transform::Scale"));
             }
+            mScale = Math::Vector3(arr[0], arr[1], arr[2]);
         }
     }
 

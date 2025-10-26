@@ -89,7 +89,7 @@ void SceneManager::Unload()
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type, const Object &params)
+ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -99,7 +99,7 @@ ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, cons
     {
         return {};
     }
-    return RegisterComponent(it->second(engine, gameObject, params));
+    return RegisterComponent(it->second(engine, gameObject));
 }
 
 /// register game object in the current scene
