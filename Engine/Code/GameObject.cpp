@@ -22,7 +22,7 @@ class GameObject::Impl
 
 public:
     /// constructs a game object
-    explicit Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application);
+    explicit Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application, std::string_view name);
 
     /// destroys game object
     ~Impl();
@@ -39,9 +39,6 @@ public:
     /// deserialize
     void Deserialize(const json &in)
     {
-        // set name
-        mName = in["Name"].get<std::string>();
-
         // set transform
         json transformIn = {};
         if (in.contains("Transform"))
@@ -54,7 +51,7 @@ public:
         mComponents.clear();
         if (in.contains("Components"))
         {
-            for (auto inComponent : in["Components"].items())
+            for (auto &inComponent : in["Components"].items())
             {
                 const std::string &componentTypeName = inComponent.key();
                 const HashType componentType = EncodeType(componentTypeName.c_str());
@@ -98,8 +95,8 @@ private:
 };
 
 /// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application) :
-    mOwner(gameObject), mApplication(application), mTransform(Transform::MakePtr(gameObject)) {}
+GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application, std::string_view name) :
+    mOwner(gameObject), mApplication(application), mName(name), mTransform(Transform::MakePtr(gameObject)) {}
 
 /// destroys game object
 GameObject::Impl::~Impl()
@@ -164,11 +161,11 @@ GameObject::GameObject() : Object(Type()) {}
 GameObject::~GameObject() {}
 
 /// custom smart pointer maker, self registers into scene manager
-GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application)
+GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application, std::string_view name)
 {
     GameObjectPtr gameObject = std::shared_ptr<GameObject>(new GameObject());
     GameObjectWeakPtr gameObjectWeak = SceneManager::RegisterGameObject(gameObject);
-    gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak, application);
+    gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak, application, name);
     return gameObjectWeak;
 }
 

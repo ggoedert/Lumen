@@ -31,7 +31,7 @@ namespace Lumen
         ~GameObject() override;
 
         /// custom smart pointer maker, self registers into scene manager
-        static GameObjectWeakPtr MakePtr(Lumen::Application &application);
+        static GameObjectWeakPtr MakePtr(Lumen::Application &application, std::string_view name);
 
         /// serialize
         void Serialize(json &out) const;
