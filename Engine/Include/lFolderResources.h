@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
-#include "lAssets.h"
+#include "lAssetManager.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -21,7 +21,7 @@ namespace Lumen
         static AssetFactoryPtr MakePtr(float priority);
 
         /// get asset infos
-        [[nodiscard]] std::span<const Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override;
+        [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override;
 
     private:
         /// constructor

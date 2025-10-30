@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lMesh.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -56,7 +57,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh(const EngineWeakPtr &engine) : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
+Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys mesh
 Mesh::~Mesh()

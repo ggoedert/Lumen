@@ -21,18 +21,25 @@ public:
     explicit Impl() = default;
 
     /// serialize
-    void Serialize(json &out) const
+    void Serialize(SerializedData &out, bool packed) const
     {
+        // token
+        std::string backgroundColorToken = packed ? mPackedBackgroundColorToken : "BackgroundColor";
+
+        out[backgroundColorToken] = { mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, mBackgroundColor.w };
     }
 
     /// deserialize
-    void Deserialize(const json &in)
+    void Deserialize(const SerializedData &in, bool packed)
     {
+        // token
+        std::string backgroundColorToken = packed ? mPackedBackgroundColorToken : "BackgroundColor";
+
         // set background color
         mBackgroundColor = {};
-        if (in.contains("BackgroundColor"))
+        if (in.contains(backgroundColorToken))
         {
-            auto arr = in["BackgroundColor"].get<std::vector<float>>();
+            auto arr = in[backgroundColorToken].get<std::vector<float>>();
             if (arr.size() != 4)
             {
                 throw std::runtime_error(std::format("Unable to read Camera::BackgroundColor"));
@@ -42,15 +49,21 @@ public:
     }
 
     /// get background color
-    [[nodiscard]] const Math::Vector &GetBackgroundColor() const { return mBackgroundColor; }
+    [[nodiscard]] const Math::Vector4 &GetBackgroundColor() const { return mBackgroundColor; }
 
     /// set background color
-    void SetBackgroundColor(const Math::Vector &backgroundColor) { mBackgroundColor = backgroundColor; }
+    void SetBackgroundColor(const Math::Vector4 &backgroundColor) { mBackgroundColor = backgroundColor; }
 
 private:
+
     /// background color
-    Math::Vector mBackgroundColor;
+    Math::Vector4 mBackgroundColor;
+
+    /// packed background color token
+    static const std::string mPackedBackgroundColorToken; //@REVIEW@ FIXME move this to some common place
 };
+
+const std::string Camera::Impl::mPackedBackgroundColorToken = Base64Encode(HashString("BackgroundColor"));
 
 //==============================================================================================================================================================================
 
@@ -67,25 +80,25 @@ ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPt
 }
 
 /// serialize
-void Camera::Serialize(json &out) const
+void Camera::Serialize(SerializedData &out, bool packed) const
 {
-    mImpl->Serialize(out);
+    mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void Camera::Deserialize(const json &in)
+void Camera::Deserialize(const SerializedData &in, bool packed)
 {
-    mImpl->Deserialize(in);
+    mImpl->Deserialize(in, packed);
 }
 
 /// get background color
-const Math::Vector &Camera::GetBackgroundColor() const
+const Math::Vector4 &Camera::GetBackgroundColor() const
 {
     return mImpl->GetBackgroundColor();
 }
 
 /// set background color
-void Camera::SetBackgroundColor(const Math::Vector &backgroundColor)
+void Camera::SetBackgroundColor(const Math::Vector4 &backgroundColor)
 {
     mImpl->SetBackgroundColor(backgroundColor);
 }

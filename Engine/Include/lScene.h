@@ -24,14 +24,20 @@ namespace Lumen
         /// constructor
         explicit Scene(Lumen::Application &application);
 
-        /// virtual destructor
-        virtual ~Scene();
+        /// destructor
+        ~Scene();
+
+        /// serialize
+        void Serialize(SerializedData &out, bool packed) const;
+
+        /// deserialize
+        void Deserialize(const SerializedData &in, bool packed);
 
         /// load scene
-        virtual bool Load(const std::filesystem::path &file);
+        bool Load(const std::filesystem::path &file);
 
         /// unload scene
-        virtual void Unload();
+        void Unload();
 
     private:
         /// private implementation

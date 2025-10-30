@@ -26,7 +26,7 @@ public:
 
 public:
     /// get name
-    [[nodiscard]] std::string_view Name() const noexcept { return mName; }
+    [[nodiscard]] std::string_view Name() const { return mName; }
 
     /// get owning game object
     [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
@@ -42,14 +42,14 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
+Component::Component(HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
     Object(type), mImpl(Component::Impl::MakeUniquePtr(name, gameObject)) {}
 
 /// destructor
 Component::~Component() = default;
 
 /// get name
-std::string_view Component::Name() const noexcept
+std::string_view Component::Name() const
 {
     return mImpl->Name();
 }

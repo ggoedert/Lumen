@@ -43,7 +43,7 @@ public:
     [[nodiscard]] float Time() const { return mTime; }
 
     /// get background color
-    [[nodiscard]] const Math::Vector &BackgroundColor() const;
+    [[nodiscard]] const Math::Vector4 &BackgroundColor() const;
 
 protected:
     /// run application
@@ -54,7 +54,7 @@ protected:
 
 private:
     /// default background color
-    static constexpr Math::Vector cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
+    static constexpr Math::Vector4 cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
 
     /// application running
     bool mRunning { true };
@@ -111,7 +111,7 @@ void Application::Impl::Quit()
 }
 
 /// get background color
-const Math::Vector &Application::Impl::BackgroundColor() const
+const Math::Vector4 &Application::Impl::BackgroundColor() const
 {
     Components cameras = SceneManager::GetComponents(Camera::Type());
     if (!cameras.empty())
@@ -169,7 +169,7 @@ float Application::Time() const
 }
 
 /// get background color
-const Math::Vector &Application::BackgroundColor() const
+const Math::Vector4 &Application::BackgroundColor() const
 {
     return mImpl->BackgroundColor();
 }

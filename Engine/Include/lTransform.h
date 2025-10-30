@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lMath.h"
-#include "lJson.h"
+#include "lSerializedData.h"
 #include "lObject.h"
 
 /// Lumen namespace
@@ -30,10 +30,10 @@ namespace Lumen
         static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
 
         /// serialize
-        void Serialize(json &out) const;
+        void Serialize(SerializedData &out, bool packed) const;
 
         /// deserialize
-        void Deserialize(const json &in);
+        void Deserialize(const SerializedData &in, bool packed);
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;

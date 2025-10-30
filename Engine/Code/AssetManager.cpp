@@ -1,29 +1,29 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Assets
+/// \brief     AssetManager
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
 #include "lStringMap.h"
-#include "lAssets.h"
+#include "lAssetManager.h"
 
 using namespace Lumen;
 
-CLASS_UNIQUE_PTR_DEF(AssetsImpl);
+CLASS_UNIQUE_PTR_DEF(AssetManagerImpl);
 
-/// AssetsImpl class
-class AssetsImpl
+/// AssetManagerImpl class
+class AssetManagerImpl
 {
-    CLASS_NO_DEFAULT_CTOR(AssetsImpl);
-    CLASS_NO_COPY_MOVE(AssetsImpl);
-    CLASS_PTR_UNIQUEMAKER(AssetsImpl);
+    CLASS_NO_DEFAULT_CTOR(AssetManagerImpl);
+    CLASS_NO_COPY_MOVE(AssetManagerImpl);
+    CLASS_PTR_UNIQUEMAKER(AssetManagerImpl);
 
 public:
     /// constructs an assets implementation with engine
-    explicit AssetsImpl(const EngineWeakPtr &engine) : mEngine(engine) {}
+    explicit AssetManagerImpl(const EngineWeakPtr &engine) : mEngine(engine) {}
 
     /// destroys assets
-    ~AssetsImpl() = default;
+    ~AssetManagerImpl() = default;
 
     /// set engine
     void SetEngine(const EngineWeakPtr &engine);
@@ -32,13 +32,13 @@ public:
     void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
     /// register an asset info
-    void RegisterAssetInfo(const HashType type, const std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
+    void RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
 
     /// import asset
-    Expected<ObjectPtr> Import(const std::filesystem::path &path, const HashType type, std::string_view name);
+    Expected<ObjectPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
 
     /// import asset from name
-    Expected<ObjectPtr> GlobalImport(const HashType type, const std::string_view name);
+    Expected<ObjectPtr> GlobalImport(HashType type, std::string_view name);
 
 private:
     /// engine pointer
@@ -52,14 +52,14 @@ private:
 };
 
 /// register an asset factory
-void AssetsImpl::RegisterFactory(const AssetFactoryPtr &assetFactory)
+void AssetManagerImpl::RegisterFactory(const AssetFactoryPtr &assetFactory)
 {
-    // insert asset factory with the given extension and priority
+    // insert asset factory with the given priority
     mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
 }
 
 /// register an asset info
-void AssetsImpl::RegisterAssetInfo(const HashType type, const std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
+void AssetManagerImpl::RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
 {
     bool doInsert = true;
     auto typeIt = mRegisteredAssetInfo.find(type);
@@ -68,7 +68,7 @@ void AssetsImpl::RegisterAssetInfo(const HashType type, const std::string_view n
         StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
         if (nameIt != typeIt->second.end())
         {
-            doInsert = priority > std::get<0>(nameIt->second);
+            doInsert = priority > std::get<float>(nameIt->second);
         }
     }
     if (doInsert)
@@ -78,7 +78,7 @@ void AssetsImpl::RegisterAssetInfo(const HashType type, const std::string_view n
 }
 
 /// import asset
-Expected<ObjectPtr> AssetsImpl::Import(const std::filesystem::path &path, const HashType type, std::string_view name)
+Expected<ObjectPtr> AssetManagerImpl::Import(const std::filesystem::path &path, HashType type, std::string_view name)
 {
     // normalize the path
     std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
@@ -90,15 +90,15 @@ Expected<ObjectPtr> AssetsImpl::Import(const std::filesystem::path &path, const 
     for (auto &priorityFactory : mAssetFactories)
     {
         auto &assetFactory = priorityFactory.second;
-        std::span<const AssetInfoPtr> assetInfos = assetFactory->GetAssetInfos(normalizedPath);
+        std::vector<AssetInfoPtr> assetInfos = assetFactory->GetAssetInfos(normalizedPath);
         combinedAssetInfos.insert(combinedAssetInfos.end(), assetInfos.begin(), assetInfos.end());
     }
 
     for (AssetInfoPtr &assetInfo : combinedAssetInfos)
     {
-        if (assetInfo->Type() == type && (!name.empty() || assetInfo->Name() == name))
+        if (assetInfo->Type() == type)
         {
-            return assetInfo->Import(mEngine);
+            return assetInfo->Import(mEngine, path, name);
         }
     }
 
@@ -107,7 +107,7 @@ Expected<ObjectPtr> AssetsImpl::Import(const std::filesystem::path &path, const 
 }
 
 /// import asset from name
-Expected<ObjectPtr> AssetsImpl::GlobalImport(const HashType type, const std::string_view name)
+Expected<ObjectPtr> AssetManagerImpl::GlobalImport(HashType type, std::string_view name)
 {
     auto typeIt = mRegisteredAssetInfo.find(type);
     if (typeIt != mRegisteredAssetInfo.end())
@@ -115,7 +115,8 @@ Expected<ObjectPtr> AssetsImpl::GlobalImport(const HashType type, const std::str
         StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
         if (nameIt != typeIt->second.end())
         {
-            return std::get<1>(nameIt->second)->Import(mEngine);
+            auto AssetInfo = std::get<AssetInfoPtr>(nameIt->second);
+            return AssetInfo->Import(mEngine, AssetInfo->Path(), AssetInfo->Name());
         }
     }
 
@@ -136,43 +137,43 @@ struct FactoryOptions
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
-    static AssetsImplUniquePtr gAssetsImpl;
+    static AssetManagerImplUniquePtr gAssetManagerImpl;
 }
 
 /// initialize assets namespace
-void Assets::Initialize(const EngineWeakPtr &engine)
+void AssetManager::Initialize(const EngineWeakPtr &engine)
 {
-    L_ASSERT(!Hidden::gAssetsImpl);
-    Hidden::gAssetsImpl = AssetsImpl::MakeUniquePtr(engine);
+    L_ASSERT(!Hidden::gAssetManagerImpl);
+    Hidden::gAssetManagerImpl = AssetManagerImpl::MakeUniquePtr(engine);
 }
 
 /// shutdown assets namespace
-void Assets::Shutdown()
+void AssetManager::Shutdown()
 {
-    L_ASSERT(Hidden::gAssetsImpl);
-    Hidden::gAssetsImpl.reset();
+    L_ASSERT(Hidden::gAssetManagerImpl);
+    Hidden::gAssetManagerImpl.reset();
 }
 
 /// register an asset factory
-void Assets::RegisterFactory(const AssetFactoryPtr &assetFactory)
+void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 {
-    Hidden::gAssetsImpl->RegisterFactory(assetFactory);
+    Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
 }
 
 /// register an asset info
-void Assets::RegisterAssetInfo(const HashType type, const std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
+void AssetManager::RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
 {
-    Hidden::gAssetsImpl->RegisterAssetInfo(type, name, assetInfoPtr, priority);
+    Hidden::gAssetManagerImpl->RegisterAssetInfo(path, type, name, assetInfoPtr, priority);
 }
 
 /// import asset
-Expected<ObjectPtr> Assets::Import(const std::filesystem::path &path, const HashType type, std::string_view name)
+Expected<ObjectPtr> AssetManager::Import(const std::filesystem::path &path, HashType type, std::string_view name)
 {
-    return Hidden::gAssetsImpl->Import(path, type, name);
+    return Hidden::gAssetManagerImpl->Import(path, type, name);
 }
 
 /// import asset from name
-Expected<ObjectPtr> Assets::GlobalImport(const HashType type, const std::string_view name)
+Expected<ObjectPtr> AssetManager::GlobalImport(HashType type, std::string_view name)
 {
-    return Hidden::gAssetsImpl->GlobalImport(type, name);
+    return Hidden::gAssetManagerImpl->GlobalImport(type, name);
 }

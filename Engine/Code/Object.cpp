@@ -18,7 +18,7 @@ class Object::Impl
 
 public:
     /// constructs a component
-    explicit Impl(const HashType type) : mType(type) {}
+    explicit Impl(HashType type) : mType(type) {}
 
     /// destroys component
     ~Impl() = default;
@@ -29,13 +29,13 @@ public:
 
 private:
     /// type
-    const HashType mType;
+    HashType mType;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs an object with type. called by derived classes
-Object::Object(const HashType type) : mImpl(Object::Impl::MakeUniquePtr(type)) {}
+Object::Object(HashType type) : mImpl(Object::Impl::MakeUniquePtr(type)) {}
 
 /// destructor
 Object::~Object() = default;

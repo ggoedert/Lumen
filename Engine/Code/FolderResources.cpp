@@ -25,21 +25,22 @@ public:
     ~Impl() = default;
 
     /// get asset infos
-    [[nodiscard]] std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
+    [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
     {
-        if (path == mBasePath)
+        std::vector<AssetInfoPtr> result;
+        for (auto assetInfo : mAssetInfos)
         {
-            return mAssetInfos;
+            if (assetInfo->Path() == path)
+            {
+                result.push_back(assetInfo);
+            }
         }
-        return {};
+        return result;
     }
 
 private:
     /// asset infos
     std::vector<AssetInfoPtr> mAssetInfos;
-
-    /// base path
-    std::filesystem::path mBasePath = "Library/lumen folder resources";
 };
 
 //==============================================================================================================================================================================
@@ -54,7 +55,7 @@ AssetFactoryPtr FolderResources::MakePtr(float priority)
 }
 
 /// get asset infos
-std::span<const AssetInfoPtr> FolderResources::GetAssetInfos(const std::filesystem::path &path) const
+std::vector<AssetInfoPtr> FolderResources::GetAssetInfos(const std::filesystem::path &path) const
 {
     return mImpl->GetAssetInfos(path);
 }

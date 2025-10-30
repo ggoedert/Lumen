@@ -27,69 +27,83 @@ public:
     explicit Impl(const EngineWeakPtr &engine) : mEngine(engine) {}
 
     /// serialize
-    void Serialize(json &out) const
+    void Serialize(SerializedData &out, bool packed) const
     {
     }
 
     /// deserialize
-    void Deserialize(const json &in)
+    void Deserialize(const SerializedData &in, bool packed)
     {
+        // tokens
+        const std::string &pathToken = packed ? mPackedPathToken : "Path";
+        const std::string &nameToken = packed ? mPackedNameToken : "Name";
+        const std::string &textureTypeToken = "Lumen::Texture";
+
         mMaterial.reset();
         mProperties.clear();
 
-        for (auto inItem : in.items())
+        for (auto &inItem : in.items())
         {
-            if (inItem.key() == Lumen::Material::Type().mName)
+            if (inItem.key() == Material::Type().mName)
             {
-                auto obj = inItem.value();
+                auto &obj = inItem.value();
 
                 std::string path, name;
-                if (obj.contains("Path"))
+                if (obj.contains(pathToken))
                 {
-                    path = obj["Path"].get<std::string>();
+                    path = obj[pathToken].get<std::string>();
                 }
-                if (obj.contains("Name"))
+                if (obj.contains(nameToken))
                 {
-                    name = obj["Name"].get<std::string>();
+                    name = obj[nameToken].get<std::string>();
                 }
                 if (!path.empty() && !name.empty())
                 {
                     // load material material
-                    Lumen::Expected<Lumen::ObjectPtr> materialExp = Lumen::Assets::Import(path, Lumen::Material::Type(), name);
+                    Expected<ObjectPtr> materialExp = AssetManager::Import(path, Material::Type(), name);
                     if (!materialExp.HasValue())
                     {
                         throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
                     }
-                    mMaterial = static_pointer_cast<Lumen::Material>(materialExp.Value());
+                    mMaterial = static_pointer_cast<Material>(materialExp.Value());
                 }
             }
 
             if (inItem.key() == "Properties")
             {
-                for (auto inProperty : inItem.value().items())
+                for (auto &inProperty : inItem.value().items())
                 {
-                    auto propertyValue = inProperty.value();
-                    if (propertyValue.contains("Lumen::Texture"))
+                    auto &propertyValue = inProperty.value();
+                    std::string textureTypeKey;
+                    if (packed)
                     {
-                        auto propertyData = propertyValue["Lumen::Texture"];
+                        textureTypeKey = Base64Encode(Texture::Type());
+                    }
+                    else
+                    {
+                        textureTypeKey = textureTypeToken;
+                    }
+                    if (propertyValue.contains(textureTypeKey))
+                    {
+                        auto propertyData = propertyValue[textureTypeKey];
                         std::string path, name;
-                        if (propertyData.contains("Path"))
+                        if (propertyData.contains(pathToken))
                         {
-                            path = propertyData["Path"].get<std::string>();
+                            path = propertyData[pathToken].get<std::string>();
                         }
-                        if (propertyData.contains("Name"))
+                        if (propertyData.contains(nameToken))
                         {
-                            name = propertyData["Name"].get<std::string>();
+                            name = propertyData[nameToken].get<std::string>();
                         }
                         if (!path.empty() && !name.empty())
                         {
                             // load texture
-                            Lumen::Expected<Lumen::ObjectPtr> textureExp = Lumen::Assets::Import(path, Lumen::Texture::Type(), name);
+                            Expected<ObjectPtr> textureExp = AssetManager::Import(path, Texture::Type(), name);
                             if (!textureExp.HasValue())
                             {
                                 throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
                             }
-                            const Lumen::TexturePtr texture = static_pointer_cast<Lumen::Texture>(textureExp.Value());
+                            const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
 
                             // set property
                             SetProperty("_MainTex", texture);
@@ -141,7 +155,7 @@ public:
                         auto textureProperty = GetProperty("_MainTex");
                         if (textureProperty.HasValue())
                         {
-                            if (auto pTexture = std::get_if<Lumen::TexturePtr>(&textureProperty.Value()))
+                            if (auto pTexture = std::get_if<TexturePtr>(&textureProperty.Value()))
                             {
                                 texture = *pTexture;
                             }
@@ -173,7 +187,17 @@ public:
 
     /// map of properties
     StringMap<PropertyValue> mProperties;
+
+    /// packed path token
+    static const std::string mPackedPathToken; //@REVIEW@ FIXME move this to some common place
+
+    /// packed name token
+    static const std::string mPackedNameToken; //@REVIEW@ FIXME move this to some common place
 };
+
+const std::string MeshRenderer::Impl::mPackedPathToken = Base64Encode(HashString("Path"));
+
+const std::string MeshRenderer::Impl::mPackedNameToken = Base64Encode(HashString("Name"));
 
 //==============================================================================================================================================================================
 
@@ -193,15 +217,15 @@ ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObject
 }
 
 /// serialize
-void MeshRenderer::Serialize(json &out) const
+void MeshRenderer::Serialize(SerializedData &out, bool packed) const
 {
-    mImpl->Serialize(out);
+    mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshRenderer::Deserialize(const json &in)
+void MeshRenderer::Deserialize(const SerializedData &in, bool packed)
 {
-    mImpl->Deserialize(in);
+    mImpl->Deserialize(in, packed);
 }
 
 /// set property

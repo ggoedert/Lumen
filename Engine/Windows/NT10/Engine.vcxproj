@@ -300,9 +300,9 @@
     <ClInclude Include="..\..\Code\Windows\NT10\EngineFramework.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Code\Windows\StepTimer.h" />
+    <ClInclude Include="..\..\Include\lAssetManager.h" />
     <ClInclude Include="..\..\Include\lBuiltinResources.h" />
     <ClInclude Include="..\..\Include\lApplication.h" />
-    <ClInclude Include="..\..\Include\lAssets.h" />
     <ClInclude Include="..\..\Include\lBehavior.h" />
     <ClInclude Include="..\..\Include\lCamera.h" />
     <ClInclude Include="..\..\Include\lComponent.h" />
@@ -315,7 +315,6 @@
     <ClInclude Include="..\..\Include\lFolderResources.h" />
     <ClInclude Include="..\..\Include\lGameObject.h" />
     <ClInclude Include="..\..\Include\lId.h" />
-    <ClInclude Include="..\..\Include\lJson.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
     <ClInclude Include="..\..\Include\lMeshFilter.h" />
@@ -323,6 +322,7 @@
     <ClInclude Include="..\..\Include\lObject.h" />
     <ClInclude Include="..\..\Include\lSceneManager.h" />
     <ClInclude Include="..\..\Include\lScene.h" />
+    <ClInclude Include="..\..\Include\lSerializedData.h" />
     <ClInclude Include="..\..\Include\lShader.h" />
     <ClInclude Include="..\..\Include\lStringMap.h" />
     <ClInclude Include="..\..\Include\lTexture.h" />
@@ -333,7 +333,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Application.cpp" />
-    <ClCompile Include="..\..\Code\Assets.cpp" />
+    <ClCompile Include="..\..\Code\AssetManager.cpp" />
     <ClCompile Include="..\..\Code\Behavior.cpp" />
     <ClCompile Include="..\..\Code\BuiltinResources.cpp" />
     <ClCompile Include="..\..\Code\Camera.cpp" />

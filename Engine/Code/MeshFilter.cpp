@@ -22,38 +22,51 @@ public:
     explicit Impl() = default;
 
     /// serialize
-    void Serialize(json &out) const
+    void Serialize(SerializedData &out, bool packed) const
     {
     }
 
     /// deserialize
-    void Deserialize(const json &in)
+    void Deserialize(const SerializedData &in, bool packed)
     {
+        // tokens
+        const std::string &pathToken = packed ? mPackedPathToken : "Path";
+        const std::string &nameToken = packed ? mPackedNameToken : "Name";
+        const std::string &meshTypeToken = "Lumen::Mesh";
+
         mMesh.reset();
 
-        std::string_view meshTypeName = Lumen::Mesh::Type().mName;
-        if (in.contains(meshTypeName))
+        std::string meshTypeKey;
+        if (packed)
         {
-            auto obj = in[meshTypeName];
+            meshTypeKey = Base64Encode(Mesh::Type());
+        }
+        else
+        {
+            meshTypeKey = meshTypeToken;
+        }
+        if (in.contains(meshTypeKey))
+        {
+            auto obj = in[meshTypeKey];
 
             std::string path, name;
-            if (obj.contains("Path"))
+            if (obj.contains(pathToken))
             {
-                path = obj["Path"].get<std::string>();
+                path = obj[pathToken].get<std::string>();
             }
-            if (obj.contains("Name"))
+            if (obj.contains(nameToken))
             {
-                name = obj["Name"].get<std::string>();
+                name = obj[nameToken].get<std::string>();
             }
             if (!path.empty() && !name.empty())
             {
                 // load sphere mesh
-                Lumen::Expected<Lumen::ObjectPtr> meshExp = Lumen::Assets::Import(path, Lumen::Mesh::Type(), name);
+                Expected<ObjectPtr> meshExp = AssetManager::Import(path, Mesh::Type(), name);
                 if (!meshExp.HasValue())
                 {
                     throw std::runtime_error(std::format("Unable to load default sphere mesh resource, {}", meshExp.Error()));
                 }
-                mMesh = static_pointer_cast<Lumen::Mesh>(meshExp.Value());
+                mMesh = static_pointer_cast<Mesh>(meshExp.Value());
             }
         }
     }
@@ -67,7 +80,17 @@ public:
 private:
     /// mesh
     MeshPtr mMesh;
+
+    /// packed path token
+    static const std::string mPackedPathToken; //@REVIEW@ FIXME move this to some common place
+
+    /// packed name token
+    static const std::string mPackedNameToken; //@REVIEW@ FIXME move this to some common place
 };
+
+const std::string MeshFilter::Impl::mPackedPathToken = Base64Encode(HashString("Path"));
+
+const std::string MeshFilter::Impl::mPackedNameToken = Base64Encode(HashString("Name"));
 
 //==============================================================================================================================================================================
 
@@ -84,15 +107,15 @@ ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWe
 }
 
 /// serialize
-void MeshFilter::Serialize(json &out) const
+void MeshFilter::Serialize(SerializedData &out, bool packed) const
 {
-    mImpl->Serialize(out);
+    mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshFilter::Deserialize(const json &in)
+void MeshFilter::Deserialize(const SerializedData &in, bool packed)
 {
-    mImpl->Deserialize(in);
+    mImpl->Deserialize(in, packed);
 }
 
 /// get mesh

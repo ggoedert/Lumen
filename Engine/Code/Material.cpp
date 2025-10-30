@@ -20,7 +20,7 @@ class Material::Impl
 
 public:
     /// constructs a material
-    explicit Impl(ShaderPtr shader) :mShader(shader) {}
+    explicit Impl(ShaderPtr shader) : mShader(shader) {}
 
     /// get shader
     [[nodiscard]] ShaderPtr GetShader() const { return mShader; }
@@ -39,8 +39,11 @@ private:
 Material::Material(ShaderPtr shader) : Object(Type()), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
 
 /// custom smart pointer maker
-Expected<MaterialPtr> Material::MakePtr(std::string_view shaderName)
+Expected<MaterialPtr> Material::MakePtr(const std::filesystem::path &path, std::string_view name)
 {
+    //@REVIEW@ FIXME we should really open the material and get the shaderName from it
+    std::string shaderName = "Simple/Diffuse";
+
     // load simple diffuse shader
     Expected<ShaderPtr> shaderExp = Shader::MakePtr(shaderName);
     if (!shaderExp.HasValue())

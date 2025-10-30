@@ -1,0 +1,37 @@
+{
+    "Camera": {
+        "Transform": {
+            "Position": [ 0, 0, -10 ]
+        },
+        "Components": {
+            "Lumen::Camera": {
+                "BackgroundColor": [ 0.4509, 0.8431, 1, 1 ]
+            }
+        }
+    },
+    "Sphere": {
+        "Components": {
+            "Lumen::MeshFilter": {
+                "Lumen::Mesh": {
+                    "Path": "lumen default resources/Assets/Mesh/Sphere.fbx",
+                    "Name": "Sphere"
+                }
+            },
+            "Lumen::MeshRenderer": {
+                "Lumen::Material": {
+                    "Path": "Assets/Material.mat",
+                    "Name": "Material"
+                },
+                "Properties": {
+                    "_MainTex": {
+                        "Lumen::Texture": {
+                            "Path": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png",
+                            "Name": "Default-Checker-Gray"
+                        }
+                    }
+                }
+            },
+            "SphereScript": {}
+        }
+    }
+}

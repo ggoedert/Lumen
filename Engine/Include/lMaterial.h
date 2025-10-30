@@ -8,6 +8,7 @@
 #include "lDefs.h"
 #include "lExpected.h"
 #include "lObject.h"
+#include "lFileSystem.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -24,7 +25,7 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the Material
-        static Expected<MaterialPtr> MakePtr(std::string_view shaderName);
+        static Expected<MaterialPtr> MakePtr(const std::filesystem::path &path, std::string_view name);
 
         /// get shader
         [[nodiscard]] ShaderPtr GetShader() const;

@@ -18,9 +18,9 @@ Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(app
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
-    Assets::Initialize(shared_from_this());
-    Assets::RegisterFactory(DefaultResources::MakePtr(1.0f));
-    Assets::RegisterFactory(BuiltinExtra::MakePtr(1.0f));
+    AssetManager::Initialize(shared_from_this());
+    AssetManager::RegisterFactory(DefaultResources::MakePtr(1.0f));
+    AssetManager::RegisterFactory(BuiltinExtra::MakePtr(1.0f));
 
     FileSystem::Initialize();
     SceneManager::Initialize();
@@ -50,7 +50,7 @@ void Engine::Shutdown()
     SceneManager::Shutdown();
     FileSystem::Shutdown();
 
-    Assets::Shutdown();
+    AssetManager::Shutdown();
 
     mImpl->Shutdown();
 }

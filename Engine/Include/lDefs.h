@@ -36,9 +36,10 @@ namespace Lumen
 
     constexpr Hash HASH_PRIME = static_cast<Hash>(0x01000193);
     constexpr Hash HASH_OFFSET = static_cast<Hash>(0x811C9DC5);
+    constexpr Hash HASH_INVALID = static_cast<Hash>(0xFFFFFFFF);
 
     /// hash (FNV-1a) range of a string evaluated at compile time
-    consteval Hash HashStringRange(const char *string, size_t begin, size_t end)
+    constexpr Hash HashStringRange(const char *string, size_t begin, size_t end)
     {
         Hash hash = HASH_OFFSET;
         while (begin < end)
@@ -51,7 +52,7 @@ namespace Lumen
     }
 
     /// hash (FNV-1a) string evaluated at compile time
-    consteval Hash HashString(const char *string)
+    constexpr Hash HashString(const char *string)
     {
         return HashStringRange(string, 0, std::string_view(string).size());
     }
@@ -62,7 +63,7 @@ namespace Lumen
     {
         HashType(Hash hash, std::string_view name) : mHash(hash), mName(name) {}
         operator Hash() const { return mHash; }
-        bool operator==(const HashType &other) const { return mHash == other.mHash; }
+        bool operator==(HashType &other) const { return mHash == other.mHash; }
         Hash mHash;
         std::string_view mName;
     };
@@ -77,11 +78,11 @@ namespace Lumen
 #else
     /// lean version of HashType
     using HashType = Hash;
-    struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h); } };
-    struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a < b; } };
+    struct HashTypeHasher { size_t operator()(HashType &h) const { return static_cast<size_t>(h); } };
+    struct HashTypeComparator { bool operator()(HashType &a, HashType &b) const { return a < b; } };
 
     /// hash (FNV-1a) type from type name evaluated at compile time
-    consteval HashType EncodeType(const char *typeName)
+    constexpr HashType EncodeType(const char *typeName)
     {
         return HashType(HashString(typeName));
     }
@@ -94,6 +95,54 @@ namespace Lumen
         return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
     }
 #endif
+
+    /// encode the 4 byte Hash into an 6 character Base64 string
+    constexpr std::string Base64Encode(const Hash hash)
+    {
+        char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        char token[6];
+
+        // encode first 3 bytes -> 4 chars
+        Hash val24 = hash >> 8;
+        token[0] = table[(val24 >> 18) & 0x3F];
+        token[1] = table[(val24 >> 12) & 0x3F];
+        token[2] = table[(val24 >>  6) & 0x3F];
+        token[3] = table[val24 & 0x3F];
+
+        // encode last byte -> 2 chars
+        val24 = ((hash&0xff) << 4);
+        token[4] = table[(val24 >> 6) & 0x3F];
+        token[5] = table[val24 & 0x3F];
+
+        // create string of length 6
+        return std::string(token, 6);
+    }
+
+    /// decode the 8 character Base64 string into a 4 byte Hash
+    constexpr Hash Base64Decode(const std::string &token)
+    {
+        if (token.size() != 6)
+        {
+            return HASH_INVALID;
+        }
+        auto val = [](char c) constexpr -> byte
+        {
+            return (c >= 'A' && c <= 'Z') ? c - 'A' : (c >= 'a' && c <= 'z') ? c - 'a' + 26 : (c >= '0' && c <= '9') ? c - '0' + 52 : (c == '+') ? 62 : 63;
+        };
+        byte bytes[4];
+
+        // decode first 4 chars -> 3 bytes
+        Hash val24 = (val(token[0]) << 18) | (val(token[1]) << 12) | (val(token[2]) << 6) | val(token[3]);
+        bytes[0] = (val24 >> 16) & 0xff;
+        bytes[1] = (val24 >> 8) & 0xff;
+        bytes[2] = val24 & 0xff;
+
+        // decode last 4 chars -> last byte
+        val24 = (val(token[4]) << 18) | (val(token[5]) << 12);
+        bytes[3] = (val24 >> 16) & 0xFF;
+
+        return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+    }
 
     /// class name from current function name evaluated at compile time
     consteval std::string_view ClassName(const char *currentFunction)

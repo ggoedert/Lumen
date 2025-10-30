@@ -23,19 +23,45 @@ public:
     ~Impl() = default;
 
     /// serialize
-    void Serialize(json &out) const
+    void Serialize(SerializedData &out, bool packed) const
     {
-        //mImpl->Serialize(out);
+        // tokens
+        const std::string &positionToken = packed ? mPackedPositionToken : "Position";
+        const std::string &rotationToken = packed ? mPackedRotationToken : "Rotation";
+        const std::string &scaleToken = packed ? mPackedScaleToken : "Scale";
+
+        // get position
+        if (mPosition != Math::Vector3{})
+        {
+            out[positionToken] = { mPosition.x, mPosition.y, mPosition.z };
+        }
+
+        // get rotation
+        if (mRotation != Math::Vector4{})
+        {
+            out[rotationToken] = { mRotation.x, mRotation.y, mRotation.z, mRotation.w };
+        }
+
+        // get scale
+        if (mScale != Math::Vector3::cOne)
+        {
+            out[scaleToken] = { mScale.x, mScale.y, mScale.z };
+        }
     }
 
     /// deserialize
-    void Deserialize(const json &in)
+    void Deserialize(const SerializedData &in, bool packed)
     {
+        // tokens
+        const std::string &positionToken = packed ? mPackedPositionToken : "Position";
+        const std::string &rotationToken = packed ? mPackedRotationToken : "Rotation";
+        const std::string &scaleToken = packed ? mPackedScaleToken : "Scale";
+
         // set position
         mPosition = {};
-        if (in.contains("Position"))
+        if (in.contains(positionToken))
         {
-            auto arr = in["Position"].get<std::vector<float>>();
+            auto arr = in[positionToken].get<std::vector<float>>();
             if (arr.size() != 3)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Position"));
@@ -45,9 +71,9 @@ public:
 
         // set rotation
         mRotation = {};
-        if (in.contains("Rotation"))
+        if (in.contains(rotationToken))
         {
-            auto arr = in["Rotation"].get<std::vector<float>>();
+            auto arr = in[rotationToken].get<std::vector<float>>();
             if (arr.size() != 4)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Rotation"));
@@ -57,9 +83,9 @@ public:
 
         // set scale
         mScale = Math::Vector3::cOne;
-        if (in.contains("Scale"))
+        if (in.contains(scaleToken))
         {
-            auto arr = in["Scale"].get<std::vector<float>>();
+            auto arr = in[scaleToken].get<std::vector<float>>();
             if (arr.size() != 3)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Scale"));
@@ -145,7 +171,22 @@ public:
 
     /// scale
     Math::Vector3 mScale = Math::Vector3::cOne;
+
+    /// packed position token
+    static const std::string mPackedPositionToken; //@REVIEW@ FIXME move this to some common place
+
+    /// packed rotation token
+    static const std::string mPackedRotationToken; //@REVIEW@ FIXME move this to some common place
+
+    /// packed scale token
+    static const std::string mPackedScaleToken; //@REVIEW@ FIXME move this to some common place
 };
+
+const std::string Transform::Impl::mPackedPositionToken = Base64Encode(HashString("Position"));
+
+const std::string Transform::Impl::mPackedRotationToken = Base64Encode(HashString("Rotation"));
+
+const std::string Transform::Impl::mPackedScaleToken = Base64Encode(HashString("Scale"));
 
 //==============================================================================================================================================================================
 
@@ -165,15 +206,15 @@ TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
 }
 
 /// serialize
-void Transform::Serialize(json &out) const
+void Transform::Serialize(SerializedData &out, bool packed) const
 {
-    mImpl->Serialize(out);
+    mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void Transform::Deserialize(const json &in)
+void Transform::Deserialize(const SerializedData &in, bool packed)
 {
-    mImpl->Deserialize(in);
+    mImpl->Deserialize(in, packed);
 }
 
 /// get owning game object

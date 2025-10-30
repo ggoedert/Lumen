@@ -17,6 +17,7 @@ namespace Lumen
     /// Texture class
     class Texture : public Object
     {
+        CLASS_NO_DEFAULT_CTOR(Texture);
         CLASS_NO_COPY_MOVE(Texture);
         OBJECT_TYPEINFO;
 

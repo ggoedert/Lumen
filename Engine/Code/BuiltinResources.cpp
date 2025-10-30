@@ -24,9 +24,9 @@ public:
     ~SphereMesh() override = default;
 
     /// creates a smart pointer version of the sphere mesh info
-    static ObjectPtr MakePtr(EngineWeakPtr &engine)
+    static ObjectPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
-        auto ptr = SphereMeshPtr(new SphereMesh(engine));
+        auto ptr = SphereMeshPtr(new SphereMesh(engine, path, name));
 
         if (auto engineLock = engine.lock())
         {
@@ -43,7 +43,7 @@ public:
 
 private:
     /// constructs a sphere mesh
-    explicit SphereMesh(EngineWeakPtr &engine) : Mesh(engine) {}
+    explicit SphereMesh(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Mesh(engine, path, name) {}
 };
 
 /// SphereMeshInfo class
@@ -57,21 +57,27 @@ public:
     }
 
     /// get type
-    [[nodiscard]] HashType Type() const
+    [[nodiscard]] HashType Type() const override
     {
         return Mesh::Type();
     }
 
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
+    {
+        return "lumen default resources/Assets/Mesh/Sphere.fbx";
+    }
+
     /// get name
-    [[nodiscard]] std::string_view Name() const
+    [[nodiscard]] std::string_view Name() const override
     {
         return "Sphere";
     }
 
     /// import the sphere mesh
-    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
-        return SphereMesh::MakePtr(engine);
+        return SphereMesh::MakePtr(engine, path, name);
     }
 
 private:
@@ -93,7 +99,7 @@ public:
     explicit Impl(float priority)
     {
         auto sphereMeshInfo = SphereMeshInfo::MakePtr();
-        Assets::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo, priority);
+        AssetManager::RegisterAssetInfo(sphereMeshInfo->Path(), sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo, priority);
         mAssetInfos.push_back(sphereMeshInfo);
     }
 
@@ -101,13 +107,17 @@ public:
     ~Impl() = default;
 
     /// get asset infos
-    [[nodiscard]] std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
+    [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
     {
-        if (path == "Library/lumen default resources")
+        std::vector<AssetInfoPtr> result;
+        for (auto assetInfo : mAssetInfos)
         {
-            return mAssetInfos;
+            if (assetInfo->Path() == path)
+            {
+                result.push_back(assetInfo);
+            }
         }
-        return {};
+        return result;
     }
 
 private:
@@ -127,7 +137,7 @@ AssetFactoryPtr DefaultResources::MakePtr(float priority)
 }
 
 /// get asset infos
-std::span<const AssetInfoPtr> DefaultResources::GetAssetInfos(const std::filesystem::path &path) const
+std::vector<AssetInfoPtr> DefaultResources::GetAssetInfos(const std::filesystem::path &path) const
 {
     return mImpl->GetAssetInfos(path);
 }
@@ -198,19 +208,25 @@ public:
     }
 
     /// get type
-    [[nodiscard]] HashType Type() const
+    [[nodiscard]] HashType Type() const override
     {
         return Texture::Type();
     }
 
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
+    {
+        return "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png";
+    }
+
     /// get name
-    [[nodiscard]] std::string_view Name() const
+    [[nodiscard]] std::string_view Name() const override
     {
         return "Default-Checker-Gray";
     }
 
     /// import the checker gray texture
-    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
         return CheckerGrayTexture::MakePtr(engine);
     }
@@ -262,19 +278,25 @@ public:
     }
 
     /// get type
-    [[nodiscard]] HashType Type() const
+    [[nodiscard]] HashType Type() const override
     {
         return Shader::Type();
     }
 
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
+    {
+        return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
+    }
+
     /// get name
-    [[nodiscard]] std::string_view Name() const
+    [[nodiscard]] std::string_view Name() const override
     {
         return "Simple/Diffuse";
     }
 
-    /// import the checker gray texture
-    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine)
+    /// import the simple diffuse shader
+    [[nodiscard]] Expected<ObjectPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
         return SimpleDiffuseShader::MakePtr(engine);
     }
@@ -298,10 +320,10 @@ public:
     explicit Impl(float priority)
     {
         auto checkerGrayTextureInfo = CheckerGrayTextureInfo::MakePtr();
-        Assets::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo, priority);
+        AssetManager::RegisterAssetInfo(checkerGrayTextureInfo->Path(), checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo, priority);
         mAssetInfos.push_back(checkerGrayTextureInfo);
         auto simpleDiffuseShaderInfo = SimpleDiffuseShaderInfo::MakePtr();
-        Assets::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo, priority);
+        AssetManager::RegisterAssetInfo(simpleDiffuseShaderInfo->Path(), simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo, priority);
         mAssetInfos.push_back(simpleDiffuseShaderInfo);
     }
 
@@ -309,13 +331,17 @@ public:
     ~Impl() = default;
 
     /// get asset infos
-    [[nodiscard]] std::span<const AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
+    [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
     {
-        if (path == "Resources/lumen_builtin_extra")
+        std::vector<AssetInfoPtr> result;
+        for (auto assetInfo : mAssetInfos)
         {
-            return mAssetInfos;
+            if (assetInfo->Path() == path)
+            {
+                result.push_back(assetInfo);
+            }
         }
-        return {};
+        return result;
     }
 
 private:
@@ -335,7 +361,7 @@ AssetFactoryPtr BuiltinExtra::MakePtr(float priority)
 }
 
 /// get asset infos
-std::span<const AssetInfoPtr> BuiltinExtra::GetAssetInfos(const std::filesystem::path &path) const
+std::vector<AssetInfoPtr> BuiltinExtra::GetAssetInfos(const std::filesystem::path &path) const
 {
     return mImpl->GetAssetInfos(path);
 }

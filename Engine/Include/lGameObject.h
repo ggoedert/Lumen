@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lJson.h"
+#include "lSerializedData.h"
 #include "lObject.h"
 #include "lApplication.h"
 
@@ -34,10 +34,10 @@ namespace Lumen
         static GameObjectWeakPtr MakePtr(Lumen::Application &application, std::string_view name);
 
         /// serialize
-        void Serialize(json &out) const;
+        void Serialize(SerializedData &out, bool packed) const;
 
         /// deserialize
-        void Deserialize(const json &in);
+        void Deserialize(const SerializedData &in, bool packed);
 
         /// get application
         [[nodiscard]] Application &GetApplication();
@@ -46,10 +46,10 @@ namespace Lumen
         [[nodiscard]] TransformWeakPtr Transform() const;
 
         /// get component
-        [[nodiscard]] ComponentWeakPtr Component(const HashType type) const;
+        [[nodiscard]] ComponentWeakPtr Component(HashType type) const;
 
         /// add a component
-        [[maybe_unused]] ComponentWeakPtr AddComponent(const HashType type);
+        [[maybe_unused]] ComponentWeakPtr AddComponent(HashType type);
 
     protected:
         /// run game object

@@ -23,7 +23,7 @@ namespace Lumen
 
     protected:
         /// constructs an object with type. called by derived classes
-        explicit Object(const HashType type);
+        explicit Object(HashType type);
 
         /// virtual destructor
         virtual ~Object();

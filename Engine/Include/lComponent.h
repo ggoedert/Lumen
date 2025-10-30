@@ -24,20 +24,20 @@ namespace Lumen
 
     public:
         /// serialize
-        virtual void Serialize(json &out) const = 0;
+        virtual void Serialize(SerializedData &out, bool packed) const = 0;
 
         /// deserialize
-        virtual void Deserialize(const json &in) = 0;
+        virtual void Deserialize(const SerializedData &in, bool packed) = 0;
 
         /// get name
-        [[nodiscard]] std::string_view Name() const noexcept;
+        [[nodiscard]] std::string_view Name() const;
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        explicit Component(const HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
+        explicit Component(HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
 
         /// destroys component
         ~Component() override;

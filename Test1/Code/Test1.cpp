@@ -22,21 +22,27 @@ public:
     }
 
     /// get type
-    [[nodiscard]] Lumen::HashType Type() const
+    [[nodiscard]] Lumen::HashType Type() const override
     {
         return Lumen::Material::Type();
     }
 
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
+    {
+        return "Assets/Material.mat";
+    }
+
     /// get name
-    [[nodiscard]] std::string_view Name() const
+    [[nodiscard]] std::string_view Name() const override
     {
         return "Material";
     }
 
     /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::ObjectPtr> Import(Lumen::EngineWeakPtr &engine)
+    [[nodiscard]] Lumen::Expected<Lumen::ObjectPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
-        auto materialExpected = Lumen::Material::MakePtr("Simple/Diffuse");
+        auto materialExpected = Lumen::Material::MakePtr(path, name);
         if (!materialExpected)
         {
             return Lumen::Expected<Lumen::ObjectPtr>::Unexpected(materialExpected.Error());
@@ -62,13 +68,17 @@ public:
     }
 
     /// get asset infos
-    [[nodiscard]] std::span<const Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override
+    [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override
     {
-        if (path == "Assets")
+        std::vector<Lumen::AssetInfoPtr> result;
+        for (auto assetInfo : mAssetInfos)
         {
-            return mAssetInfos;
+            if (assetInfo->Path() == path)
+            {
+                result.push_back(assetInfo);
+            }
         }
-        return {};
+        return result;
     }
 
 private:
@@ -76,7 +86,7 @@ private:
     explicit Test1Factory(float priority) : Lumen::AssetFactory(priority)
     {
         auto materialInfo = MaterialInfo::MakePtr();
-        Lumen::Assets::RegisterAssetInfo(materialInfo->Type(), materialInfo->Name(), materialInfo, priority);
+        Lumen::AssetManager::RegisterAssetInfo(materialInfo->Path(), materialInfo->Type(), materialInfo->Name(), materialInfo, priority);
         mAssetInfos.push_back(materialInfo);
     }
 
@@ -89,7 +99,7 @@ void Test1::Initialize()
 {
     Lumen::Application::Initialize();
 
-    Lumen::Assets::RegisterFactory(Test1Factory::MakePtr(2.0f));
+    Lumen::AssetManager::RegisterFactory(Test1Factory::MakePtr(2.0f));
 
     if (auto engineLock = GetEngine().lock())
     {
@@ -121,7 +131,7 @@ void Test1::Open()
         engineLock->New();
     }
     mMainScene = Lumen::Scene::MakePtr(*this);
-    if (!Lumen::SceneManager::Load(mMainScene, "Assets/MainScene.json"))
+    if (!Lumen::SceneManager::Load(mMainScene, "Assets/MainScene.lumen"))
     {
         Shutdown();
     }

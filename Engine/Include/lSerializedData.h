@@ -1,11 +1,11 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Json help include interface
+/// \brief     SerializedData helper include interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-/// json type alias
-using json = nlohmann::basic_json<nlohmann::ordered_map>;
+/// serialized data type alias
+using SerializedData = nlohmann::basic_json<nlohmann::ordered_map>;

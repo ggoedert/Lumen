@@ -58,7 +58,7 @@ void SceneManager::Shutdown()
 }
 
 /// register component maker
-void SceneManager::RegisterComponentMaker(const HashType type, const ComponentMaker &maker)
+void SceneManager::RegisterComponentMaker(HashType type, const ComponentMaker &maker)
 {
     SceneManager::Initialize();
     L_ASSERT(!Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -89,7 +89,7 @@ void SceneManager::Unload()
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, const HashType type)
+ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, HashType type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -154,7 +154,7 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 }
 
 /// get all components of type
-Components SceneManager::GetComponents(const HashType type)
+Components SceneManager::GetComponents(HashType type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     Components result;

@@ -22,16 +22,16 @@ namespace Lumen
 
     public:
         /// serialize
-        void Serialize(json &out) const override;
+        void Serialize(SerializedData &out, bool packed) const override;
 
         /// deserialize
-        void Deserialize(const json &in) override;
+        void Deserialize(const SerializedData &in, bool packed) override;
 
         /// get the camera's background color
-        [[nodiscard]] const Math::Vector &GetBackgroundColor() const;
+        [[nodiscard]] const Math::Vector4 &GetBackgroundColor() const;
 
         /// set the camera's background color
-        void SetBackgroundColor(const Math::Vector &backgroundColor);
+        void SetBackgroundColor(const Math::Vector4 &backgroundColor);
 
     private:
         /// constructs a camera with a background color

@@ -5,13 +5,15 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "lId.h"
 #include "lObject.h"
-#include "lEngine.h"
+
+#include <filesystem>
 
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Mesh);
 
     /// Mesh class
@@ -38,7 +40,7 @@ namespace Lumen
 
     protected:
         /// constructs a mesh
-        explicit Mesh(const EngineWeakPtr &engine);
+        explicit Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
 
     private:
         /// private implementation

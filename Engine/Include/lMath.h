@@ -84,6 +84,8 @@ namespace Lumen::Math
         constexpr Float2(float _x, float _y) noexcept : x(_x), y(_y) {}
         explicit Float2(_In_reads_(2) const float *pArray) noexcept : x(pArray[0]), y(pArray[1]) {}
 
+        bool operator==(const Float2 &o) const { return x == o.x && y == o.y; }
+
         float x, y;
     };
 
@@ -101,6 +103,8 @@ namespace Lumen::Math
         constexpr Float3(float _x, float _y, float _z) noexcept : x(_x), y(_y), z(_z) {}
         explicit Float3(_In_reads_(3) const float *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]) {}
 
+        bool operator==(const Float3 &o) const { return x == o.x && y == o.y && z == o.z; }
+
         float x, y, z;
     };
 
@@ -117,6 +121,8 @@ namespace Lumen::Math
 
         constexpr Float4(float _x, float _y, float _z, float _w) noexcept : x(_x), y(_y), z(_z), w(_w) {}
         explicit Float4(_In_reads_(4) const float *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
+
+        bool operator==(const Float4 &o) const { return x == o.x && y == o.y && z == o.z && w == o.w; }
 
         float x, y, z, w;
     };
