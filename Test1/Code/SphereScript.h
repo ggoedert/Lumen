@@ -18,10 +18,10 @@ class SphereScript : public Lumen::Behavior
 
 public:
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const override;
+    void Serialize(Lumen::Serialized::Type &out, bool packed) const override;
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed) override;
+    void Deserialize(const Lumen::Serialized::Type &in, bool packed) override;
 
     /// Start is called before the first frame update
     void Start() override;

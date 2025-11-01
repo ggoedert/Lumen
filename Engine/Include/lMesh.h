@@ -6,19 +6,19 @@
 #pragma once
 
 #include "lId.h"
-#include "lObject.h"
-
-#include <filesystem>
+#include "lAsset.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Mesh);
+    CLASS_WEAK_PTR_DEF(Mesh);
 
     /// Mesh class
-    class Mesh : public Object
+    class Mesh : public Asset
     {
+        CLASS_NO_DEFAULT_CTOR(Mesh);
         CLASS_NO_COPY_MOVE(Mesh);
         OBJECT_TYPEINFO;
 
@@ -26,23 +26,22 @@ namespace Lumen
         /// destroys mesh
         ~Mesh() override;
 
+        /// creates a smart pointer version of the mesh asset
+        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
+
         /// release a mesh
         void Release();
-
-        /// get mesh data
-        virtual void GetMeshData(byte *data) = 0;
 
         /// get mesh id
         Id::Type GetMeshId();
 
-        /// set mesh id
-        void SetMeshId(Id::Type meshId);
+        /// get mesh data
+        void GetMeshData(byte *data);
 
-    protected:
+    private:
         /// constructs a mesh
         explicit Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
 
-    private:
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

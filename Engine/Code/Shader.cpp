@@ -57,7 +57,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a shader
-Shader::Shader(const EngineWeakPtr &engine) : Object(Type()), mImpl(Shader::Impl::MakeUniquePtr(engine)) {}
+Shader::Shader(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Asset(Type(), path, name), mImpl(Shader::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys shader
 Shader::~Shader()
@@ -65,19 +65,21 @@ Shader::~Shader()
     Release();
 }
 
-/// custom smart pointer maker
-Expected<ShaderPtr> Shader::MakePtr(std::string_view shaderName)
+/// creates a smart pointer version of the shader asset
+Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
 {
-    // load simple diffuse shader
-    Expected<ObjectPtr> shaderExp = AssetManager::GlobalImport(
-        Shader::Type(),
-        shaderName
-    );
+    Expected<AssetPtr> shaderExp = AssetPtr(new Shader(engine, path, name));
     if (!shaderExp.HasValue())
     {
-        return Expected<ShaderPtr>::Unexpected(std::format("Unable to load {} shader resource, {}", shaderName, shaderExp.Error()));
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource, {}", path.string(), name, shaderExp.Error()));
     }
-    return static_pointer_cast<Shader>(shaderExp.Value());
+    ShaderPtr ptr = static_pointer_cast<Shader>(shaderExp.Value());
+    if (auto engineLock = engine.lock())
+    {
+        ptr->mImpl->mShaderId = engineLock->CreateShader(ptr/*, Engine::SimpleDiffuseShader*/); //@REVIEW@ FIXME: hardcoded shader type
+        L_ASSERT_MSG(ptr->mImpl->mShaderId != Id::Invalid, "Failed to create shader");
+    }
+    return shaderExp.Value();
 }
 
 /// release a shader

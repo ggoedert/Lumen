@@ -10,11 +10,24 @@
 
 using namespace Lumen;
 
+const Math::Vector2 Math::Vector2::cZero { 0.f, 0.f };
+const Math::Vector2 Math::Vector2::cOne { 1.f, 1.f };
+const Math::Vector3 Math::Vector3::cZero { 0.f, 0.f, 0.f };
 const Math::Vector3 Math::Vector3::cOne { 1.f, 1.f, 1.f };
+const Math::Vector4 Math::Vector4::cZero { 0.f, 0.f, 0.f, 0.f };
+const Math::Vector4 Math::Vector4::cOne { 1.f, 1.f, 1.f, 1.f };
+
+const Math::Matrix22 Math::Matrix22::cIdentity { 1.f, 0.f,
+                                                 0.f, 1.f };
+const Math::Matrix33 Math::Matrix33::cIdentity { 1.f, 0.f, 0.f,
+                                                 0.f, 1.f, 0.f,
+                                                 0.f, 0.f, 1.f };
 const Math::Matrix44 Math::Matrix44::cIdentity { 1.f, 0.f, 0.f, 0.f,
                                                  0.f, 1.f, 0.f, 0.f,
                                                  0.f, 0.f, 1.f, 0.f,
                                                  0.f, 0.f, 0.f, 1.f };
+
+const Math::Quaternion Math::Quaternion::cIdentity { 0.f, 0.f, 0.f, 1.f };
 
 // Translation matrix
 Math::Matrix44 Math::Matrix44::Translation(const Math::Vector3 &position) noexcept

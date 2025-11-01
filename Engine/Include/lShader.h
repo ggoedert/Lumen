@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
-#include "lObject.h"
+#include "lAsset.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -15,14 +15,14 @@ namespace Lumen
     CLASS_PTR_DEF(Shader);
 
     /// Shader class
-    class Shader : public Object
+    class Shader : public Asset
     {
         CLASS_NO_COPY_MOVE(Shader);
         OBJECT_TYPEINFO;
 
     public:
-        /// custom smart pointer maker
-        static Expected<ShaderPtr> MakePtr(std::string_view shaderName);
+        /// creates a smart pointer version of the mesh asset
+        static Expected<AssetPtr> MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
 
         /// destroys shader
         ~Shader() override;
@@ -38,7 +38,7 @@ namespace Lumen
 
     protected:
         /// constructs a shader
-        explicit Shader(const EngineWeakPtr &engine);
+        explicit Shader(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
 
     private:
         /// private implementation

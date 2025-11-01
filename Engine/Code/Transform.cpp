@@ -23,21 +23,20 @@ public:
     ~Impl() = default;
 
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const
+    void Serialize(Serialized::Type &out, bool packed) const
     {
         // tokens
-        const std::string &positionToken = packed ? mPackedPositionToken : "Position";
-        const std::string &rotationToken = packed ? mPackedRotationToken : "Rotation";
-        const std::string &scaleToken = packed ? mPackedScaleToken : "Scale";
+        const std::string &positionToken = packed ? Serialized::cPositionTokenPacked : Serialized::cPositionToken;
+        const std::string &rotationToken = packed ? Serialized::cRotationTokenPacked : Serialized::cRotationToken;
 
         // get position
-        if (mPosition != Math::Vector3{})
+        if (mPosition != Math::Vector3::cZero)
         {
             out[positionToken] = { mPosition.x, mPosition.y, mPosition.z };
         }
 
         // get rotation
-        if (mRotation != Math::Vector4{})
+        if (mRotation != Math::Quaternion::cIdentity)
         {
             out[rotationToken] = { mRotation.x, mRotation.y, mRotation.z, mRotation.w };
         }
@@ -45,20 +44,19 @@ public:
         // get scale
         if (mScale != Math::Vector3::cOne)
         {
-            out[scaleToken] = { mScale.x, mScale.y, mScale.z };
+            out[Serialized::cScaleToken] = { mScale.x, mScale.y, mScale.z };
         }
     }
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed)
+    void Deserialize(const Serialized::Type &in, bool packed)
     {
         // tokens
-        const std::string &positionToken = packed ? mPackedPositionToken : "Position";
-        const std::string &rotationToken = packed ? mPackedRotationToken : "Rotation";
-        const std::string &scaleToken = packed ? mPackedScaleToken : "Scale";
+        const std::string &positionToken = packed ? Serialized::cPositionTokenPacked : Serialized::cPositionToken;
+        const std::string &rotationToken = packed ? Serialized::cRotationTokenPacked : Serialized::cRotationToken;
 
         // set position
-        mPosition = {};
+        mPosition = Math::Vector3::cZero;
         if (in.contains(positionToken))
         {
             auto arr = in[positionToken].get<std::vector<float>>();
@@ -70,7 +68,7 @@ public:
         }
 
         // set rotation
-        mRotation = {};
+        mRotation = Math::Quaternion::cIdentity;
         if (in.contains(rotationToken))
         {
             auto arr = in[rotationToken].get<std::vector<float>>();
@@ -83,9 +81,9 @@ public:
 
         // set scale
         mScale = Math::Vector3::cOne;
-        if (in.contains(scaleToken))
+        if (in.contains(Serialized::cScaleToken))
         {
-            auto arr = in[scaleToken].get<std::vector<float>>();
+            auto arr = in[Serialized::cScaleToken].get<std::vector<float>>();
             if (arr.size() != 3)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Scale"));
@@ -171,22 +169,7 @@ public:
 
     /// scale
     Math::Vector3 mScale = Math::Vector3::cOne;
-
-    /// packed position token
-    static const std::string mPackedPositionToken; //@REVIEW@ FIXME move this to some common place
-
-    /// packed rotation token
-    static const std::string mPackedRotationToken; //@REVIEW@ FIXME move this to some common place
-
-    /// packed scale token
-    static const std::string mPackedScaleToken; //@REVIEW@ FIXME move this to some common place
 };
-
-const std::string Transform::Impl::mPackedPositionToken = Base64Encode(HashString("Position"));
-
-const std::string Transform::Impl::mPackedRotationToken = Base64Encode(HashString("Rotation"));
-
-const std::string Transform::Impl::mPackedScaleToken = Base64Encode(HashString("Scale"));
 
 //==============================================================================================================================================================================
 
@@ -206,13 +189,13 @@ TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
 }
 
 /// serialize
-void Transform::Serialize(SerializedData &out, bool packed) const
+void Transform::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void Transform::Deserialize(const SerializedData &in, bool packed)
+void Transform::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }

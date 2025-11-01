@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lStringMap.h"
+#include "lAsset.h"
 #include "lAssetManager.h"
 
 using namespace Lumen;
@@ -34,11 +35,11 @@ public:
     /// register an asset info
     void RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
 
-    /// import asset
-    Expected<ObjectPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
+    /// find asset path from name
+    Expected<std::string_view> FindPath(HashType type, std::string_view name);
 
-    /// import asset from name
-    Expected<ObjectPtr> GlobalImport(HashType type, std::string_view name);
+    /// import asset
+    Expected<AssetPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
 
 private:
     /// engine pointer
@@ -77,8 +78,26 @@ void AssetManagerImpl::RegisterAssetInfo(const std::filesystem::path &path, Hash
     }
 }
 
+/// find asset path from name
+Expected<std::string_view> AssetManagerImpl::FindPath(HashType type, std::string_view name)
+{
+    auto typeIt = mRegisteredAssetInfo.find(type);
+    if (typeIt != mRegisteredAssetInfo.end())
+    {
+        StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
+        if (nameIt != typeIt->second.end())
+        {
+            auto AssetInfo = std::get<AssetInfoPtr>(nameIt->second);
+            return AssetInfo->Path();
+        }
+    }
+
+    // none found
+    return Expected<std::string_view>::Unexpected(std::format("Asset Information path for '{}' not found", name));
+}
+
 /// import asset
-Expected<ObjectPtr> AssetManagerImpl::Import(const std::filesystem::path &path, HashType type, std::string_view name)
+Expected<AssetPtr> AssetManagerImpl::Import(const std::filesystem::path &path, HashType type, std::string_view name)
 {
     // normalize the path
     std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
@@ -103,25 +122,7 @@ Expected<ObjectPtr> AssetManagerImpl::Import(const std::filesystem::path &path, 
     }
 
     // none found, return empty
-    return Expected<ObjectPtr>::Unexpected("Asset Information not found");
-}
-
-/// import asset from name
-Expected<ObjectPtr> AssetManagerImpl::GlobalImport(HashType type, std::string_view name)
-{
-    auto typeIt = mRegisteredAssetInfo.find(type);
-    if (typeIt != mRegisteredAssetInfo.end())
-    {
-        StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
-        if (nameIt != typeIt->second.end())
-        {
-            auto AssetInfo = std::get<AssetInfoPtr>(nameIt->second);
-            return AssetInfo->Import(mEngine, AssetInfo->Path(), AssetInfo->Name());
-        }
-    }
-
-    // none found, return empty
-    return Expected<ObjectPtr>::Unexpected("Asset Information not found");
+    return Expected<AssetPtr>::Unexpected("Asset Information not found");
 }
 
 //==============================================================================================================================================================================
@@ -166,14 +167,14 @@ void AssetManager::RegisterAssetInfo(const std::filesystem::path &path, HashType
     Hidden::gAssetManagerImpl->RegisterAssetInfo(path, type, name, assetInfoPtr, priority);
 }
 
-/// import asset
-Expected<ObjectPtr> AssetManager::Import(const std::filesystem::path &path, HashType type, std::string_view name)
+/// find asset path from name
+Expected<std::string_view> AssetManager::FindPath(HashType type, std::string_view name)
 {
-    return Hidden::gAssetManagerImpl->Import(path, type, name);
+    return Hidden::gAssetManagerImpl->FindPath(type, name);
 }
 
-/// import asset from name
-Expected<ObjectPtr> AssetManager::GlobalImport(HashType type, std::string_view name)
+/// import asset
+Expected<AssetPtr> AssetManager::Import(const std::filesystem::path &path, HashType type, std::string_view name)
 {
-    return Hidden::gAssetManagerImpl->GlobalImport(type, name);
+    return Hidden::gAssetManagerImpl->Import(path, type, name);
 }

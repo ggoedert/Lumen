@@ -7,7 +7,7 @@
 
 #include "lDefs.h"
 #include "lExpected.h"
-#include "lObject.h"
+#include "lAsset.h"
 #include "lFileSystem.h"
 
 /// Lumen namespace
@@ -31,7 +31,7 @@ namespace Lumen
         [[nodiscard]] virtual std::string_view Name() const = 0;
 
         /// import the asset
-        [[nodiscard]] virtual Lumen::Expected<ObjectPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) = 0;
+        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);
@@ -71,10 +71,10 @@ namespace Lumen
         /// register an asset info
         void RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
 
-        /// import asset
-        Expected<ObjectPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
+        /// find asset path from name
+        Expected<std::string_view> FindPath(HashType type, std::string_view name);
 
-        /// import asset from name
-        Expected<ObjectPtr> GlobalImport(HashType type, std::string_view name);
+        /// import asset
+        Expected<AssetPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
     };
 }

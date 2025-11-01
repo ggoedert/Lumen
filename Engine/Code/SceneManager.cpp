@@ -25,7 +25,7 @@ namespace Lumen::Hidden
         ScenePtr mCurrentScene;
 
         /// map of component makers
-        std::unordered_map<HashType, SceneManager::ComponentMaker, HashTypeHasher> mComponentMakers;
+        std::unordered_map<HashType, SceneManager::ComponentMaker, HashTypeHasher, HashTypeEqual> mComponentMakers;
 
         /// game objects in the scene
         std::vector<GameObjectPtr> mGameObjects;
@@ -34,7 +34,7 @@ namespace Lumen::Hidden
         std::vector<ComponentPtr> mNewComponents;
 
         /// map of components
-        std::unordered_map<HashType, std::vector<ComponentPtr>, HashTypeHasher> mComponentsMap;
+        std::unordered_map<HashType, std::vector<ComponentPtr>, HashTypeHasher, HashTypeEqual> mComponentsMap;
     };
 
     static std::unique_ptr<SceneManagerState> gSceneManagerState;
@@ -89,7 +89,7 @@ void SceneManager::Unload()
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, HashType type)
+ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, Hash type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -154,7 +154,7 @@ bool SceneManager::UnregisterComponent(const ComponentWeakPtr &component)
 }
 
 /// get all components of type
-Components SceneManager::GetComponents(HashType type)
+Components SceneManager::GetComponents(Hash type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     Components result;

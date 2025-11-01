@@ -22,46 +22,42 @@ public:
     explicit Impl() = default;
 
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const
+    void Serialize(Serialized::Type &out, bool packed) const
     {
+        // token
+        const std::string &meshTypeToken = packed ? Serialized::cMeshTypeTokenPacked : Serialized::cMeshTypeToken;
+
+        Serialized::Type meshObj = Serialized::Type::object();
+        meshObj[Serialized::cPathToken] = mMesh->Path();
+        meshObj[Serialized::cNameToken] = mMesh->Name();
+        out[meshTypeToken] = meshObj;
     }
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed)
+    void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // tokens
-        const std::string &pathToken = packed ? mPackedPathToken : "Path";
-        const std::string &nameToken = packed ? mPackedNameToken : "Name";
-        const std::string &meshTypeToken = "Lumen::Mesh";
+        // token
+        const std::string &meshTypeToken = packed ? Serialized::cMeshTypeTokenPacked : Serialized::cMeshTypeToken;
 
         mMesh.reset();
 
-        std::string meshTypeKey;
-        if (packed)
+        if (in.contains(meshTypeToken))
         {
-            meshTypeKey = Base64Encode(Mesh::Type());
-        }
-        else
-        {
-            meshTypeKey = meshTypeToken;
-        }
-        if (in.contains(meshTypeKey))
-        {
-            auto obj = in[meshTypeKey];
+            auto obj = in[meshTypeToken];
 
             std::string path, name;
-            if (obj.contains(pathToken))
+            if (obj.contains(Serialized::cPathToken))
             {
-                path = obj[pathToken].get<std::string>();
+                path = obj[Serialized::cPathToken].get<std::string>();
             }
-            if (obj.contains(nameToken))
+            if (obj.contains(Serialized::cNameToken))
             {
-                name = obj[nameToken].get<std::string>();
+                name = obj[Serialized::cNameToken].get<std::string>();
             }
             if (!path.empty() && !name.empty())
             {
                 // load sphere mesh
-                Expected<ObjectPtr> meshExp = AssetManager::Import(path, Mesh::Type(), name);
+                Expected<AssetPtr> meshExp = AssetManager::Import(path, Mesh::Type(), name);
                 if (!meshExp.HasValue())
                 {
                     throw std::runtime_error(std::format("Unable to load default sphere mesh resource, {}", meshExp.Error()));
@@ -80,17 +76,7 @@ public:
 private:
     /// mesh
     MeshPtr mMesh;
-
-    /// packed path token
-    static const std::string mPackedPathToken; //@REVIEW@ FIXME move this to some common place
-
-    /// packed name token
-    static const std::string mPackedNameToken; //@REVIEW@ FIXME move this to some common place
 };
-
-const std::string MeshFilter::Impl::mPackedPathToken = Base64Encode(HashString("Path"));
-
-const std::string MeshFilter::Impl::mPackedNameToken = Base64Encode(HashString("Name"));
 
 //==============================================================================================================================================================================
 
@@ -107,13 +93,13 @@ ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWe
 }
 
 /// serialize
-void MeshFilter::Serialize(SerializedData &out, bool packed) const
+void MeshFilter::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshFilter::Deserialize(const SerializedData &in, bool packed)
+void MeshFilter::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }

@@ -1,11 +1,20 @@
 {
     "Camera": {
         "Transform": {
-            "Position": [ 0, 0, -10 ]
+            "Position": [
+                0.0,
+                0.0,
+                -10.0
+            ]
         },
         "Components": {
             "Lumen::Camera": {
-                "BackgroundColor": [ 0.4509, 0.8431, 1, 1 ]
+                "BackgroundColor": [
+                    0.45089998841285706,
+                    0.8431000113487244,
+                    1.0,
+                    1.0
+                ]
             }
         }
     },

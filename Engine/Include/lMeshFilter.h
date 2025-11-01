@@ -23,10 +23,10 @@ namespace Lumen
 
     public:
         /// serialize
-        void Serialize(SerializedData &out, bool packed) const override;
+        void Serialize(Serialized::Type &out, bool packed) const override;
 
         /// deserialize
-        void Deserialize(const SerializedData &in, bool packed) override;
+        void Deserialize(const Serialized::Type &in, bool packed) override;
 
         /// get mesh
         [[nodiscard]] const MeshPtr GetMesh() const;

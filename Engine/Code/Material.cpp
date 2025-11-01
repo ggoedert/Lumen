@@ -36,22 +36,29 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a material with an shader
-Material::Material(ShaderPtr shader) : Object(Type()), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
+Material::Material(ShaderPtr shader, const std::filesystem::path &path, std::string_view name) : Asset(Type(), path, name), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
 
 /// custom smart pointer maker
-Expected<MaterialPtr> Material::MakePtr(const std::filesystem::path &path, std::string_view name)
+Expected<AssetPtr> Material::MakePtr(const std::filesystem::path &path, std::string_view name)
 {
     //@REVIEW@ FIXME we should really open the material and get the shaderName from it
     std::string shaderName = "Simple/Diffuse";
 
-    // load simple diffuse shader
-    Expected<ShaderPtr> shaderExp = Shader::MakePtr(shaderName);
-    if (!shaderExp.HasValue())
+    // get shader information
+    Expected<std::string_view> shaderPathExp = AssetManager::FindPath(Shader::Type(), shaderName);
+    if (!shaderPathExp.HasValue())
     {
-        return Expected<MaterialPtr>::Unexpected(shaderExp.Error());
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load {} shader resource, {}", shaderName, shaderPathExp.Error()));
     }
 
-    return MaterialPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value())));
+    // load shader
+    Expected<AssetPtr> shaderExp = AssetManager::Import(shaderPathExp.Value(), Shader::Type(), shaderName);
+    if (!shaderExp.HasValue())
+    {
+        return Expected<AssetPtr>::Unexpected(shaderExp.Error());
+    }
+
+    return AssetPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value()), path, name));
 }
 
 /// get shader

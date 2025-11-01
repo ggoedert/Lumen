@@ -24,10 +24,10 @@ namespace Lumen
 
     public:
         /// serialize
-        virtual void Serialize(SerializedData &out, bool packed) const = 0;
+        virtual void Serialize(Serialized::Type &out, bool packed) const = 0;
 
         /// deserialize
-        virtual void Deserialize(const SerializedData &in, bool packed) = 0;
+        virtual void Deserialize(const Serialized::Type &in, bool packed) = 0;
 
         /// get name
         [[nodiscard]] std::string_view Name() const;

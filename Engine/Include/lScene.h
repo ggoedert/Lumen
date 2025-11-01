@@ -28,10 +28,10 @@ namespace Lumen
         ~Scene();
 
         /// serialize
-        void Serialize(SerializedData &out, bool packed) const;
+        void Serialize(Serialized::Type &out, bool packed) const;
 
         /// deserialize
-        void Deserialize(const SerializedData &in, bool packed);
+        void Deserialize(const Serialized::Type &in, bool packed);
 
         /// load scene
         bool Load(const std::filesystem::path &file);

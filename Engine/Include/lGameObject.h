@@ -34,22 +34,25 @@ namespace Lumen
         static GameObjectWeakPtr MakePtr(Lumen::Application &application, std::string_view name);
 
         /// serialize
-        void Serialize(SerializedData &out, bool packed) const;
+        void Serialize(Serialized::Type &out, bool packed) const;
 
         /// deserialize
-        void Deserialize(const SerializedData &in, bool packed);
+        void Deserialize(const Serialized::Type &in, bool packed);
 
         /// get application
         [[nodiscard]] Application &GetApplication();
+
+        /// get name
+        [[nodiscard]] std::string_view Name() const;
 
         /// get transform
         [[nodiscard]] TransformWeakPtr Transform() const;
 
         /// get component
-        [[nodiscard]] ComponentWeakPtr Component(HashType type) const;
+        [[nodiscard]] ComponentWeakPtr Component(Hash type) const;
 
         /// add a component
-        [[maybe_unused]] ComponentWeakPtr AddComponent(HashType type);
+        [[maybe_unused]] ComponentWeakPtr AddComponent(Hash type);
 
     protected:
         /// run game object

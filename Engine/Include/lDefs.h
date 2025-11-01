@@ -67,8 +67,26 @@ namespace Lumen
         Hash mHash;
         std::string_view mName;
     };
-    struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h.mHash); } };
-    struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a.mHash < b.mHash; } };
+    struct HashTypeHasher
+    {
+        using is_transparent = void;
+        size_t operator()(const HashType &h) const { return static_cast<size_t>(h.mHash); }
+        size_t operator()(Hash h) const { return static_cast<size_t>(h); }
+    };
+    struct HashTypeComparator
+    {
+        using is_transparent = void;
+        bool operator()(const HashType &a, const HashType &b) const { return a.mHash < b.mHash; }
+        bool operator()(const HashType &a, Hash b) const { return a.mHash < b; }
+        bool operator()(Hash a, const HashType &b) const { return a < b.mHash; }
+    };
+    struct HashTypeEqual
+    {
+        using is_transparent = void;
+        bool operator()(const HashType &a, const HashType &b) const { return a.mHash == b.mHash; }
+        bool operator()(const HashType &a, Hash b) const { return a.mHash == b; }
+        bool operator()(Hash a, const HashType &b) const { return a == b.mHash; }
+    };
 
     /// hash (FNV-1a) type from type name, typeinfo version
     HashType EncodeType(const char *typeName);
@@ -80,6 +98,7 @@ namespace Lumen
     using HashType = Hash;
     struct HashTypeHasher { size_t operator()(HashType &h) const { return static_cast<size_t>(h); } };
     struct HashTypeComparator { bool operator()(HashType &a, HashType &b) const { return a < b; } };
+    struct HashTypeEqual { bool operator()(HashType &a, HashType &b) const { return a == b; } };
 
     /// hash (FNV-1a) type from type name evaluated at compile time
     constexpr HashType EncodeType(const char *typeName)

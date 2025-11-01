@@ -30,10 +30,10 @@ namespace Lumen
         static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
 
         /// serialize
-        void Serialize(SerializedData &out, bool packed) const;
+        void Serialize(Serialized::Type &out, bool packed) const;
 
         /// deserialize
-        void Deserialize(const SerializedData &in, bool packed);
+        void Deserialize(const Serialized::Type &in, bool packed);
 
         /// get owning game object
         [[nodiscard]] GameObjectWeakPtr GameObject() const;

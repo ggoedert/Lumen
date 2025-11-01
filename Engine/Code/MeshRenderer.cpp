@@ -27,40 +27,75 @@ public:
     explicit Impl(const EngineWeakPtr &engine) : mEngine(engine) {}
 
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const
+    void Serialize(Serialized::Type &out, bool packed) const
     {
+        const std::string &materialTypeToken = packed ? Serialized::cMaterialTypeTokenPacked : Serialized::cMaterialTypeToken;
+        const std::string &propertiesToken = packed ? Serialized::cPropertiesTokenPacked : Serialized::cPropertiesToken;
+        const std::string &textureTypeToken = packed ? Serialized::cTextureTypeTokenPacked : Serialized::cTextureTypeToken;
+
+        Serialized::Type materialObj = Serialized::Type::object();
+        materialObj[Serialized::cPathToken] = mMaterial->Path();
+        materialObj[Serialized::cNameToken] = mMaterial->Name();
+        out[materialTypeToken] = materialObj;
+
+        Serialized::Type propertiesObj = Serialized::Type::object();
+        for (const auto &[key, value] : mProperties)
+        {
+            if (std::holds_alternative<int>(value))
+            {
+                propertiesObj[key] = std::get<int>(value);
+            }
+            else if (std::holds_alternative<float>(value))
+            {
+                propertiesObj[key] = std::get<float>(value);
+            }
+            else if (std::holds_alternative<Lumen::TexturePtr>(value))
+            {
+                Serialized::Type textureValue = Serialized::Type::object();
+                auto tex = std::get<Lumen::TexturePtr>(value);
+                if (tex)
+                {
+                    textureValue[Serialized::cPathToken] = tex->Path();
+                    textureValue[Serialized::cNameToken] = tex->Name();
+                }
+                Serialized::Type textureObj = Serialized::Type::object();
+                textureObj[textureTypeToken] = textureValue;
+                propertiesObj[key] = textureObj;
+            }
+        }
+        out[propertiesToken] = propertiesObj;
     }
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed)
+    void Deserialize(const Serialized::Type &in, bool packed)
     {
         // tokens
-        const std::string &pathToken = packed ? mPackedPathToken : "Path";
-        const std::string &nameToken = packed ? mPackedNameToken : "Name";
-        const std::string &textureTypeToken = "Lumen::Texture";
+        const std::string &materialTypeToken = packed ? Serialized::cMaterialTypeTokenPacked : Serialized::cMaterialTypeToken;
+        const std::string &propertiesToken = packed ? Serialized::cPropertiesTokenPacked : Serialized::cPropertiesToken;
+        const std::string &textureTypeToken = packed ? Serialized::cTextureTypeTokenPacked : Serialized::cTextureTypeToken;
 
         mMaterial.reset();
         mProperties.clear();
 
         for (auto &inItem : in.items())
         {
-            if (inItem.key() == Material::Type().mName)
+            if (inItem.key() == materialTypeToken)
             {
                 auto &obj = inItem.value();
 
                 std::string path, name;
-                if (obj.contains(pathToken))
+                if (obj.contains(Serialized::cPathToken))
                 {
-                    path = obj[pathToken].get<std::string>();
+                    path = obj[Serialized::cPathToken].get<std::string>();
                 }
-                if (obj.contains(nameToken))
+                if (obj.contains(Serialized::cNameToken))
                 {
-                    name = obj[nameToken].get<std::string>();
+                    name = obj[Serialized::cNameToken].get<std::string>();
                 }
                 if (!path.empty() && !name.empty())
                 {
                     // load material material
-                    Expected<ObjectPtr> materialExp = AssetManager::Import(path, Material::Type(), name);
+                    Expected<AssetPtr> materialExp = AssetManager::Import(path, Material::Type(), name);
                     if (!materialExp.HasValue())
                     {
                         throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
@@ -69,36 +104,27 @@ public:
                 }
             }
 
-            if (inItem.key() == "Properties")
+            if (inItem.key() == propertiesToken) //@REVIEW@ FIXME move this inside the material
             {
                 for (auto &inProperty : inItem.value().items())
                 {
                     auto &propertyValue = inProperty.value();
-                    std::string textureTypeKey;
-                    if (packed)
+                    if (propertyValue.contains(textureTypeToken))
                     {
-                        textureTypeKey = Base64Encode(Texture::Type());
-                    }
-                    else
-                    {
-                        textureTypeKey = textureTypeToken;
-                    }
-                    if (propertyValue.contains(textureTypeKey))
-                    {
-                        auto propertyData = propertyValue[textureTypeKey];
+                        auto propertyData = propertyValue[textureTypeToken];
                         std::string path, name;
-                        if (propertyData.contains(pathToken))
+                        if (propertyData.contains(Serialized::cPathToken))
                         {
-                            path = propertyData[pathToken].get<std::string>();
+                            path = propertyData[Serialized::cPathToken].get<std::string>();
                         }
-                        if (propertyData.contains(nameToken))
+                        if (propertyData.contains(Serialized::cNameToken))
                         {
-                            name = propertyData[nameToken].get<std::string>();
+                            name = propertyData[Serialized::cNameToken].get<std::string>();
                         }
                         if (!path.empty() && !name.empty())
                         {
                             // load texture
-                            Expected<ObjectPtr> textureExp = AssetManager::Import(path, Texture::Type(), name);
+                            Expected<AssetPtr> textureExp = AssetManager::Import(path, Texture::Type(), name);
                             if (!textureExp.HasValue())
                             {
                                 throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
@@ -106,7 +132,7 @@ public:
                             const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
 
                             // set property
-                            SetProperty("_MainTex", texture);
+                            SetProperty(inProperty.key(), texture);
                         }
                     }
                 }
@@ -187,17 +213,7 @@ public:
 
     /// map of properties
     StringMap<PropertyValue> mProperties;
-
-    /// packed path token
-    static const std::string mPackedPathToken; //@REVIEW@ FIXME move this to some common place
-
-    /// packed name token
-    static const std::string mPackedNameToken; //@REVIEW@ FIXME move this to some common place
 };
-
-const std::string MeshRenderer::Impl::mPackedPathToken = Base64Encode(HashString("Path"));
-
-const std::string MeshRenderer::Impl::mPackedNameToken = Base64Encode(HashString("Name"));
 
 //==============================================================================================================================================================================
 
@@ -217,13 +233,13 @@ ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObject
 }
 
 /// serialize
-void MeshRenderer::Serialize(SerializedData &out, bool packed) const
+void MeshRenderer::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshRenderer::Deserialize(const SerializedData &in, bool packed)
+void MeshRenderer::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }

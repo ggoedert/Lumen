@@ -22,12 +22,14 @@ Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, co
 }
 
 /// serialize
-void SphereScript::Serialize(SerializedData &out, bool packed) const
+void SphereScript::Serialize(Lumen::Serialized::Type &out, bool packed) const
 {
+    // set to empty object
+    out = Lumen::Serialized::Type::object();
 }
 
 /// deserialize
-void SphereScript::Deserialize(const SerializedData &in, bool packed)
+void SphereScript::Deserialize(const Lumen::Serialized::Type &in, bool packed)
 {
 }
 

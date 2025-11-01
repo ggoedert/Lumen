@@ -31,14 +31,14 @@ public:
     void Unregister() { SceneManager::UnregisterGameObject(mOwner); }
 
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const
+    void Serialize(Serialized::Type &out, bool packed) const
     {
         // tokens
-        const std::string &transformToken = packed ? mPackedTransformToken : "Transform";
-        const std::string &componentsToken = packed ? mPackedComponentsToken : "Components";
+        const std::string &transformToken = packed ? Serialized::cTransformTokenPacked : Serialized::cTransformToken;
+        const std::string &componentsToken = packed ? Serialized::cComponentsTokenPacked : Serialized::cComponentsToken;
 
         // get transform
-        SerializedData outTransform = {};
+        Serialized::Type outTransform = {};
         mTransform->Serialize(outTransform, packed);
         if (!outTransform.empty())
         {
@@ -46,23 +46,15 @@ public:
         }
 
         // get components
-        SerializedData outComponents = {};
-        for (const ComponentWeakPtr& component : mComponents)
+        Serialized::Type outComponents = {};
+        for (const ComponentWeakPtr &component : mComponents)
         {
             auto componentPtr = component.lock();
             L_ASSERT(componentPtr);
-            std::string componentTypeKey;
 #ifdef TYPEINFO
-            if (packed)
-            {
-                componentTypeKey = Base64Encode(componentPtr->Type());
-            }
-            else
-            {
-                componentTypeKey = componentPtr->Type().mName;
-            }
+            std::string componentTypeKey = packed ? Base64Encode(componentPtr->Type()) : std::string(componentPtr->Type().mName);
 #else
-            componentTypeKey = Base64Encode(componentPtr->Type());
+            std::string componentTypeKey = Base64Encode(componentPtr->Type());
 #endif
             componentPtr->Serialize(outComponents[componentTypeKey], packed);
         }
@@ -70,17 +62,23 @@ public:
         {
             out[componentsToken] = outComponents;
         }
+
+        // if empty, set to object
+        if (out.empty())
+        {
+            out = Serialized::Type::object();
+        }
     }
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed)
+    void Deserialize(const Serialized::Type &in, bool packed)
     {
         // tokens
-        const std::string &transformToken = packed ? mPackedTransformToken : "Transform";
-        const std::string &componentsToken = packed ? mPackedComponentsToken : "Components";
+        const std::string &transformToken = packed ? Serialized::cTransformTokenPacked : Serialized::cTransformToken;
+        const std::string &componentsToken = packed ? Serialized::cComponentsTokenPacked : Serialized::cComponentsToken;
 
         // set transform
-        SerializedData transformIn = {};
+        Serialized::Type transformIn = {};
         if (in.contains(transformToken))
         {
             transformIn = in[transformToken];
@@ -94,7 +92,11 @@ public:
             for (auto &inComponent : in[componentsToken].items())
             {
                 const std::string &componentTypeName = inComponent.key();
-                HashType componentType = EncodeType(componentTypeName.c_str());
+#ifdef TYPEINFO
+                Hash componentType = packed ? Base64Decode(componentTypeName.c_str()) : EncodeType(componentTypeName.c_str());
+#else
+                Hash componentType = Base64Decode(componentTypeName.c_str());
+#endif
                 auto component = AddComponent(mOwner, componentType);
                 component.lock()->Deserialize(inComponent.value(), packed);
             }
@@ -104,14 +106,17 @@ public:
     /// get transform
     [[nodiscard]] Application &GetApplication() { return mApplication; }
 
+    /// get name
+    [[nodiscard]] std::string_view Name() const { return mName; }
+
     /// get transform
     [[nodiscard]] TransformWeakPtr Transform() const noexcept { return mTransform; }
 
     /// get component
-    [[nodiscard]] ComponentWeakPtr Component(HashType type) const noexcept;
+    [[nodiscard]] ComponentWeakPtr Component(Hash type) const noexcept;
 
     /// add a component
-    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, HashType type);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, Hash type);
 
 protected:
     /// run game object
@@ -132,17 +137,7 @@ private:
 
     /// components
     std::vector<ComponentWeakPtr> mComponents;
-
-    /// packed transform token
-    static const std::string mPackedTransformToken; //@REVIEW@ FIXME move this to some common place
-
-    /// packed components token
-    static const std::string mPackedComponentsToken; //@REVIEW@ FIXME move this to some common place
 };
-
-const std::string GameObject::Impl::mPackedTransformToken = Base64Encode(HashString("Transform"));
-
-const std::string GameObject::Impl::mPackedComponentsToken = Base64Encode(HashString("Components"));
 
 /// constructs a game object
 GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application, std::string_view name) :
@@ -159,7 +154,7 @@ GameObject::Impl::~Impl()
 }
 
 /// get component
-ComponentWeakPtr GameObject::Impl::Component(HashType type) const noexcept
+ComponentWeakPtr GameObject::Impl::Component(Hash type) const noexcept
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
@@ -174,7 +169,7 @@ ComponentWeakPtr GameObject::Impl::Component(HashType type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, HashType type)
+ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, Hash type)
 {
     ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), gameObject, type);
     mComponents.push_back(component);
@@ -213,20 +208,20 @@ GameObject::~GameObject() {}
 /// custom smart pointer maker, self registers into scene manager
 GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application, std::string_view name)
 {
-    GameObjectPtr gameObject = std::shared_ptr<GameObject>(new GameObject());
+    GameObjectPtr gameObject = GameObjectPtr(new GameObject());
     GameObjectWeakPtr gameObjectWeak = SceneManager::RegisterGameObject(gameObject);
     gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak, application, name);
     return gameObjectWeak;
 }
 
 /// serialize
-void GameObject::Serialize(SerializedData &out, bool packed) const
+void GameObject::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void GameObject::Deserialize(const SerializedData &in, bool packed)
+void GameObject::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }
@@ -237,6 +232,12 @@ Application &GameObject::GetApplication()
     return mImpl->GetApplication();
 }
 
+/// get name
+std::string_view GameObject::Name() const
+{
+    return mImpl->Name();
+}
+
 /// get transform
 TransformWeakPtr GameObject::Transform() const
 {
@@ -244,13 +245,13 @@ TransformWeakPtr GameObject::Transform() const
 }
 
 /// get component
-ComponentWeakPtr GameObject::Component(HashType type) const
+ComponentWeakPtr GameObject::Component(Hash type) const
 {
     return mImpl->Component(type);
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(HashType type)
+ComponentWeakPtr GameObject::AddComponent(Hash type)
 {
     return mImpl->AddComponent(shared_from_this(), type);
 }

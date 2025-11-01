@@ -5,43 +5,49 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
-#include "lObject.h"
-#include "lEngine.h"
+#include "lId.h"
+#include "lAsset.h"
 
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Texture);
+    CLASS_WEAK_PTR_DEF(Texture);
 
     /// Texture class
-    class Texture : public Object
+    class Texture : public Asset
     {
         CLASS_NO_DEFAULT_CTOR(Texture);
         CLASS_NO_COPY_MOVE(Texture);
         OBJECT_TYPEINFO;
 
     public:
+        /// texture info
+        struct Info
+        {
+            int mWidth; int mHeight;
+        };
+
         /// destroys texture
         ~Texture() override;
+
+        /// creates a smart pointer version of the texture asset
+        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info);
 
         /// release a texture
         void Release();
 
-        /// get texture data
-        virtual void GetTextureData(byte *data, int pitch) = 0;
-
         /// get texture id
         Id::Type GetTextureId();
 
-        /// set texture id
-        void SetTextureId(Id::Type textureId);
-
-    protected:
-        /// constructs a texture
-        explicit Texture(const EngineWeakPtr &engine);
+        /// get texture data
+        void GetTextureData(byte *data, int pitch);
 
     private:
+        /// constructs a texture
+        explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info);
+
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

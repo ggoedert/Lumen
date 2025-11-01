@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Math
+/// \brief     Math interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -240,7 +240,7 @@ namespace Lumen::Math
     {
         Vector2() noexcept : Float2(0.f, 0.f) {}
         constexpr explicit Vector2(float x) noexcept : Float2(x, x) {}
-        constexpr Vector2(float x, float y, float z) noexcept : Float2(x, y) {}
+        constexpr Vector2(float x, float y) noexcept : Float2(x, y) {}
         explicit Vector2(_In_reads_(2) const float *pArray) noexcept : Float2(pArray) {}
         Vector2(const Float2 &f) noexcept { this->x = f.x; this->y = f.y; }
         explicit Vector2(const Vector &v) noexcept { this->x = v.mF[0]; this->y = v.mF[1]; }

@@ -40,14 +40,14 @@ public:
     }
 
     /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::ObjectPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
     {
         auto materialExpected = Lumen::Material::MakePtr(path, name);
         if (!materialExpected)
         {
-            return Lumen::Expected<Lumen::ObjectPtr>::Unexpected(materialExpected.Error());
+            return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());
         }
-        return Lumen::Expected<Lumen::ObjectPtr>(std::static_pointer_cast<Lumen::Object>(materialExpected.Value()));
+        return Lumen::Expected<Lumen::AssetPtr>(materialExpected.Value());
     }
 
 private:

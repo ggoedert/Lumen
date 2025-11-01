@@ -7,7 +7,7 @@
 
 #include "lDefs.h"
 #include "lExpected.h"
-#include "lObject.h"
+#include "lAsset.h"
 #include "lFileSystem.h"
 
 /// Lumen namespace
@@ -17,7 +17,7 @@ namespace Lumen
     CLASS_PTR_DEF(Shader);
 
     /// Material class
-    class Material : public Object
+    class Material : public Asset
     {
         CLASS_NO_DEFAULT_CTOR(Material);
         CLASS_NO_COPY_MOVE(Material);
@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the Material
-        static Expected<MaterialPtr> MakePtr(const std::filesystem::path &path, std::string_view name);
+        static Expected<AssetPtr> MakePtr(const std::filesystem::path &path, std::string_view name);
 
         /// get shader
         [[nodiscard]] ShaderPtr GetShader() const;
@@ -35,7 +35,7 @@ namespace Lumen
 
     private:
         /// constructs a material with an shader
-        explicit Material(ShaderPtr shader);
+        explicit Material(ShaderPtr shader, const std::filesystem::path &path, std::string_view name);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

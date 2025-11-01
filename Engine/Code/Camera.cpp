@@ -21,22 +21,32 @@ public:
     explicit Impl() = default;
 
     /// serialize
-    void Serialize(SerializedData &out, bool packed) const
+    void Serialize(Serialized::Type &out, bool packed) const
     {
         // token
-        std::string backgroundColorToken = packed ? mPackedBackgroundColorToken : "BackgroundColor";
+        std::string backgroundColorToken = packed ? Serialized::cBackgroundColorTokenPacked : Serialized::cBackgroundColorToken;
 
-        out[backgroundColorToken] = { mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, mBackgroundColor.w };
+        // get background color
+        if (mBackgroundColor != Math::Vector4::cZero)
+        {
+            out[backgroundColorToken] = { mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, mBackgroundColor.w };
+        }
+
+        // if empty, set to object
+        if (out.empty())
+        {
+            out = Serialized::Type::object();
+        }
     }
 
     /// deserialize
-    void Deserialize(const SerializedData &in, bool packed)
+    void Deserialize(const Serialized::Type &in, bool packed)
     {
         // token
-        std::string backgroundColorToken = packed ? mPackedBackgroundColorToken : "BackgroundColor";
+        std::string backgroundColorToken = packed ? Serialized::cBackgroundColorTokenPacked : Serialized::cBackgroundColorToken;
 
         // set background color
-        mBackgroundColor = {};
+        mBackgroundColor = Math::Vector4::cZero;
         if (in.contains(backgroundColorToken))
         {
             auto arr = in[backgroundColorToken].get<std::vector<float>>();
@@ -58,12 +68,7 @@ private:
 
     /// background color
     Math::Vector4 mBackgroundColor;
-
-    /// packed background color token
-    static const std::string mPackedBackgroundColorToken; //@REVIEW@ FIXME move this to some common place
 };
-
-const std::string Camera::Impl::mPackedBackgroundColorToken = Base64Encode(HashString("BackgroundColor"));
 
 //==============================================================================================================================================================================
 
@@ -80,13 +85,13 @@ ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPt
 }
 
 /// serialize
-void Camera::Serialize(SerializedData &out, bool packed) const
+void Camera::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void Camera::Deserialize(const SerializedData &in, bool packed)
+void Camera::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }

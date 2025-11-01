@@ -35,17 +35,16 @@ public:
         }
     }
 
-    /// get mesh id
-    Id::Type GetMeshId()
+    /// get mesh data
+    void GetMeshData(byte *data)
     {
-        return mMeshId;
+        const std::filesystem::path &path = mOwner.lock()->Path();
+        const std::string &name = mOwner.lock()->Name();
+        // if ("lumen default resources/Assets/Mesh/Sphere.fbx" == path.string() && "Sphere" == name) do something?
     }
 
-    /// set mesh id
-    void SetMeshId(Id::Type meshId)
-    {
-        mMeshId = meshId;
-    }
+    /// owner
+    MeshWeakPtr mOwner;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -57,12 +56,25 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Object(Type()), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
+Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Asset(Type(), path, name), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys mesh
 Mesh::~Mesh()
 {
     Release();
+}
+
+/// creates a smart pointer version of the mesh asset
+AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+{
+    auto ptr = MeshPtr(new Mesh(engine, path, name));
+    ptr->mImpl->mOwner = ptr;
+    if (auto engineLock = engine.lock())
+    {
+        ptr->mImpl->mMeshId = engineLock->CreateMesh(ptr);
+        L_ASSERT_MSG(ptr->mImpl->mMeshId != Id::Invalid, "Failed to create mesh");
+    }
+    return ptr;
 }
 
 /// release a mesh
@@ -74,11 +86,11 @@ void Mesh::Release()
 /// get mesh id
 Id::Type Mesh::GetMeshId()
 {
-    return mImpl->GetMeshId();
+    return mImpl->mMeshId;
 }
 
-/// set mesh id
-void Mesh::SetMeshId(Id::Type meshId)
+/// get mesh data
+void Mesh::GetMeshData(byte *data)
 {
-    mImpl->SetMeshId(meshId);
+    mImpl->GetMeshData(data);
 }
