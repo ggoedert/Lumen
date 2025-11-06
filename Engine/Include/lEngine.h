@@ -74,8 +74,8 @@ namespace Lumen
         /// properties
         void GetDefaultSize(int &width, int &height) const;
 
-        /// create a folder file system
-        [[nodiscard]] IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const;
+        /// create a file system for the assets
+        [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
 
         /// begin scene
         void BeginScene();

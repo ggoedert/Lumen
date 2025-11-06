@@ -6,26 +6,28 @@
 #pragma once
 
 #include "lDefs.h"
-#include "lGameObject.h"
+#include "lAsset.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(Scene);
+    CLASS_WEAK_PTR_DEF(Scene);
+    CLASS_PTR_DEF(Application);
 
     /// Scene class
-    class Scene
+    class Scene : public Asset
     {
         CLASS_NO_DEFAULT_CTOR(Scene);
         CLASS_NO_COPY_MOVE(Scene);
-        CLASS_PTR_MAKER(Scene);
+        OBJECT_TYPEINFO;
 
     public:
-        /// constructor
-        explicit Scene(Lumen::Application &application);
-
         /// destructor
-        ~Scene();
+        ~Scene() override;
+
+        /// creates a smart pointer version of the scene
+        static ScenePtr MakePtr(Application &application, std::string_view name, const std::filesystem::path &path);
 
         /// serialize
         void Serialize(Serialized::Type &out, bool packed) const;
@@ -33,13 +35,19 @@ namespace Lumen
         /// deserialize
         void Deserialize(const Serialized::Type &in, bool packed);
 
-        /// load scene
-        bool Load(const std::filesystem::path &file);
+        /// save scene
+        bool Save() const override;
 
-        /// unload scene
-        void Unload();
+        /// load scene
+        bool Load() override;
+
+        /// release scene
+        void Release() override;
 
     private:
+        /// constructor
+        explicit Scene(Lumen::Application &application, std::string_view name, const std::filesystem::path &path);
+
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

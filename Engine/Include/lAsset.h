@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include "lSerializedData.h"
 #include "lObject.h"
 
 #include <filesystem>
@@ -22,21 +23,27 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Asset);
 
     public:
-        /// destroys asset
-        ~Asset() override;
+        /// save asset
+        virtual bool Save() const { return true; }//; = 0;
+
+        /// load asset
+        virtual bool Load() { return true; }//; = 0;
 
         /// release a asset
-        void Release();
-
-        /// get path
-        const std::filesystem::path &Path();
+        virtual void Release() {}//; = 0;
 
         /// get name
         const std::string &Name();
 
+        /// get path
+        const std::filesystem::path &Path();
+
     protected:
         /// constructs a asset
-        explicit Asset(HashType type, const std::filesystem::path &path, std::string_view name);
+        explicit Asset(HashType type, std::string_view name, const std::filesystem::path &path);
+
+        /// destroys asset
+        ~Asset() override;
 
     private:
         /// private implementation

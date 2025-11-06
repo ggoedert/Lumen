@@ -22,7 +22,7 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the mesh asset
-        static Expected<AssetPtr> MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
+        static Expected<AssetPtr> MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path);
 
         /// destroys shader
         ~Shader() override;
@@ -38,7 +38,7 @@ namespace Lumen
 
     protected:
         /// constructs a shader
-        explicit Shader(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
+        explicit Shader(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path);
 
     private:
         /// private implementation

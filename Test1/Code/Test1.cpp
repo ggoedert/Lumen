@@ -27,22 +27,22 @@ public:
         return Lumen::Material::Type();
     }
 
-    /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "Assets/Material.mat";
-    }
-
     /// get name
     [[nodiscard]] std::string_view Name() const override
     {
         return "Material";
     }
 
-    /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
     {
-        auto materialExpected = Lumen::Material::MakePtr(path, name);
+        return "Assets/Material.mat";
+    }
+
+    /// import the material
+    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    {
+        auto materialExpected = Lumen::Material::MakePtr(name, path);
         if (!materialExpected)
         {
             return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());
@@ -86,7 +86,7 @@ private:
     explicit Test1Factory(float priority) : Lumen::AssetFactory(priority)
     {
         auto materialInfo = MaterialInfo::MakePtr();
-        Lumen::AssetManager::RegisterAssetInfo(materialInfo->Path(), materialInfo->Type(), materialInfo->Name(), materialInfo, priority);
+        Lumen::AssetManager::RegisterAssetInfo(materialInfo->Type(), materialInfo->Name(), materialInfo->Path(), materialInfo, priority);
         mAssetInfos.push_back(materialInfo);
     }
 
@@ -103,7 +103,7 @@ void Test1::Initialize()
 
     if (auto engineLock = GetEngine().lock())
     {
-        Lumen::FileSystem::RegisterFileSystem(engineLock->FolderFileSystem("Assets", "Assets"));
+        Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());
     }
 }
 
@@ -130,8 +130,8 @@ void Test1::Open()
     {
         engineLock->New();
     }
-    mMainScene = Lumen::Scene::MakePtr(*this);
-    if (!Lumen::SceneManager::Load(mMainScene, "Assets/MainScene.lumen"))
+    mMainScene = Lumen::Scene::MakePtr(*this, "Test1", "Assets/MainScene.lumen");
+    if (!Lumen::SceneManager::Load(mMainScene))
     {
         Shutdown();
     }

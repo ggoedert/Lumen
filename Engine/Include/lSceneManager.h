@@ -32,7 +32,7 @@ namespace Lumen
         void RegisterComponentMaker(HashType type, const ComponentMaker &maker);
 
         /// load scene
-        bool Load(ScenePtr scene, const std::filesystem::path &file);
+        bool Load(ScenePtr scene);
 
         /// unload current scene
         void Unload();

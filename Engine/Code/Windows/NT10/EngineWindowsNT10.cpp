@@ -71,10 +71,10 @@ namespace Lumen::WindowsNT10
         // properties
         void GetDefaultSize(int &width, int &height) const noexcept override;
 
-        /// create a folder file system
-        IFileSystemPtr FolderFileSystem(std::string_view name, const std::filesystem::path &path) const override
+        /// create a file system for the assets
+        IFileSystemPtr AssetsFileSystem() const override
         {
-            return FolderFileSystem::MakePtr(name, path);
+            return FolderFileSystem::MakePtr("Assets");
         }
 
         /// begin scene
@@ -602,6 +602,9 @@ namespace Lumen::WindowsNT10
         {
             //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
             //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
+
+            bool nIsSimpleDiffuse = shaderDataIt->second.mShader->Name() == "Simple/Diffuse"; //@REVIEW@ FIXME: detected shader
+
             shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
             BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderDataIt->second.mEffect.get());
             basicEffect->EnableDefaultLighting();

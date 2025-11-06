@@ -182,10 +182,9 @@ Transform::~Transform() = default;
 /// creates a smart pointer version of the transform component
 TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
 {
-    auto pTransform = new Transform(gameObject);
-    auto transformPtr = TransformPtr(pTransform);
-    pTransform->mImpl->mOwner = transformPtr;
-    return transformPtr;
+    auto ptr = TransformPtr(new Transform(gameObject));
+    ptr->mImpl->mOwner = ptr;
+    return ptr;
 }
 
 /// serialize

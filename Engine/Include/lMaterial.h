@@ -25,7 +25,7 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the Material
-        static Expected<AssetPtr> MakePtr(const std::filesystem::path &path, std::string_view name);
+        static Expected<AssetPtr> MakePtr(std::string_view name, const std::filesystem::path &path);
 
         /// get shader
         [[nodiscard]] ShaderPtr GetShader() const;
@@ -35,7 +35,7 @@ namespace Lumen
 
     private:
         /// constructs a material with an shader
-        explicit Material(ShaderPtr shader, const std::filesystem::path &path, std::string_view name);
+        explicit Material(ShaderPtr shader, std::string_view name, const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

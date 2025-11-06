@@ -94,10 +94,10 @@ void Engine::GetDefaultSize(int &width, int &height) const
     return mImpl->GetDefaultSize(width, height);
 }
 
-/// create a folder file system
-IFileSystemPtr Engine::FolderFileSystem(std::string_view name, const std::filesystem::path &path) const
+/// create a file system for the assets
+IFileSystemPtr Engine::AssetsFileSystem() const
 {
-    return mImpl->FolderFileSystem(name, path);
+    return mImpl->AssetsFileSystem();
 }
 
 /// begin scene

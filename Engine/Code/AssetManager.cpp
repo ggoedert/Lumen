@@ -33,13 +33,13 @@ public:
     void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
     /// register an asset info
-    void RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
+    void RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority);
 
     /// find asset path from name
     Expected<std::string_view> FindPath(HashType type, std::string_view name);
 
     /// import asset
-    Expected<AssetPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
+    Expected<AssetPtr> Import(HashType type, std::string_view name, const std::filesystem::path &path);
 
 private:
     /// engine pointer
@@ -60,7 +60,7 @@ void AssetManagerImpl::RegisterFactory(const AssetFactoryPtr &assetFactory)
 }
 
 /// register an asset info
-void AssetManagerImpl::RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
+void AssetManagerImpl::RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority)
 {
     bool doInsert = true;
     auto typeIt = mRegisteredAssetInfo.find(type);
@@ -87,8 +87,8 @@ Expected<std::string_view> AssetManagerImpl::FindPath(HashType type, std::string
         StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
         if (nameIt != typeIt->second.end())
         {
-            auto AssetInfo = std::get<AssetInfoPtr>(nameIt->second);
-            return AssetInfo->Path();
+            auto assetInfoPtr = std::get<AssetInfoPtr>(nameIt->second);
+            return assetInfoPtr->Path();
         }
     }
 
@@ -97,10 +97,10 @@ Expected<std::string_view> AssetManagerImpl::FindPath(HashType type, std::string
 }
 
 /// import asset
-Expected<AssetPtr> AssetManagerImpl::Import(const std::filesystem::path &path, HashType type, std::string_view name)
+Expected<AssetPtr> AssetManagerImpl::Import(HashType type, std::string_view name, const std::filesystem::path &path)
 {
     // normalize the path
-    std::string normalizedPath = std::filesystem::path(path).lexically_normal().generic_string();
+    std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
 
     // combined asset infos from all factories
     std::vector<AssetInfoPtr> combinedAssetInfos;
@@ -117,7 +117,7 @@ Expected<AssetPtr> AssetManagerImpl::Import(const std::filesystem::path &path, H
     {
         if (assetInfo->Type() == type)
         {
-            return assetInfo->Import(mEngine, path, name);
+            return assetInfo->Import(mEngine, name, normalizedPath);
         }
     }
 
@@ -162,9 +162,9 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 }
 
 /// register an asset info
-void AssetManager::RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority)
+void AssetManager::RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority)
 {
-    Hidden::gAssetManagerImpl->RegisterAssetInfo(path, type, name, assetInfoPtr, priority);
+    Hidden::gAssetManagerImpl->RegisterAssetInfo(type, name, path, assetInfoPtr, priority);
 }
 
 /// find asset path from name
@@ -174,7 +174,7 @@ Expected<std::string_view> AssetManager::FindPath(HashType type, std::string_vie
 }
 
 /// import asset
-Expected<AssetPtr> AssetManager::Import(const std::filesystem::path &path, HashType type, std::string_view name)
+Expected<AssetPtr> AssetManager::Import(HashType type, std::string_view name, const std::filesystem::path &path)
 {
-    return Hidden::gAssetManagerImpl->Import(path, type, name);
+    return Hidden::gAssetManagerImpl->Import(type, name, path);
 }

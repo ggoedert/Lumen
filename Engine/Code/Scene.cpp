@@ -28,10 +28,6 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        if (packed)
-        {
-            out["$"] = Serialized::Type::object();
-        }
         for (auto &gameObject : mGameObjects)
         {
             if (auto gameObjectLock = gameObject.lock())
@@ -54,10 +50,6 @@ public:
     {
         for (auto &gameObject : in.items())
         {
-            if (packed && gameObject.key() == "$")
-            {
-                continue;
-            }
             if (auto gameObjectLock = mGameObjects.emplace_back(Lumen::GameObject::MakePtr(mApplication, gameObject.key())).lock())
             {
                 gameObjectLock->Deserialize(gameObject.value(), packed);
@@ -65,148 +57,73 @@ public:
         }
     }
 
-    /// load scene
-    bool Load(const std::filesystem::path &file)
+    /// save scene
+    bool Save() const
     {
-        Lumen::DebugLog::Info("Scene::Load {}", file.string());
+        /*
+        Lumen::DebugLog::Info("Scene::Save {}", outFile.string());
+        Serialized::Type out;
+        Serialize(out, false);
+        std::ofstream file(outFile);
+        if (!file.is_open())
+        {
+            Lumen::DebugLog::Error("Unable to open scene file for writing, {}", outFile.string());
+            return false;
+        }
+        file << out.dump(4);
+        file.close();
+        return true;
+        */
+        return true;
+    }
 
-        const std::string mainScene =
-#ifndef PACKED
-R"(
-{
-    "Camera": {
-        "Transform": {
-            "Position": [
-                0.0,
-                0.0,
-                -10.0
-            ]
-        },
-        "Components": {
-            "Lumen::Camera": {
-                "BackgroundColor": [
-                    0.45089998841285706,
-                    0.8431000113487244,
-                    1.0,
-                    1.0
-                ]
-            }
+    /// load scene
+    bool Load()
+    {
+        const std::filesystem::path &path = mOwner.lock()->Path();
+        Lumen::DebugLog::Info("Scene::Load {}", path.string());
+
+        // read the scene
+        auto [mainScene, packed] = FileSystem::ReadSerializedData(path);
+        if (mainScene.empty())
+        {
+            Lumen::DebugLog::Error("Unable to read the scene");
+            return false;
         }
-    },
-    "Sphere": {
-        "Components": {
-            "Lumen::MeshFilter": {
-                "Lumen::Mesh": {
-                    "Path": "lumen default resources/Assets/Mesh/Sphere.fbx",
-                    "Name": "Sphere"
-                }
-            },
-            "Lumen::MeshRenderer": {
-                "Lumen::Material": {
-                    "Path": "Assets/Material.mat",
-                    "Name": "Material"
-                },
-                "Properties": {
-                    "_MainTex": {
-                        "Lumen::Texture": {
-                            "Path": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png",
-                            "Name": "Default-Checker-Gray"
-                        }
-                    }
-                }
-            },
-            "SphereScript": {}
-        }
-    }
-}
-)";
-#else
-R"(
-{
-    "$": {},
-    "Camera": {
-        "rYKruw": {
-            "4n80Kg": [
-                0.0,
-                0.0,
-                -10.0
-            ]
-        },
-        "XGwDiQ": {
-            "9sdi3Q": {
-                "0UltMA": [
-                    0.45089998841285706,
-                    0.8431000113487244,
-                    1.0,
-                    1.0
-                ]
-            }
-        }
-    },
-    "Sphere": {
-        "XGwDiQ": {
-            "XIWjMQ": {
-                "WQDY9w": {
-                    "Path": "lumen default resources/Assets/Mesh/Sphere.fbx",
-                    "Name": "Sphere"
-                }
-            },
-            "SJzguA": {
-                "kzeNMw": {
-                    "Path": "Assets/Material.mat",
-                    "Name": "Material"
-                },
-                "gcgJ/A": {
-                    "_MainTex": {
-                        "NFQLMQ": {
-                            "Path": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png",
-                            "Name": "Default-Checker-Gray"
-                        }
-                    }
-                }
-            },
-            "Di0Taw": {}
-        }
-    }
-}
-)";
-#endif
 
         // parse the scene
         try
         {
             const Serialized::Type in = Serialized::Type::parse(mainScene);
-            bool packed = in.contains("$") && in["$"].empty();
             Deserialize(in, packed);
-        }
-        catch (const Serialized::Type::exception &e)
-        {
-            Lumen::DebugLog::Error("{}", e.what());
         }
         catch (const std::exception &e)
         {
-            Lumen::DebugLog::Error("Deserialization error, {}", e.what());
+            Lumen::DebugLog::Error("{}", e.what());
+            return false;
         }
-
-        Serialized::Type out;
-        Serialize(out, true);
-        std::ofstream("serializer_test.txt") << out.dump(4);
 
         return true;
     }
 
-    /// unload scene
-    void Unload()
+    /// release scene
+    void Release()
     {
-        Lumen::DebugLog::Info("Scene::Unload");
-        for (auto gameObjectWeakPtr : mGameObjects)
+        if (!mGameObjects.empty())
         {
-            SceneManager::UnregisterGameObject(gameObjectWeakPtr);
+            Lumen::DebugLog::Info("Scene::Release");
+            for (auto gameObjectWeakPtr : mGameObjects)
+            {
+                SceneManager::UnregisterGameObject(gameObjectWeakPtr);
+
+            }
+            mGameObjects.clear();
         }
-        mGameObjects.clear();
     }
 
-private:
+    /// owner
+    SceneWeakPtr mOwner;
+
     /// application reference
     Lumen::Application &mApplication;
 
@@ -217,10 +134,22 @@ private:
 //==============================================================================================================================================================================
 
 /// constructor
-Scene::Scene(Lumen::Application &application) : mImpl(Scene::Impl::MakeUniquePtr(application)) {}
+Scene::Scene(Lumen::Application &application, std::string_view name, const std::filesystem::path &path) :
+    Asset(Type(), name, path), mImpl(Scene::Impl::MakeUniquePtr(application)) {}
 
-/// destructor
-Scene::~Scene() = default;
+/// destroys scene
+Scene::~Scene()
+{
+    Release();
+}
+
+/// creates a smart pointer version of the scene
+ScenePtr Scene::MakePtr(Lumen::Application &application, std::string_view name, const std::filesystem::path &path)
+{
+    auto ptr = ScenePtr(new Scene(application, name, path));
+    ptr->mImpl->mOwner = ptr;
+    return ptr;
+}
 
 /// serialize
 void Scene::Serialize(Serialized::Type &out, bool packed) const
@@ -234,14 +163,20 @@ void Scene::Deserialize(const Serialized::Type &in, bool packed)
     mImpl->Deserialize(in, packed);
 }
 
-/// load scene
-bool Scene::Load(const std::filesystem::path &file)
+/// save scene
+bool Scene::Save() const
 {
-    return mImpl->Load(file);
+    return mImpl->Save();
 }
 
-/// unload scene
-void Scene::Unload()
+/// load scene
+bool Scene::Load()
 {
-    return mImpl->Unload();
+    return mImpl->Load();
+}
+
+/// release scene
+void Scene::Release() 
+{
+    mImpl->Release();
 }

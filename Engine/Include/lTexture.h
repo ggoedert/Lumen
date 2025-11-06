@@ -11,9 +11,9 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Texture);
     CLASS_WEAK_PTR_DEF(Texture);
+    CLASS_WEAK_PTR_DEF(Engine);
 
     /// Texture class
     class Texture : public Asset
@@ -33,7 +33,7 @@ namespace Lumen
         ~Texture() override;
 
         /// creates a smart pointer version of the texture asset
-        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info);
+        static AssetPtr MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info);
 
         /// release a texture
         void Release();
@@ -46,7 +46,7 @@ namespace Lumen
 
     private:
         /// constructs a texture
-        explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info);
+        explicit Texture(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

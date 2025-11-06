@@ -17,41 +17,41 @@ class Asset::Impl
 
 public:
     /// constructs a asset
-    explicit Impl(const std::filesystem::path &path, std::string_view name) : mPath(path), mName(name) {}
+    explicit Impl(std::string_view name, const std::filesystem::path &path) : mName(name), mPath(path) {}
 
     /// destroys behavior
     ~Impl() = default;
 
-    /// get path
-    const std::filesystem::path &Path() { return mPath; }
-
     /// get name
     const std::string &Name() { return mName; }
 
-private:
-    /// path
-    const std::filesystem::path mPath;
+    /// get path
+    const std::filesystem::path &Path() { return mPath; }
 
+private:
     /// name
     const std::string mName;
+
+    /// path
+    const std::filesystem::path mPath;
 };
 
 //==============================================================================================================================================================================
 
 /// constructor a asset
-Asset::Asset(HashType type, const std::filesystem::path &path, std::string_view name) : Object(type), mImpl(Asset::Impl::MakeUniquePtr(path, name)) {}
+Asset::Asset(HashType type, std::string_view name, const std::filesystem::path &path) : Object(type), mImpl(Asset::Impl::MakeUniquePtr(name, path)) {}
 
 /// destructor asset
 Asset::~Asset() = default;
-
-/// get path
-const std::filesystem::path &Asset::Path()
-{
-    return mImpl->Path();
-}
 
 /// get name
 const std::string &Asset::Name()
 {
     return mImpl->Name();
+}
+
+/// get path
+const std::filesystem::path &Asset::Path()
+{
+    return mImpl->Path();
 }

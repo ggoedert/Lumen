@@ -39,7 +39,7 @@ public:
     {
         const std::filesystem::path &path = mOwner.lock()->Path();
         const std::string &name = mOwner.lock()->Name();
-        if (path.string() == "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png" && name == "Default-Checker-Gray") //@REVIEW@ FIXME temp hack
+        if (name == "Default-Checker-Gray" && path.string() == "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png") //@REVIEW@ FIXME temp hack
         {
             for (int y = 0; y < mInfo.mHeight; y++)
             {
@@ -79,8 +79,8 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a texture
-Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info) :
-    Asset(Type(), path, name), mImpl(Texture::Impl::MakeUniquePtr(engine, info)) {}
+Texture::Texture(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info) :
+    Asset(Type(), name, path), mImpl(Texture::Impl::MakeUniquePtr(engine, info)) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -89,9 +89,9 @@ Texture::~Texture()
 }
 
 /// creates a smart pointer version of the texture asset
-AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name, const Info &info)
+AssetPtr Texture::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info)
 {
-    auto ptr = TexturePtr(new Texture(engine, path, name, info));
+    auto ptr = TexturePtr(new Texture(engine, name, path, info));
     ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {

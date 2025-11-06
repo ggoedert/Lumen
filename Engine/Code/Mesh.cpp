@@ -56,7 +56,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Asset(Type(), path, name), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
+Mesh::Mesh(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path) : Asset(Type(), name, path), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys mesh
 Mesh::~Mesh()
@@ -65,9 +65,9 @@ Mesh::~Mesh()
 }
 
 /// creates a smart pointer version of the mesh asset
-AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
 {
-    auto ptr = MeshPtr(new Mesh(engine, path, name));
+    auto ptr = MeshPtr(new Mesh(engine, name, path));
     ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {

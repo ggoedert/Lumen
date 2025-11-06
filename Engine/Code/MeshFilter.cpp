@@ -57,7 +57,7 @@ public:
             if (!path.empty() && !name.empty())
             {
                 // load sphere mesh
-                Expected<AssetPtr> meshExp = AssetManager::Import(path, Mesh::Type(), name);
+                Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), name, path);
                 if (!meshExp.HasValue())
                 {
                     throw std::runtime_error(std::format("Unable to load default sphere mesh resource, {}", meshExp.Error()));

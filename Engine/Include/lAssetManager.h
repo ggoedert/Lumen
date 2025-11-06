@@ -24,14 +24,14 @@ namespace Lumen
         /// get type
         [[nodiscard]] virtual HashType Type() const = 0;
 
-        /// get path
-        [[nodiscard]] virtual std::string_view Path() const = 0;
-
         /// get name
         [[nodiscard]] virtual std::string_view Name() const = 0;
 
+        /// get path
+        [[nodiscard]] virtual std::string_view Path() const = 0;
+
         /// import the asset
-        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) = 0;
+        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path) = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);
@@ -69,12 +69,12 @@ namespace Lumen
         void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
         /// register an asset info
-        void RegisterAssetInfo(const std::filesystem::path &path, HashType type, std::string_view name, AssetInfoPtr &assetInfoPtr, float priority);
+        void RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority);
 
         /// find asset path from name
         Expected<std::string_view> FindPath(HashType type, std::string_view name);
 
         /// import asset
-        Expected<AssetPtr> Import(const std::filesystem::path &path, HashType type, std::string_view name);
+        Expected<AssetPtr> Import(HashType type, std::string_view name, const std::filesystem::path &path);
     };
 }

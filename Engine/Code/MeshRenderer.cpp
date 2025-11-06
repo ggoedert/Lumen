@@ -95,7 +95,7 @@ public:
                 if (!path.empty() && !name.empty())
                 {
                     // load material material
-                    Expected<AssetPtr> materialExp = AssetManager::Import(path, Material::Type(), name);
+                    Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), name, path);
                     if (!materialExp.HasValue())
                     {
                         throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
@@ -124,7 +124,7 @@ public:
                         if (!path.empty() && !name.empty())
                         {
                             // load texture
-                            Expected<AssetPtr> textureExp = AssetManager::Import(path, Texture::Type(), name);
+                            Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), name, path);
                             if (!textureExp.HasValue())
                             {
                                 throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
@@ -226,10 +226,9 @@ MeshRenderer::MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr 
 /// creates a smart pointer version of the mesh renderer component
 ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
 {
-    auto pMeshRenderer = new MeshRenderer(engine, gameObject);
-    auto meshRendererPtr = ComponentPtr(pMeshRenderer);
-    pMeshRenderer->mImpl->mOwner = static_pointer_cast<MeshRenderer>(meshRendererPtr);
-    return meshRendererPtr;
+    auto ptr = MeshRendererPtr(new MeshRenderer(engine, gameObject));
+    ptr->mImpl->mOwner = ptr;
+    return ptr;
 }
 
 /// serialize

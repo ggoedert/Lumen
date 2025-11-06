@@ -41,9 +41,9 @@ public:
     }
 
     /// import the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
     {
-        return Mesh::MakePtr(engine, path, name);
+        return Mesh::MakePtr(engine, name, path);
     }
 
 private:
@@ -65,7 +65,7 @@ public:
     explicit Impl(float priority)
     {
         auto sphereMeshInfo = SphereMeshInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(sphereMeshInfo->Path(), sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo, priority);
+        AssetManager::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo->Path(), sphereMeshInfo, priority);
         mAssetInfos.push_back(sphereMeshInfo);
     }
 
@@ -124,22 +124,22 @@ public:
         return Texture::Type();
     }
 
-    /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png";
-    }
-
     /// get name
     [[nodiscard]] std::string_view Name() const override
     {
         return "Default-Checker-Gray";
     }
 
-    /// import the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
     {
-        return Texture::MakePtr(engine, path, name, Texture::Info { 64, 64 });
+        return "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png";
+    }
+
+    /// import the checker gray texture
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    {
+        return Texture::MakePtr(engine, name, path, Texture::Info { 64, 64 });
     }
 
 private:
@@ -163,22 +163,22 @@ public:
         return Shader::Type();
     }
 
-    /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
-    }
-
     /// get name
     [[nodiscard]] std::string_view Name() const override
     {
         return "Simple/Diffuse";
     }
 
-    /// import the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
     {
-        return Shader::MakePtr(engine, path, name);
+        return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
+    }
+
+    /// import the simple diffuse shader
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    {
+        return Shader::MakePtr(engine, name, path);
     }
 
 private:
@@ -200,10 +200,10 @@ public:
     explicit Impl(float priority)
     {
         auto checkerGrayTextureInfo = CheckerGrayTextureInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(checkerGrayTextureInfo->Path(), checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo, priority);
+        AssetManager::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo->Path(), checkerGrayTextureInfo, priority);
         mAssetInfos.push_back(checkerGrayTextureInfo);
         auto simpleDiffuseShaderInfo = SimpleDiffuseShaderInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(simpleDiffuseShaderInfo->Path(), simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo, priority);
+        AssetManager::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo->Path(), simpleDiffuseShaderInfo, priority);
         mAssetInfos.push_back(simpleDiffuseShaderInfo);
     }
 
