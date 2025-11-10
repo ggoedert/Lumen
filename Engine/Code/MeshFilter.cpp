@@ -24,47 +24,27 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        // token
-        const std::string &meshTypeToken = packed ? Serialized::cMeshTypeTokenPacked : Serialized::cMeshTypeToken;
-
-        Serialized::Type meshObj = Serialized::Type::object();
-        meshObj[Serialized::cPathToken] = mMesh->Path();
-        meshObj[Serialized::cNameToken] = mMesh->Name();
-        out[meshTypeToken] = meshObj;
+        Serialized::SerializeAsset(out, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, mMesh->Name(), mMesh->Path().string());
     }
 
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // token
-        const std::string &meshTypeToken = packed ? Serialized::cMeshTypeTokenPacked : Serialized::cMeshTypeToken;
-
         mMesh.reset();
 
-        if (in.contains(meshTypeToken))
+        // load mesh
+        std::string name, path;
+        Serialized::DeserializeAsset(in, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, name, path);
+        if (name.empty())
         {
-            auto obj = in[meshTypeToken];
-
-            std::string path, name;
-            if (obj.contains(Serialized::cPathToken))
-            {
-                path = obj[Serialized::cPathToken].get<std::string>();
-            }
-            if (obj.contains(Serialized::cNameToken))
-            {
-                name = obj[Serialized::cNameToken].get<std::string>();
-            }
-            if (!path.empty() && !name.empty())
-            {
-                // load sphere mesh
-                Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), name, path);
-                if (!meshExp.HasValue())
-                {
-                    throw std::runtime_error(std::format("Unable to load default sphere mesh resource, {}", meshExp.Error()));
-                }
-                mMesh = static_pointer_cast<Mesh>(meshExp.Value());
-            }
+            throw std::runtime_error(std::format("Unable to load mesh resource, no name in mesh asset"));
         }
+        Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), name, path);
+        if (!meshExp.HasValue())
+        {
+            throw std::runtime_error(std::format("Unable to load mesh resource, {}", meshExp.Error()));
+        }
+        mMesh = static_pointer_cast<Mesh>(meshExp.Value());
     }
 
     /// get mesh

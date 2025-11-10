@@ -30,7 +30,7 @@ namespace Lumen
         /// initialize application
         virtual void Initialize();
 
-        /// shutdown aplication
+        /// shutdown application
         virtual void Shutdown();
 
         /// TEMP DELME!

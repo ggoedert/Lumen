@@ -22,6 +22,9 @@ public:
     /// constructs a material
     explicit Impl(ShaderPtr shader) : mShader(shader) {}
 
+    /// release material
+    void Release() {}
+
     /// get shader
     [[nodiscard]] ShaderPtr GetShader() const { return mShader; }
 
@@ -59,6 +62,12 @@ Expected<AssetPtr> Material::MakePtr(std::string_view name, const std::filesyste
     }
 
     return AssetPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value()), name, path));
+}
+
+/// release material
+void Material::Release()
+{
+    mImpl->Release();
 }
 
 /// get shader

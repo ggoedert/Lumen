@@ -27,6 +27,9 @@ namespace Lumen
         /// creates a smart pointer version of the Material
         static Expected<AssetPtr> MakePtr(std::string_view name, const std::filesystem::path &path);
 
+        /// release material
+        void Release() override;
+
         /// get shader
         [[nodiscard]] ShaderPtr GetShader() const;
 

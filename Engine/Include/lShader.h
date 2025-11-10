@@ -28,7 +28,7 @@ namespace Lumen
         ~Shader() override;
 
         /// release a shader
-        void Release();
+        void Release() override;
 
         /// get shader id
         Id::Type GetShaderId();

@@ -23,13 +23,11 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        // token
-        std::string backgroundColorToken = packed ? Serialized::cBackgroundColorTokenPacked : Serialized::cBackgroundColorToken;
-
-        // get background color
+        // set background color
         if (mBackgroundColor != Math::Vector4::cZero)
         {
-            out[backgroundColorToken] = { mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, mBackgroundColor.w };
+            Serialized::SerializeValue(out, packed, Serialized::cBackgroundColorToken, Serialized::cBackgroundColorTokenPacked,
+                std::array { mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, mBackgroundColor.w });
         }
 
         // if empty, set to object
@@ -42,19 +40,17 @@ public:
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // token
-        std::string backgroundColorToken = packed ? Serialized::cBackgroundColorTokenPacked : Serialized::cBackgroundColorToken;
+        Serialized::Type value;
 
-        // set background color
+        // get background color
         mBackgroundColor = Math::Vector4::cZero;
-        if (in.contains(backgroundColorToken))
+        if (Serialized::DeserializeValue(in, packed, Serialized::cBackgroundColorToken, Serialized::cBackgroundColorTokenPacked, value))
         {
-            auto arr = in[backgroundColorToken].get<std::vector<float>>();
-            if (arr.size() != 4)
+            if (value.size() != 4)
             {
                 throw std::runtime_error(std::format("Unable to read Camera::BackgroundColor"));
             }
-            mBackgroundColor = Math::Vector4(arr[0], arr[1], arr[2], arr[3]);
+            mBackgroundColor = Math::Vector4 { value.get<std::vector<float>>().data() };
         }
     }
 

@@ -30,7 +30,7 @@ namespace Lumen
         virtual bool Load() { return true; }//; = 0;
 
         /// release a asset
-        virtual void Release() {}//; = 0;
+        virtual void Release() = 0;
 
         /// get name
         const std::string &Name();

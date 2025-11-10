@@ -25,70 +25,64 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        // tokens
-        const std::string &positionToken = packed ? Serialized::cPositionTokenPacked : Serialized::cPositionToken;
-        const std::string &rotationToken = packed ? Serialized::cRotationTokenPacked : Serialized::cRotationToken;
-
-        // get position
+        // set position
         if (mPosition != Math::Vector3::cZero)
         {
-            out[positionToken] = { mPosition.x, mPosition.y, mPosition.z };
+            Serialized::SerializeValue(out, packed, Serialized::cPositionToken, Serialized::cPositionTokenPacked,
+                std::array { mPosition.x, mPosition.y, mPosition.z });
         }
 
-        // get rotation
+        // set rotation
         if (mRotation != Math::Quaternion::cIdentity)
         {
-            out[rotationToken] = { mRotation.x, mRotation.y, mRotation.z, mRotation.w };
+            Serialized::SerializeValue(out, packed, Serialized::cRotationToken, Serialized::cRotationTokenPacked,
+                std::array { mRotation.x, mRotation.y, mRotation.z, mRotation.w });
         }
 
-        // get scale
+        // set scale
         if (mScale != Math::Vector3::cOne)
         {
-            out[Serialized::cScaleToken] = { mScale.x, mScale.y, mScale.z };
+            Serialized::SerializeValue(out, packed, Serialized::cScaleToken, Serialized::cScaleTokenPacked,
+                std::array { mScale.x, mScale.y, mScale.z });
         }
     }
 
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // tokens
-        const std::string &positionToken = packed ? Serialized::cPositionTokenPacked : Serialized::cPositionToken;
-        const std::string &rotationToken = packed ? Serialized::cRotationTokenPacked : Serialized::cRotationToken;
+        Serialized::Type value;
 
-        // set position
+        // get position
         mPosition = Math::Vector3::cZero;
-        if (in.contains(positionToken))
+        if (Serialized::DeserializeValue(in, packed, Serialized::cPositionToken, Serialized::cPositionTokenPacked, value))
         {
-            auto arr = in[positionToken].get<std::vector<float>>();
-            if (arr.size() != 3)
+            if (value.size() != 3)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Position"));
             }
-            mPosition = Math::Vector3(arr[0], arr[1], arr[2]);
+            mPosition = Math::Vector3 { value.get<std::vector<float>>().data() };
         }
 
-        // set rotation
+        // get rotation
         mRotation = Math::Quaternion::cIdentity;
-        if (in.contains(rotationToken))
+        if (Serialized::DeserializeValue(in, packed, Serialized::cRotationToken, Serialized::cRotationTokenPacked, value))
         {
-            auto arr = in[rotationToken].get<std::vector<float>>();
-            if (arr.size() != 4)
+            if (value.size() != 4)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Rotation"));
             }
-            mRotation = Math::Vector4(arr[0], arr[1], arr[2], arr[3]);
+            mRotation = Math::Vector4 { value.get<std::vector<float>>().data() };
         }
 
-        // set scale
+        // get scale
         mScale = Math::Vector3::cOne;
-        if (in.contains(Serialized::cScaleToken))
+        if (Serialized::DeserializeValue(in, packed, Serialized::cScaleToken, Serialized::cScaleTokenPacked, value))
         {
-            auto arr = in[Serialized::cScaleToken].get<std::vector<float>>();
-            if (arr.size() != 3)
+            if (value.size() != 3)
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Scale"));
             }
-            mScale = Math::Vector3(arr[0], arr[1], arr[2]);
+            mPosition = Math::Vector3 { value.get<std::vector<float>>().data() };
         }
     }
 

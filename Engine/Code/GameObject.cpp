@@ -33,16 +33,12 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        // tokens
-        const std::string &transformToken = packed ? Serialized::cTransformTokenPacked : Serialized::cTransformToken;
-        const std::string &componentsToken = packed ? Serialized::cComponentsTokenPacked : Serialized::cComponentsToken;
-
         // get transform
         Serialized::Type outTransform = {};
         mTransform->Serialize(outTransform, packed);
         if (!outTransform.empty())
         {
-            out[transformToken] = outTransform;
+            Serialized::SerializeValue(out, packed, Serialized::cTransformToken, Serialized::cTransformTokenPacked, outTransform);
         }
 
         // get components
@@ -51,16 +47,13 @@ public:
         {
             auto componentPtr = component.lock();
             L_ASSERT(componentPtr);
-#ifdef TYPEINFO
-            std::string componentTypeKey = packed ? Base64Encode(componentPtr->Type()) : std::string(componentPtr->Type().mName);
-#else
-            std::string componentTypeKey = Base64Encode(componentPtr->Type());
-#endif
-            componentPtr->Serialize(outComponents[componentTypeKey], packed);
+            Serialized::Type outComponent = {};
+            componentPtr->Serialize(outComponent, packed);
+            Serialized::SerializeValue(outComponents, packed, std::string(componentPtr->Type().mName), componentPtr->Type(), outComponent);
         }
         if (!outComponents.empty())
         {
-            out[componentsToken] = outComponents;
+            Serialized::SerializeValue(out, packed, Serialized::cComponentsToken, Serialized::cComponentsTokenPacked, outComponents);
         }
 
         // if empty, set to object
@@ -73,32 +66,41 @@ public:
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // tokens
-        const std::string &transformToken = packed ? Serialized::cTransformTokenPacked : Serialized::cTransformToken;
-        const std::string &componentsToken = packed ? Serialized::cComponentsTokenPacked : Serialized::cComponentsToken;
+        // get transform
+        Serialized::Type inTransform = {};
+        Serialized::DeserializeValue(in, packed, Serialized::cTransformToken, Serialized::cTransformTokenPacked, inTransform);
+        mTransform->Deserialize(inTransform, packed);
 
-        // set transform
-        Serialized::Type transformIn = {};
-        if (in.contains(transformToken))
-        {
-            transformIn = in[transformToken];
-        }
-        mTransform->Deserialize(transformIn, packed);
-
-        // set components
+        // get components
         mComponents.clear();
-        if (in.contains(componentsToken))
+        Serialized::Type inComponents = {};
+        if (Serialized::DeserializeValue(in, packed, Serialized::cComponentsToken, Serialized::cComponentsTokenPacked, inComponents))
         {
-            for (auto &inComponent : in[componentsToken].items())
+            if (packed)
             {
-                const std::string &componentTypeName = inComponent.key();
-#ifdef TYPEINFO
-                Hash componentType = packed ? Base64Decode(componentTypeName.c_str()) : EncodeType(componentTypeName.c_str());
-#else
-                Hash componentType = Base64Decode(componentTypeName.c_str());
-#endif
-                auto component = AddComponent(mOwner, componentType);
-                component.lock()->Deserialize(inComponent.value(), packed);
+                if (!inComponents.is_array())
+                {
+                    throw std::runtime_error(std::format("Unable to deserialize components, packed data must be an array"));
+                }
+
+                for (std::size_t i = 0; i + 1 < inComponents.size(); i += 2)
+                {
+                    auto component = AddComponent(mOwner, inComponents[i].get<Hash>());
+                    component.lock()->Deserialize(inComponents[i + 1], packed);
+                }
+            }
+            else
+            {
+                if (!inComponents.is_object())
+                {
+                    throw std::runtime_error(std::format("Unable to deserialize components, non-packed data must be an object"));
+                }
+
+                for (auto it = inComponents.begin(); it != inComponents.end(); ++it)
+                {
+                    auto component = AddComponent(mOwner, EncodeType(it.key().c_str()));
+                    component.lock()->Deserialize(it.value(), packed);
+                }
             }
         }
     }

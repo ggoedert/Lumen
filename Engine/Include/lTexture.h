@@ -36,7 +36,7 @@ namespace Lumen
         static AssetPtr MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info);
 
         /// release a texture
-        void Release();
+        void Release() override;
 
         /// get texture id
         Id::Type GetTextureId();

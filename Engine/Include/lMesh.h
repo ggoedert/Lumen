@@ -30,7 +30,7 @@ namespace Lumen
         static AssetPtr MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path);
 
         /// release a mesh
-        void Release();
+        void Release() override;
 
         /// get mesh id
         Id::Type GetMeshId();

@@ -29,14 +29,7 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        const std::string &materialTypeToken = packed ? Serialized::cMaterialTypeTokenPacked : Serialized::cMaterialTypeToken;
-        const std::string &propertiesToken = packed ? Serialized::cPropertiesTokenPacked : Serialized::cPropertiesToken;
-        const std::string &textureTypeToken = packed ? Serialized::cTextureTypeTokenPacked : Serialized::cTextureTypeToken;
-
-        Serialized::Type materialObj = Serialized::Type::object();
-        materialObj[Serialized::cPathToken] = mMaterial->Path();
-        materialObj[Serialized::cNameToken] = mMaterial->Name();
-        out[materialTypeToken] = materialObj;
+        Serialized::SerializeAsset(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Name(), mMaterial->Path().string());
 
         Serialized::Type propertiesObj = Serialized::Type::object();
         for (const auto &[key, value] : mProperties)
@@ -51,89 +44,58 @@ public:
             }
             else if (std::holds_alternative<Lumen::TexturePtr>(value))
             {
-                Serialized::Type textureValue = Serialized::Type::object();
+                Serialized::Type textureValue = {};
                 auto tex = std::get<Lumen::TexturePtr>(value);
                 if (tex)
                 {
-                    textureValue[Serialized::cPathToken] = tex->Path();
-                    textureValue[Serialized::cNameToken] = tex->Name();
+                    Serialized::SerializeAsset(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Name(), tex->Path().string());
                 }
-                Serialized::Type textureObj = Serialized::Type::object();
-                textureObj[textureTypeToken] = textureValue;
-                propertiesObj[key] = textureObj;
+                propertiesObj[key] = textureValue;
             }
         }
-        out[propertiesToken] = propertiesObj;
+        Serialized::SerializeValue(out, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj);
     }
 
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        // tokens
-        const std::string &materialTypeToken = packed ? Serialized::cMaterialTypeTokenPacked : Serialized::cMaterialTypeToken;
-        const std::string &propertiesToken = packed ? Serialized::cPropertiesTokenPacked : Serialized::cPropertiesToken;
-        const std::string &textureTypeToken = packed ? Serialized::cTextureTypeTokenPacked : Serialized::cTextureTypeToken;
-
         mMaterial.reset();
         mProperties.clear();
 
-        for (auto &inItem : in.items())
+        // load material
+        std::string name, path;
+        Serialized::DeserializeAsset(in, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, name, path);
+        if (name.empty())
         {
-            if (inItem.key() == materialTypeToken)
+            throw std::runtime_error(std::format("Unable to load material resource, no name in material asset"));
+        }
+        Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), name, path);
+        if (!materialExp.HasValue())
+        {
+            throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
+        }
+        mMaterial = static_pointer_cast<Material>(materialExp.Value());
+
+        Serialized::Type propertiesObj = Serialized::Type::object();
+        if (Serialized::DeserializeValue(in, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj))
+        {
+            for (auto &inProperty : propertiesObj.items())
             {
-                auto &obj = inItem.value();
-
-                std::string path, name;
-                if (obj.contains(Serialized::cPathToken))
+                if (inProperty.key() == "_MainTex")
                 {
-                    path = obj[Serialized::cPathToken].get<std::string>();
-                }
-                if (obj.contains(Serialized::cNameToken))
-                {
-                    name = obj[Serialized::cNameToken].get<std::string>();
-                }
-                if (!path.empty() && !name.empty())
-                {
-                    // load material material
-                    Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), name, path);
-                    if (!materialExp.HasValue())
+                    Serialized::DeserializeAsset(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, name, path);
+                    if (!name.empty())
                     {
-                        throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
-                    }
-                    mMaterial = static_pointer_cast<Material>(materialExp.Value());
-                }
-            }
+                        // load texture
+                        Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), name, path);
+                        if (!textureExp.HasValue())
+                        {
+                            throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
+                        }
+                        const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
 
-            if (inItem.key() == propertiesToken) //@REVIEW@ FIXME move this inside the material
-            {
-                for (auto &inProperty : inItem.value().items())
-                {
-                    auto &propertyValue = inProperty.value();
-                    if (propertyValue.contains(textureTypeToken))
-                    {
-                        auto propertyData = propertyValue[textureTypeToken];
-                        std::string path, name;
-                        if (propertyData.contains(Serialized::cPathToken))
-                        {
-                            path = propertyData[Serialized::cPathToken].get<std::string>();
-                        }
-                        if (propertyData.contains(Serialized::cNameToken))
-                        {
-                            name = propertyData[Serialized::cNameToken].get<std::string>();
-                        }
-                        if (!path.empty() && !name.empty())
-                        {
-                            // load texture
-                            Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), name, path);
-                            if (!textureExp.HasValue())
-                            {
-                                throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
-                            }
-                            const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
-
-                            // set property
-                            SetProperty(inProperty.key(), texture);
-                        }
+                        // set property
+                        SetProperty("_MainTex", texture);
                     }
                 }
             }
