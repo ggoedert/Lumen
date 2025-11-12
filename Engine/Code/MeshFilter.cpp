@@ -24,7 +24,7 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        Serialized::SerializeAsset(out, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, mMesh->Name(), mMesh->Path().string());
+        Serialized::SerializeValue(out, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, mMesh->Path().string());
     }
 
     /// deserialize
@@ -33,13 +33,13 @@ public:
         mMesh.reset();
 
         // load mesh
-        std::string name, path;
-        Serialized::DeserializeAsset(in, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, name, path);
-        if (name.empty())
+        Serialized::Type path = {};
+        Serialized::DeserializeValue(in, packed, Serialized::cMeshTypeToken, Serialized::cMeshTypeTokenPacked, path);
+        if (path.empty())
         {
-            throw std::runtime_error(std::format("Unable to load mesh resource, no name in mesh asset"));
+            throw std::runtime_error(std::format("Unable to load mesh resource, no path in mesh asset"));
         }
-        Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), name, path);
+        Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), path);
         if (!meshExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load mesh resource, {}", meshExp.Error()));

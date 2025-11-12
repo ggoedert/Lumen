@@ -107,7 +107,7 @@ public:
 /*
         Serialized::Type out;
         //out["data"] = Serialized::Type::binary({ 0x01, 0x02, 0x03, 99, 100, 101, 127, 128, 129, 254, 255 });
-        Serialize(out, true);
+        Serialize(out, false);
         std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
 */
 
@@ -142,8 +142,8 @@ public:
 //==============================================================================================================================================================================
 
 /// constructor
-Scene::Scene(Lumen::Application &application, std::string_view name, const std::filesystem::path &path) :
-    Asset(Type(), name, path), mImpl(Scene::Impl::MakeUniquePtr(application)) {}
+Scene::Scene(Lumen::Application &application, const std::filesystem::path &path) :
+    Asset(Type(), path), mImpl(Scene::Impl::MakeUniquePtr(application)) {}
 
 /// destroys scene
 Scene::~Scene()
@@ -152,9 +152,9 @@ Scene::~Scene()
 }
 
 /// creates a smart pointer version of the scene
-ScenePtr Scene::MakePtr(Lumen::Application &application, std::string_view name, const std::filesystem::path &path)
+ScenePtr Scene::MakePtr(Lumen::Application &application, const std::filesystem::path &path)
 {
-    auto ptr = ScenePtr(new Scene(application, name, path));
+    auto ptr = ScenePtr(new Scene(application, path));
     ptr->mImpl->mOwner = ptr;
     return ptr;
 }

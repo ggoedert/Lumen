@@ -8,7 +8,6 @@
 
 using namespace Lumen;
 
-const std::string Serialized::cNameToken = std::string("Name");
 const std::string Serialized::cPathToken = std::string("Path");
 
 const std::string Serialized::cTransformToken = std::string("Transform");

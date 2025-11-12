@@ -22,6 +22,12 @@ public:
     /// constructs a material
     explicit Impl(ShaderPtr shader) : mShader(shader) {}
 
+    /// save material
+    bool Save() const { return true; }
+
+    /// load material
+    bool Load() { return true; }
+
     /// release material
     void Release() {}
 
@@ -39,29 +45,41 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a material with an shader
-Material::Material(ShaderPtr shader, std::string_view name, const std::filesystem::path &path) : Asset(Type(), name, path), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
+Material::Material(ShaderPtr shader, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
 
 /// custom smart pointer maker
-Expected<AssetPtr> Material::MakePtr(std::string_view name, const std::filesystem::path &path)
+Expected<AssetPtr> Material::MakePtr(const std::filesystem::path &path)
 {
     //@REVIEW@ FIXME we should really open the material and get the shaderName from it
     std::string shaderName = "Simple/Diffuse";
 
     // get shader information
-    Expected<std::string_view> shaderPathExp = AssetManager::FindPath(Shader::Type(), shaderName);
+    Expected<std::string_view> shaderPathExp = Shader::FindPath(shaderName);
     if (!shaderPathExp.HasValue())
     {
         return Expected<AssetPtr>::Unexpected(std::format("Unable to load {} shader resource, {}", shaderName, shaderPathExp.Error()));
     }
 
     // load shader
-    Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderName, shaderPathExp.Value());
+    Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderPathExp.Value());
     if (!shaderExp.HasValue())
     {
         return Expected<AssetPtr>::Unexpected(shaderExp.Error());
     }
 
-    return AssetPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value()), name, path));
+    return AssetPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value()), path));
+}
+
+/// save material
+bool Material::Save() const
+{
+    return mImpl->Save();
+}
+
+/// load material
+bool Material::Load()
+{
+    return mImpl->Load();
 }
 
 /// release material

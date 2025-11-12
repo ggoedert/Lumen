@@ -17,8 +17,33 @@ class Shader::Impl
     friend class Shader;
 
 public:
+    /// find shader path from name
+    static Expected<std::string_view> FindPath(std::string_view name)
+    {
+        // @REVIEW@ TEMP code
+        if (name == "Simple/Diffuse")
+        {
+            return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
+        }
+
+        // none found
+        return Expected<std::string_view>::Unexpected(std::format("Shader path for '{}' not found", name));
+    }
+
     /// constructs a shader
-    explicit Impl(const EngineWeakPtr &engine) : mEngine(engine), mShaderId(Id::Invalid) {}
+    explicit Impl(const EngineWeakPtr &engine, std::string_view name) : mEngine(engine), mName(name), mShaderId(Id::Invalid) {}
+
+    /// save a shader
+    bool Save() const
+    {
+        return true;
+    }
+
+    /// load a shader
+    bool Load()
+    {
+        return true;
+    }
 
     // release a shader
     void Release()
@@ -32,6 +57,12 @@ public:
                 engineLock->ReleaseShader(shaderId);
             }
         }
+    }
+
+    /// get shader name
+    const std::string &Name()
+    {
+        return mName;
     }
 
     /// get shader id
@@ -49,6 +80,9 @@ public:
     /// engine pointer
     EngineWeakPtr mEngine;
 
+    /// get shader name
+    const std::string mName;
+
     /// engine shader id
     Id::Type mShaderId;
 
@@ -57,7 +91,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a shader
-Shader::Shader(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path) : Asset(Type(), name, path), mImpl(Shader::Impl::MakeUniquePtr(engine)) {}
+Shader::Shader(const EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name) : Asset(Type(), path), mImpl(Shader::Impl::MakeUniquePtr(engine, name)) {}
 
 /// destroys shader
 Shader::~Shader()
@@ -66,12 +100,12 @@ Shader::~Shader()
 }
 
 /// creates a smart pointer version of the shader asset
-Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
 {
-    Expected<AssetPtr> shaderExp = AssetPtr(new Shader(engine, name, path));
+    Expected<AssetPtr> shaderExp = AssetPtr(new Shader(engine, path, name));
     if (!shaderExp.HasValue())
     {
-        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource, {}", name, path.string(), shaderExp.Error()));
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource, {}", path.string(), name, shaderExp.Error()));
     }
     ShaderPtr ptr = static_pointer_cast<Shader>(shaderExp.Value());
     if (auto engineLock = engine.lock())
@@ -82,12 +116,35 @@ Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, std::string_view name,
     return shaderExp.Value();
 }
 
+/// find shader path from name
+Expected<std::string_view> Shader::FindPath(std::string_view name)
+{
+    return Shader::Impl::FindPath(name);
+}
+
+/// save a shader
+bool Shader::Save() const
+{
+    return mImpl->Save();
+}
+
+/// load a shader
+bool Shader::Load()
+{
+    return mImpl->Load();
+}
+
 /// release a shader
 void Shader::Release()
 {
     mImpl->Release();
 }
 
+/// get shader name
+const std::string &Shader::Name()
+{
+    return mImpl->Name();
+}
 /// get shader id
 Id::Type Shader::GetShaderId()
 {

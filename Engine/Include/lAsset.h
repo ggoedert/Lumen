@@ -24,23 +24,20 @@ namespace Lumen
 
     public:
         /// save asset
-        virtual bool Save() const { return true; }//; = 0;
+        virtual bool Save() const = 0;
 
         /// load asset
-        virtual bool Load() { return true; }//; = 0;
+        virtual bool Load() = 0;
 
         /// release a asset
         virtual void Release() = 0;
-
-        /// get name
-        const std::string &Name();
 
         /// get path
         const std::filesystem::path &Path();
 
     protected:
         /// constructs a asset
-        explicit Asset(HashType type, std::string_view name, const std::filesystem::path &path);
+        explicit Asset(HashType type, const std::filesystem::path &path);
 
         /// destroys asset
         ~Asset() override;

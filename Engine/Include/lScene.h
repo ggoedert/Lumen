@@ -27,7 +27,7 @@ namespace Lumen
         ~Scene() override;
 
         /// creates a smart pointer version of the scene
-        static ScenePtr MakePtr(Application &application, std::string_view name, const std::filesystem::path &path);
+        static ScenePtr MakePtr(Application &application, const std::filesystem::path &path);
 
         /// serialize
         void Serialize(Serialized::Type &out, bool packed) const;
@@ -46,7 +46,7 @@ namespace Lumen
 
     private:
         /// constructor
-        explicit Scene(Lumen::Application &application, std::string_view name, const std::filesystem::path &path);
+        explicit Scene(Lumen::Application &application, const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

@@ -9,219 +9,255 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\Windows">
-      <UniqueIdentifier>{30d65542-1567-4e16-8dbc-bc8f538916ec}</UniqueIdentifier>
+    <Filter Include="Source Files\Components">
+      <UniqueIdentifier>{71723815-2cf1-4f60-8991-61e5be1195d2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Windows">
+    <Filter Include="Source Files\Object">
+      <UniqueIdentifier>{270ae65e-3375-4cbc-a420-a8f72223fd90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{d200584f-1f49-4f49-be71-d4ee475f6b4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems">
+      <UniqueIdentifier>{0c726e02-103c-42a9-9138-a3a7872ef4c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\Windows">
       <UniqueIdentifier>{34370817-ac45-41ec-87f1-c543d4e5af88}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Windows\NT10">
+    <Filter Include="Source Files\Systems\Windows\NT10">
       <UniqueIdentifier>{aa4b6943-30d9-4f94-a917-68ae0edbfbb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Resources">
+      <UniqueIdentifier>{dbf67351-b861-4f48-a9d5-f9106f2cda88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Components">
+      <UniqueIdentifier>{f9b91bc4-1188-456b-9510-33da442284cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Assets">
+      <UniqueIdentifier>{2f4eca9c-4c19-42e2-883c-488441a3d9f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Assets">
+      <UniqueIdentifier>{bc784104-de87-455e-959e-d25b7e740d0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Resources">
+      <UniqueIdentifier>{dc20d776-bb2c-4178-b00f-9b3aa5048492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\System">
+      <UniqueIdentifier>{b4280c55-595d-4cfb-a44d-4249a2aadf53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utils">
+      <UniqueIdentifier>{e059df18-4e49-45d0-97dc-60d5888aecad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Object">
+      <UniqueIdentifier>{da100511-c0d9-4add-bd07-1040c3bff4ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\System\Windows">
+      <UniqueIdentifier>{30d65542-1567-4e16-8dbc-bc8f538916ec}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\lApplication.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lSceneManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lDefs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lDebugLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lGameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lTransform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lMath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lBehavior.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h">
-      <Filter>Source Files\Windows\NT10</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\DeviceResources.h">
-      <Filter>Source Files\Windows\NT10</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\EngineFramework.h">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lMeshFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lFolderFileSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lFileSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lStringMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lExpected.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lBuiltinResources.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h">
-      <Filter>Header Files\Windows</Filter>
+      <Filter>Header Files\System\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Windows\lFramework.h">
-      <Filter>Header Files\Windows</Filter>
+      <Filter>Header Files\System\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\DDS.h">
-      <Filter>Source Files\Windows</Filter>
+      <Filter>Source Files\Systems\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\StepTimer.h">
-      <Filter>Source Files\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lMaterial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lShader.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Systems\Windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h">
-      <Filter>Source Files\Windows\NT10</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\EngineImpl.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lId.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lMeshRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lFolderResources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lSerializedData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\lAssetManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Systems</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lAsset.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMaterial.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMesh.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lScene.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lShader.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lTexture.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lBehavior.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lCamera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lComponent.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMeshFilter.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMeshRenderer.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lFolderResources.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lBuiltinResources.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lApplication.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lEngine.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lFolderFileSystem.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lSceneManager.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lDebugLog.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lFileSystem.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lMath.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lSerializedData.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lGameObject.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lObject.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lTransform.h">
+      <Filter>Header Files\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lDefs.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lStringMap.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lId.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lExpected.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lAssetManager.h">
+      <Filter>Header Files\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\SceneManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Application.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Component.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Transform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Behavior.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\MeshFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\FileSystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\BuiltinResources.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\DebugLog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Shader.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\MeshRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\FolderResources.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Math.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\EngineWindows.cpp">
-      <Filter>Source Files\Windows</Filter>
+      <Filter>Source Files\Systems\Windows</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp">
-      <Filter>Source Files\Windows\NT10</Filter>
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Camera.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\MeshFilter.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Component.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\MeshRenderer.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Material.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Mesh.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Scene.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\AssetManager.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\Code\Shader.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\SerializedData.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\Code\Texture.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Asset.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Behavior.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Object.cpp">
+      <Filter>Source Files\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\GameObject.cpp">
+      <Filter>Source Files\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Transform.cpp">
+      <Filter>Source Files\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\DebugLog.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Math.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\FileSystem.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\SerializedData.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\SceneManager.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Application.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Engine.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\BuiltinResources.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\FolderResources.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\AssetManager.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

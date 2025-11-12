@@ -34,16 +34,10 @@ public:
         return "lumen default resources/Assets/Mesh/Sphere.fbx";
     }
 
-    /// get name
-    [[nodiscard]] std::string_view Name() const override
-    {
-        return "Sphere";
-    }
-
     /// import the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
     {
-        return Mesh::MakePtr(engine, name, path);
+        return Mesh::MakePtr(engine, path);
     }
 
 private:
@@ -64,9 +58,7 @@ public:
     /// constructor
     explicit Impl(float priority)
     {
-        auto sphereMeshInfo = SphereMeshInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(sphereMeshInfo->Type(), sphereMeshInfo->Name(), sphereMeshInfo->Path(), sphereMeshInfo, priority);
-        mAssetInfos.push_back(sphereMeshInfo);
+        mAssetInfos.push_back(SphereMeshInfo::MakePtr());
     }
 
     /// destructor
@@ -124,12 +116,6 @@ public:
         return Texture::Type();
     }
 
-    /// get name
-    [[nodiscard]] std::string_view Name() const override
-    {
-        return "Default-Checker-Gray";
-    }
-
     /// get path
     [[nodiscard]] std::string_view Path() const override
     {
@@ -137,9 +123,9 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
     {
-        return Texture::MakePtr(engine, name, path, Texture::Info { 64, 64 });
+        return Texture::MakePtr(engine, path, Texture::Info { 64, 64 });
     }
 
 private:
@@ -164,7 +150,7 @@ public:
     }
 
     /// get name
-    [[nodiscard]] std::string_view Name() const override
+    [[nodiscard]] std::string_view Name() const
     {
         return "Simple/Diffuse";
     }
@@ -176,9 +162,9 @@ public:
     }
 
     /// import the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
     {
-        return Shader::MakePtr(engine, name, path);
+        return Shader::MakePtr(engine, path, Name());
     }
 
 private:
@@ -199,12 +185,8 @@ public:
     /// constructor
     explicit Impl(float priority)
     {
-        auto checkerGrayTextureInfo = CheckerGrayTextureInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(checkerGrayTextureInfo->Type(), checkerGrayTextureInfo->Name(), checkerGrayTextureInfo->Path(), checkerGrayTextureInfo, priority);
-        mAssetInfos.push_back(checkerGrayTextureInfo);
-        auto simpleDiffuseShaderInfo = SimpleDiffuseShaderInfo::MakePtr();
-        AssetManager::RegisterAssetInfo(simpleDiffuseShaderInfo->Type(), simpleDiffuseShaderInfo->Name(), simpleDiffuseShaderInfo->Path(), simpleDiffuseShaderInfo, priority);
-        mAssetInfos.push_back(simpleDiffuseShaderInfo);
+        mAssetInfos.push_back(CheckerGrayTextureInfo::MakePtr());
+        mAssetInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
     }
 
     /// destructor

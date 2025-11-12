@@ -31,6 +31,10 @@ namespace Lumen
         /// error constructor with rvalue reference
         Expected(ErrorMessage &&error) : mData(std::move(error)) {}
 
+        /// forwarding constructor
+        template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+        Expected(U &&value) : mData(T(std::forward<U>(value))) {}
+
         /// static helper to construct an error
         static Expected Unexpected(const std::string &error) { return Expected(ErrorMessage { error }); }
 

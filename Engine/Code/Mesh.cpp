@@ -21,6 +21,12 @@ public:
     /// constructs a mesh
     explicit Impl(const EngineWeakPtr &engine) : mEngine(engine), mMeshId(Id::Invalid) {}
 
+    /// save a mesh
+    bool Save() const { return true; }
+
+    /// load a mesh
+    bool Load() { return true; }
+
     /// release a mesh
     void Release()
     {
@@ -39,8 +45,7 @@ public:
     void GetMeshData(byte *data)
     {
         const std::filesystem::path &path = mOwner.lock()->Path();
-        const std::string &name = mOwner.lock()->Name();
-        // if ("lumen default resources/Assets/Mesh/Sphere.fbx" == path.string() && "Sphere" == name) do something?
+        // if ("lumen default resources/Assets/Mesh/Sphere.fbx" == path.string()) do something?
     }
 
     /// owner
@@ -56,7 +61,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path) : Asset(Type(), name, path), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
+Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
 
 /// destroys mesh
 Mesh::~Mesh()
@@ -65,9 +70,9 @@ Mesh::~Mesh()
 }
 
 /// creates a smart pointer version of the mesh asset
-AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path)
 {
-    auto ptr = MeshPtr(new Mesh(engine, name, path));
+    auto ptr = MeshPtr(new Mesh(engine, path));
     ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {
@@ -75,6 +80,18 @@ AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::
         L_ASSERT_MSG(ptr->mImpl->mMeshId != Id::Invalid, "Failed to create mesh");
     }
     return ptr;
+}
+
+/// save a mesh
+bool Mesh::Save() const
+{
+    return mImpl->Save();
+}
+
+/// load a mesh
+bool Mesh::Load()
+{
+    return mImpl->Load();
 }
 
 /// release a mesh

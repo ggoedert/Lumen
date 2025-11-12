@@ -32,21 +32,12 @@ public:
     /// register an asset factory
     void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
-    /// register an asset info
-    void RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority);
-
-    /// find asset path from name
-    Expected<std::string_view> FindPath(HashType type, std::string_view name);
-
     /// import asset
-    Expected<AssetPtr> Import(HashType type, std::string_view name, const std::filesystem::path &path);
+    Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);
 
 private:
     /// engine pointer
     EngineWeakPtr mEngine;
-
-    /// registered asset info map
-    std::map<HashType, StringMap<std::tuple<float, AssetInfoPtr>>> mRegisteredAssetInfo;
 
     /// asset factories
     std::multimap<float, AssetFactoryPtr, std::greater<float>> mAssetFactories;
@@ -59,45 +50,8 @@ void AssetManagerImpl::RegisterFactory(const AssetFactoryPtr &assetFactory)
     mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
 }
 
-/// register an asset info
-void AssetManagerImpl::RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority)
-{
-    bool doInsert = true;
-    auto typeIt = mRegisteredAssetInfo.find(type);
-    if (typeIt != mRegisteredAssetInfo.end())
-    {
-        StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
-        if (nameIt != typeIt->second.end())
-        {
-            doInsert = priority > std::get<float>(nameIt->second);
-        }
-    }
-    if (doInsert)
-    {
-        mRegisteredAssetInfo[type].insert_or_assign(std::string(name), std::tuple<float, AssetInfoPtr>(priority, assetInfoPtr));
-    }
-}
-
-/// find asset path from name
-Expected<std::string_view> AssetManagerImpl::FindPath(HashType type, std::string_view name)
-{
-    auto typeIt = mRegisteredAssetInfo.find(type);
-    if (typeIt != mRegisteredAssetInfo.end())
-    {
-        StringMap<std::tuple<float, AssetInfoPtr>>::iterator nameIt = typeIt->second.find(name);
-        if (nameIt != typeIt->second.end())
-        {
-            auto assetInfoPtr = std::get<AssetInfoPtr>(nameIt->second);
-            return assetInfoPtr->Path();
-        }
-    }
-
-    // none found
-    return Expected<std::string_view>::Unexpected(std::format("Asset Information path for '{}' not found", name));
-}
-
 /// import asset
-Expected<AssetPtr> AssetManagerImpl::Import(HashType type, std::string_view name, const std::filesystem::path &path)
+Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem::path &path)
 {
     // normalize the path
     std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
@@ -117,7 +71,7 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, std::string_view name
     {
         if (assetInfo->Type() == type)
         {
-            return assetInfo->Import(mEngine, name, normalizedPath);
+            return assetInfo->Import(mEngine, normalizedPath);
         }
     }
 
@@ -161,20 +115,8 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
     Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
 }
 
-/// register an asset info
-void AssetManager::RegisterAssetInfo(HashType type, std::string_view name, const std::filesystem::path &path, AssetInfoPtr &assetInfoPtr, float priority)
-{
-    Hidden::gAssetManagerImpl->RegisterAssetInfo(type, name, path, assetInfoPtr, priority);
-}
-
-/// find asset path from name
-Expected<std::string_view> AssetManager::FindPath(HashType type, std::string_view name)
-{
-    return Hidden::gAssetManagerImpl->FindPath(type, name);
-}
-
 /// import asset
-Expected<AssetPtr> AssetManager::Import(HashType type, std::string_view name, const std::filesystem::path &path)
+Expected<AssetPtr> AssetManager::Import(HashType type, const std::filesystem::path &path)
 {
-    return Hidden::gAssetManagerImpl->Import(type, name, path);
+    return Hidden::gAssetManagerImpl->Import(type, path);
 }

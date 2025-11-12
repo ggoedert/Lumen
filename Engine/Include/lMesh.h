@@ -27,7 +27,13 @@ namespace Lumen
         ~Mesh() override;
 
         /// creates a smart pointer version of the mesh asset
-        static AssetPtr MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path);
+        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path);
+
+        /// save a mesh
+        bool Save() const override;
+
+        /// load a mesh
+        bool Load() override;
 
         /// release a mesh
         void Release() override;
@@ -40,7 +46,7 @@ namespace Lumen
 
     private:
         /// constructs a mesh
-        explicit Mesh(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path);
+        explicit Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

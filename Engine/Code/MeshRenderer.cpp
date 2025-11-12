@@ -29,7 +29,7 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        Serialized::SerializeAsset(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Name(), mMaterial->Path().string());
+        Serialized::SerializeValue(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Path().string());
 
         Serialized::Type propertiesObj = Serialized::Type::object();
         for (const auto &[key, value] : mProperties)
@@ -48,7 +48,7 @@ public:
                 auto tex = std::get<Lumen::TexturePtr>(value);
                 if (tex)
                 {
-                    Serialized::SerializeAsset(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Name(), tex->Path().string());
+                    Serialized::SerializeValue(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Path().string());
                 }
                 propertiesObj[key] = textureValue;
             }
@@ -63,13 +63,13 @@ public:
         mProperties.clear();
 
         // load material
-        std::string name, path;
-        Serialized::DeserializeAsset(in, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, name, path);
-        if (name.empty())
+        Serialized::Type path = {};
+        Serialized::DeserializeValue(in, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, path);
+        if (path.empty())
         {
-            throw std::runtime_error(std::format("Unable to load material resource, no name in material asset"));
+            throw std::runtime_error(std::format("Unable to load material resource, no path in material asset"));
         }
-        Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), name, path);
+        Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), path);
         if (!materialExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
@@ -83,20 +83,18 @@ public:
             {
                 if (inProperty.key() == "_MainTex")
                 {
-                    Serialized::DeserializeAsset(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, name, path);
-                    if (!name.empty())
-                    {
-                        // load texture
-                        Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), name, path);
-                        if (!textureExp.HasValue())
-                        {
-                            throw std::runtime_error(std::format("Unable to load default checker gray texture resource, {}", textureExp.Error()));
-                        }
-                        const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
+                    Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
 
-                        // set property
-                        SetProperty("_MainTex", texture);
+                    // load texture
+                    Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), path);
+                    if (!textureExp.HasValue())
+                    {
+                        throw std::runtime_error(std::format("Unable to load texture resource {}, {}", path.get<std::string>(), textureExp.Error()));
                     }
+                    const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
+
+                    // set property
+                    SetProperty("_MainTex", texture);
                 }
             }
         }

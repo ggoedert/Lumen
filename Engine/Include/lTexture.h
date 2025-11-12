@@ -33,7 +33,13 @@ namespace Lumen
         ~Texture() override;
 
         /// creates a smart pointer version of the texture asset
-        static AssetPtr MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info);
+        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
+
+        /// save a texture
+        bool Save() const override;
+
+        /// load a texture
+        bool Load() override;
 
         /// release a texture
         void Release() override;
@@ -46,7 +52,7 @@ namespace Lumen
 
     private:
         /// constructs a texture
-        explicit Texture(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info);
+        explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

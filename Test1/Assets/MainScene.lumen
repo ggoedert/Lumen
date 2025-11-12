@@ -21,22 +21,13 @@
     "Sphere": {
         "Components": {
             "Lumen::MeshFilter": {
-                "Lumen::Mesh": {
-                    "Name": "Sphere",
-                    "Path": "lumen default resources/Assets/Mesh/Sphere.fbx"
-                }
+                "Lumen::Mesh": "lumen default resources/Assets/Mesh/Sphere.fbx"
             },
             "Lumen::MeshRenderer": {
-                "Lumen::Material": {
-                    "Name": "Material",
-                    "Path": "Assets/Material.mat"
-                },
+                "Lumen::Material": "Assets/Material.mat",
                 "Properties": {
                     "_MainTex": {
-                        "Lumen::Texture": {
-                            "Name": "Default-Checker-Gray",
-                            "Path": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png"
-                        }
+                        "Lumen::Texture": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png"
                     }
                 }
             },

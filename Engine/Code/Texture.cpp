@@ -20,6 +20,17 @@ public:
     /// constructs a texture
     explicit Impl(const EngineWeakPtr &engine, const Info &info) : mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
 
+    /// save a texture
+    bool Save() const
+    {
+        return true;
+    }
+
+    /// load a texture
+    bool Load() {
+        return true;
+    }
+
     /// release a texture
     void Release()
     {
@@ -38,8 +49,7 @@ public:
     void GetTextureData(byte *data, int pitch)
     {
         const std::filesystem::path &path = mOwner.lock()->Path();
-        const std::string &name = mOwner.lock()->Name();
-        if (name == "Default-Checker-Gray" && path.string() == "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png") //@REVIEW@ FIXME temp hack
+        if (path.string() == "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png") //@REVIEW@ FIXME temp hack
         {
             for (int y = 0; y < mInfo.mHeight; y++)
             {
@@ -79,8 +89,8 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs a texture
-Texture::Texture(const EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info) :
-    Asset(Type(), name, path), mImpl(Texture::Impl::MakeUniquePtr(engine, info)) {}
+Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info) :
+    Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(engine, info)) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -89,9 +99,9 @@ Texture::~Texture()
 }
 
 /// creates a smart pointer version of the texture asset
-AssetPtr Texture::MakePtr(EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path, const Info &info)
+AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info)
 {
-    auto ptr = TexturePtr(new Texture(engine, name, path, info));
+    auto ptr = TexturePtr(new Texture(engine, path, info));
     ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {
@@ -99,6 +109,18 @@ AssetPtr Texture::MakePtr(EngineWeakPtr &engine, std::string_view name, const st
         L_ASSERT_MSG(ptr->mImpl->mTextureId != Id::Invalid, "Failed to create texture size {} {}", info.mWidth, info.mHeight);
     }
     return ptr;
+}
+
+/// save a texture
+bool Texture::Save() const
+{
+    return mImpl->Save();
+}
+
+/// load a texture
+bool Texture::Load()
+{
+    return mImpl->Load();
 }
 
 /// release a texture

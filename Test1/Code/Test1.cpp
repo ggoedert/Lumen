@@ -27,12 +27,6 @@ public:
         return Lumen::Material::Type();
     }
 
-    /// get name
-    [[nodiscard]] std::string_view Name() const override
-    {
-        return "Material";
-    }
-
     /// get path
     [[nodiscard]] std::string_view Path() const override
     {
@@ -40,9 +34,9 @@ public:
     }
 
     /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, std::string_view name, const std::filesystem::path &path)
+    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path)
     {
-        auto materialExpected = Lumen::Material::MakePtr(name, path);
+        auto materialExpected = Lumen::Material::MakePtr(path);
         if (!materialExpected)
         {
             return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());
@@ -85,9 +79,7 @@ private:
     /// constructor
     explicit Test1Factory(float priority) : Lumen::AssetFactory(priority)
     {
-        auto materialInfo = MaterialInfo::MakePtr();
-        Lumen::AssetManager::RegisterAssetInfo(materialInfo->Type(), materialInfo->Name(), materialInfo->Path(), materialInfo, priority);
-        mAssetInfos.push_back(materialInfo);
+        mAssetInfos.push_back(MaterialInfo::MakePtr());
     }
 
     /// asset infos
@@ -130,7 +122,7 @@ void Test1::Open()
     {
         engineLock->New();
     }
-    mMainScene = Lumen::Scene::MakePtr(*this, "Test1", "Assets/MainScene.lumen");
+    mMainScene = Lumen::Scene::MakePtr(*this, "Assets/MainScene.lumen");
     if (!Lumen::SceneManager::Load(mMainScene))
     {
         Shutdown();

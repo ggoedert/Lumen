@@ -19,9 +19,6 @@ namespace Lumen
         /// serialized type alias
         using Type = nlohmann::basic_json<nlohmann::ordered_map>;
 
-        /// name token
-        extern const std::string cNameToken;
-
         /// path token
         extern const std::string cPathToken;
 
@@ -123,70 +120,6 @@ namespace Lumen
                 }
             }
             return false;
-        }
-
-        /// serialized asset
-        inline void SerializeAsset(Type &out, bool packed, const std::string &key, const Hash &keyPacked, const std::string &name, const std::string &path)
-        {
-            if (packed)
-            {
-                Serialized::Type assetArray = Serialized::Type::array();
-                assetArray.push_back(name);
-                if (!path.empty())
-                {
-                    assetArray.push_back(path);
-                }
-                out.push_back(keyPacked);
-                out.push_back(assetArray);
-            }
-            else
-            {
-                Serialized::Type assetObj = Serialized::Type::object();
-                assetObj[Serialized::cNameToken] = name;
-                if (!path.empty())
-                {
-                    assetObj[Serialized::cPathToken] = path;
-                }
-                out[key] = assetObj;
-            }
-        }
-
-        /// deserialize asset
-        inline void DeserializeAsset(const Type &in, bool packed, std::string keyToken, Hash keyTokenPacked, std::string &name, std::string &path)
-        {
-            name = "";
-            path = "";
-            if (packed)
-            {
-                for (size_t i = 1; i < in.size(); i += 2)
-                {
-                    const auto &obj = in[i - 1];
-                    if (obj.is_number_unsigned() && obj.get<Hash>() == keyTokenPacked)
-                    {
-                        auto obj = in[1];
-                        name = obj[0].get<std::string>();
-                        if (obj.size() > 1)
-                        {
-                            path = obj[1].get<std::string>();;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (in.contains(keyToken))
-                {
-                    auto obj = in[keyToken];
-                    if (obj.contains(Serialized::cNameToken))
-                    {
-                        name = obj[Serialized::cNameToken].get<std::string>();
-                    }
-                    if (obj.contains(Serialized::cPathToken))
-                    {
-                        path = obj[Serialized::cPathToken].get<std::string>();
-                    }
-                }
-            }
         }
     }
 }

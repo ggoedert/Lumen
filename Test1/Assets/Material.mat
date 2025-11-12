@@ -1,10 +1,8 @@
 {
+    "Shader": "Simple/Diffuse",
     "Properties": {
         "_MainTex": {
-            "Lumen::Texture": {
-                "Name": "Default-Checker-Gray",
-                "Path": "Resources/lumen_builtin_extra"
-            }
+            "Lumen::Texture": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png"
         }
     }
 }
