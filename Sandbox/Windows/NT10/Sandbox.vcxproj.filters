@@ -33,7 +33,7 @@
     <ClInclude Include="..\..\Code\Windows\NT10\Resource.h">
       <Filter>Source Files\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Code\Test1.h">
+    <ClInclude Include="..\..\Code\Sandbox.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Code\SphereScript.h">
@@ -44,7 +44,7 @@
     <ClCompile Include="..\..\Code\Windows\Main.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\Test1.cpp">
+    <ClCompile Include="..\..\Code\Sandbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\SphereScript.cpp">

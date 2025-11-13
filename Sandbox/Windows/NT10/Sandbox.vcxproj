@@ -38,7 +38,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{1297f326-f176-453b-9a25-7db04faddd96}</ProjectGuid>
-    <RootNamespace>Test1</RootNamespace>
+    <RootNamespace>Sandbox</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -358,13 +358,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\SphereScript.h" />
-    <ClInclude Include="..\..\Code\Test1.h" />
+    <ClInclude Include="..\..\Code\Sandbox.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\Resource.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\SphereScript.cpp" />
-    <ClCompile Include="..\..\Code\Test1.cpp" />
+    <ClCompile Include="..\..\Code\Sandbox.cpp" />
     <ClCompile Include="..\..\Code\Windows\Main.cpp" />
   </ItemGroup>
   <ItemGroup>

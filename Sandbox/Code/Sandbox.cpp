@@ -4,7 +4,7 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "Test1.h"
+#include "Sandbox.h"
 #include "SphereScript.h"
 
 #include "lMaterial.h"
@@ -51,16 +51,16 @@ private:
     explicit MaterialInfo() {}
 };
 
-/// Test1Factory class
-class Test1Factory : public Lumen::AssetFactory
+/// SandboxFactory class
+class SandboxFactory : public Lumen::AssetFactory
 {
-    CLASS_NO_DEFAULT_CTOR(Test1Factory);
+    CLASS_NO_DEFAULT_CTOR(SandboxFactory);
 
 public:
     /// creates a smart pointer version of the builtin extra
     static Lumen::AssetFactoryPtr MakePtr(float priority)
     {
-        return Lumen::AssetFactoryPtr(new Test1Factory(priority));
+        return Lumen::AssetFactoryPtr(new SandboxFactory(priority));
     }
 
     /// get asset infos
@@ -79,7 +79,7 @@ public:
 
 private:
     /// constructor
-    explicit Test1Factory(float priority) : Lumen::AssetFactory(priority)
+    explicit SandboxFactory(float priority) : Lumen::AssetFactory(priority)
     {
         mAssetInfos.push_back(MaterialInfo::MakePtr());
     }
@@ -88,12 +88,12 @@ private:
     std::vector<Lumen::AssetInfoPtr> mAssetInfos;
 };
 
-/// initialize test1
-void Test1::Initialize()
+/// initialize sandbox
+void Sandbox::Initialize()
 {
     Lumen::Application::Initialize();
 
-    Lumen::AssetManager::RegisterFactory(Test1Factory::MakePtr(2.0f));
+    Lumen::AssetManager::RegisterFactory(SandboxFactory::MakePtr(2.0f));
 
     if (auto engineLock = GetEngine().lock())
     {
@@ -101,8 +101,8 @@ void Test1::Initialize()
     }
 }
 
-/// shutdown test1
-void Test1::Shutdown()
+/// shutdown sandbox
+void Sandbox::Shutdown()
 {
     /// TEMP DELME!
     if (auto engineLock = GetEngine().lock())
@@ -112,13 +112,13 @@ void Test1::Shutdown()
 }
 
 /// TEMP DELME!
-void Test1::New()
+void Sandbox::New()
 {
     mMainScene.reset();
 }
 
 /// TEMP DELME!
-void Test1::Open()
+void Sandbox::Open()
 {
     if (auto engineLock = GetEngine().lock())
     {

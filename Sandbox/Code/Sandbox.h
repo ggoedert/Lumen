@@ -8,20 +8,20 @@
 #include "lApplication.h"
 #include "lScene.h"
 
-CLASS_PTR_DEF(Test1);
+CLASS_PTR_DEF(Sandbox);
 
-/// Test1 class
-class Test1 : public Lumen::Application
+/// Sandbox class
+class Sandbox : public Lumen::Application
 {
-    CLASS_NO_DEFAULT_CTOR(Test1);
-    CLASS_NO_COPY_MOVE(Test1);
-    CLASS_PTR_MAKER(Test1);
+    CLASS_NO_DEFAULT_CTOR(Sandbox);
+    CLASS_NO_COPY_MOVE(Sandbox);
+    CLASS_PTR_MAKER(Sandbox);
 
 public:
-    /// initialize test1
+    /// initialize sandbox
     void Initialize() override;
 
-    /// shutdown test1
+    /// shutdown sandbox
     void Shutdown() override;
 
     /// TEMP DELME!
@@ -32,7 +32,7 @@ public:
 
 private:
     /// constructor
-    explicit Test1(std::string_view name, const int version) : Lumen::Application() {}
+    explicit Sandbox(std::string_view name, const int version) : Lumen::Application() {}
 
     /// main scene
     Lumen::ScenePtr mMainScene;

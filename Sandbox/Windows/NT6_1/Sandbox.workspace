@@ -2,6 +2,6 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="../../../Engine/Windows/NT6_1/Engine.cbp" />
-		<Project filename="Test1.cbp" />
+		<Project filename="Sandbox.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
