@@ -11,7 +11,7 @@ This is a personal, work-in-progress project developed for fun and experimentati
 Lumen is developed using **Visual Studio Community Edition**. To get started:
 
 1. Clone the repository.
-2. Open the included `.sln` (solution) file in Visual Studio.
+2. Open the included `.slnx` (solution) file in Visual Studio 2026.
 
 ## Help
 

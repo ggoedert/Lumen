@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Debug Editor" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release Editor" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../../../Engine/Windows/NT10/Engine.vcxproj" Id="2e230d91-ae74-42d3-ae4f-9f489487ac27" />
+  <Project Path="Sandbox.vcxproj" Id="1297f326-f176-453b-9a25-7db04faddd96" />
+</Solution>
