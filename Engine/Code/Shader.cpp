@@ -23,7 +23,7 @@ public:
         // @REVIEW@ TEMP code
         if (name == "Simple/Diffuse")
         {
-            return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
+            return "|Procedural|Simple-Diffuse";
         }
 
         // none found

@@ -49,7 +49,7 @@ public:
     void GetTextureData(byte *data, int pitch)
     {
         const std::filesystem::path &path = mOwner.lock()->Path();
-        if (path.string() == "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png") //@REVIEW@ FIXME temp hack
+        if (path.string() == "|Procedural|Checker-Gray") //@REVIEW@ FIXME temp hack
         {
             for (int y = 0; y < mInfo.mHeight; y++)
             {

@@ -34,9 +34,9 @@ public:
     }
 
     /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine, const std::filesystem::path &path)
+    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine)
     {
-        auto materialExpected = Lumen::Material::MakePtr(path);
+        auto materialExpected = Lumen::Material::MakePtr(Path());
         if (!materialExpected)
         {
             return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());

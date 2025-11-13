@@ -21,13 +21,13 @@
     "Sphere": {
         "Components": {
             "Lumen::MeshFilter": {
-                "Lumen::Mesh": "lumen default resources/Assets/Mesh/Sphere.fbx"
+                "Lumen::Mesh": "|Procedural|Sphere"
             },
             "Lumen::MeshRenderer": {
                 "Lumen::Material": "Assets/Material.mat",
                 "Properties": {
                     "_MainTex": {
-                        "Lumen::Texture": "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png"
+                        "Lumen::Texture": "|Procedural|Checker-Gray"
                     }
                 }
             },

@@ -19,8 +19,7 @@ Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(app
 bool Engine::Initialize(const Object &config)
 {
     AssetManager::Initialize(shared_from_this());
-    AssetManager::RegisterFactory(DefaultResources::MakePtr(1.0f));
-    AssetManager::RegisterFactory(BuiltinExtra::MakePtr(1.0f));
+    AssetManager::RegisterFactory(BuiltinResources::MakePtr(1.0f));
 
     FileSystem::Initialize();
     SceneManager::Initialize();

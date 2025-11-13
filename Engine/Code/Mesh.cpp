@@ -45,7 +45,7 @@ public:
     void GetMeshData(byte *data)
     {
         const std::filesystem::path &path = mOwner.lock()->Path();
-        // if ("lumen default resources/Assets/Mesh/Sphere.fbx" == path.string()) do something?
+        // if ("|Procedural|Sphere" == path.string()) do something?
     }
 
     /// owner

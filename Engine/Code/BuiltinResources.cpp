@@ -31,74 +31,19 @@ public:
     /// get path
     [[nodiscard]] std::string_view Path() const override
     {
-        return "lumen default resources/Assets/Mesh/Sphere.fbx";
+        return "|Procedural|Sphere";
     }
 
     /// import the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
     {
-        return Mesh::MakePtr(engine, path);
+        return Mesh::MakePtr(engine, Path());
     }
 
 private:
     /// constructs a sphere mesh info
     explicit SphereMeshInfo() {}
 };
-
-//==============================================================================================================================================================================
-
-/// DefaultResources::Impl class
-class DefaultResources::Impl
-{
-    CLASS_NO_DEFAULT_CTOR(Impl);
-    CLASS_NO_COPY_MOVE(Impl);
-    CLASS_PTR_UNIQUEMAKER(Impl);
-
-public:
-    /// constructor
-    explicit Impl(float priority)
-    {
-        mAssetInfos.push_back(SphereMeshInfo::MakePtr());
-    }
-
-    /// destructor
-    ~Impl() = default;
-
-    /// get asset infos
-    [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
-    {
-        std::vector<AssetInfoPtr> result;
-        for (auto assetInfo : mAssetInfos)
-        {
-            if (assetInfo->Path() == path)
-            {
-                result.push_back(assetInfo);
-            }
-        }
-        return result;
-    }
-
-private:
-    /// asset infos
-    std::vector<AssetInfoPtr> mAssetInfos;
-};
-
-//==============================================================================================================================================================================
-
-/// constructs default resources
-DefaultResources::DefaultResources(float priority) : AssetFactory(priority), mImpl(DefaultResources::Impl::MakeUniquePtr(priority)) {}
-
-/// creates a smart pointer version of the default resources
-AssetFactoryPtr DefaultResources::MakePtr(float priority)
-{
-    return AssetFactoryPtr(new DefaultResources(priority));
-}
-
-/// get asset infos
-std::vector<AssetInfoPtr> DefaultResources::GetAssetInfos(const std::filesystem::path &path) const
-{
-    return mImpl->GetAssetInfos(path);
-}
 
 /// CheckerGrayTextureInfo class
 class CheckerGrayTextureInfo : public AssetInfo
@@ -119,13 +64,13 @@ public:
     /// get path
     [[nodiscard]] std::string_view Path() const override
     {
-        return "lumen_builtin_extra/Assets/Texture2D/Default-Checker-Gray.png";
+        return "|Procedural|Checker-Gray";
     }
 
     /// import the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
     {
-        return Texture::MakePtr(engine, path, Texture::Info { 64, 64 });
+        return Texture::MakePtr(engine, Path(), Texture::Info {64, 64});
     }
 
 private:
@@ -149,22 +94,16 @@ public:
         return Shader::Type();
     }
 
-    /// get name
-    [[nodiscard]] std::string_view Name() const
-    {
-        return "Simple/Diffuse";
-    }
-
     /// get path
     [[nodiscard]] std::string_view Path() const override
     {
-        return "DefaultResourcesExtra/Mobile/Simple-Diffuse.shader";
+        return "|Procedural|Simple-Diffuse";
     }
 
     /// import the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
     {
-        return Shader::MakePtr(engine, path, Name());
+        return Shader::MakePtr(engine, Path(), "Simple/Diffuse");
     }
 
 private:
@@ -174,8 +113,8 @@ private:
 
 //==============================================================================================================================================================================
 
-/// BuiltinExtra::Impl class
-class BuiltinExtra::Impl
+/// BuiltinResources::Impl class
+class BuiltinResources::Impl
 {
     CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
@@ -185,6 +124,7 @@ public:
     /// constructor
     explicit Impl(float priority)
     {
+        mAssetInfos.push_back(SphereMeshInfo::MakePtr());
         mAssetInfos.push_back(CheckerGrayTextureInfo::MakePtr());
         mAssetInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
     }
@@ -213,17 +153,17 @@ private:
 
 //==============================================================================================================================================================================
 
-/// constructs builtin extra
-BuiltinExtra::BuiltinExtra(float priority) : AssetFactory(priority), mImpl(BuiltinExtra::Impl::MakeUniquePtr(priority)) {}
+/// constructs default resources
+BuiltinResources::BuiltinResources(float priority) : AssetFactory(priority), mImpl(BuiltinResources::Impl::MakeUniquePtr(priority)) {}
 
-/// creates a smart pointer version of the builtin extra
-AssetFactoryPtr BuiltinExtra::MakePtr(float priority)
+/// creates a smart pointer version of the default resources
+AssetFactoryPtr BuiltinResources::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new BuiltinExtra(priority));
+    return AssetFactoryPtr(new BuiltinResources(priority));
 }
 
 /// get asset infos
-std::vector<AssetInfoPtr> BuiltinExtra::GetAssetInfos(const std::filesystem::path &path) const
+std::vector<AssetInfoPtr> BuiltinResources::GetAssetInfos(const std::filesystem::path &path) const
 {
     return mImpl->GetAssetInfos(path);
 }

@@ -28,7 +28,7 @@ namespace Lumen
         [[nodiscard]] virtual std::string_view Path() const = 0;
 
         /// import the asset
-        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine, const std::filesystem::path &path) = 0;
+        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine) = 0;
     };
 
     CLASS_PTR_DEF(AssetFactory);

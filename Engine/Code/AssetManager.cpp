@@ -71,7 +71,7 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem
     {
         if (assetInfo->Type() == type)
         {
-            return assetInfo->Import(mEngine, normalizedPath);
+            return assetInfo->Import(mEngine);
         }
     }
 
