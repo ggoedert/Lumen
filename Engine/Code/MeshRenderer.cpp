@@ -135,8 +135,8 @@ public:
                 {
                     if (auto meshFilter = std::static_pointer_cast<MeshFilter>(gameObject->Component(MeshFilter::Type()).lock()))
                     {
-                        ShaderPtr shader = mMaterial->GetShader();
                         MeshPtr mesh = meshFilter->GetMesh();
+                        ShaderPtr shader = mMaterial->GetShader();
                         TexturePtr texture;
                         auto textureProperty = GetProperty("_MainTex");
                         if (textureProperty.HasValue())

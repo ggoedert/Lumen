@@ -11,6 +11,8 @@
 #include "lSceneManager.h"
 #include "lEngine.h"
 
+#include <fstream>
+
 /// MaterialInfo class
 class MaterialInfo : public Lumen::AssetInfo
 {
@@ -127,4 +129,12 @@ void Test1::Open()
     {
         Shutdown();
     }
+    else
+    {
+        Lumen::Serialized::Type out;
+        //out["data"] = Serialized::Type::binary({ 0x01, 0x02, 0x03, 99, 100, 101, 127, 128, 129, 254, 255 });
+        mMainScene->Serialize(out, false);
+        std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
+    }
+
 }

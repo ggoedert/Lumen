@@ -7,8 +7,6 @@
 #include "lScene.h"
 #include "lSceneManager.h"
 
-#include <fstream>
-
 using namespace Lumen;
 
 /// Scene::Impl class
@@ -85,7 +83,6 @@ public:
 
         // read the scene
         auto [mainScene, packed] = FileSystem::ReadSerializedData(path);
-        //packed = true; //@REVIEW@ testing!
         if (mainScene.empty())
         {
             Lumen::DebugLog::Error("Unable to read the scene");
@@ -103,13 +100,6 @@ public:
             Lumen::DebugLog::Error("{}", e.what());
             return false;
         }
-
-/*
-        Serialized::Type out;
-        //out["data"] = Serialized::Type::binary({ 0x01, 0x02, 0x03, 99, 100, 101, 127, 128, 129, 254, 255 });
-        Serialize(out, false);
-        std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
-*/
 
         return true;
     }

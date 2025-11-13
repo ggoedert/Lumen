@@ -120,6 +120,7 @@ std::pair<std::string, bool> FileSystem::ReadSerializedData(const std::filesyste
             Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
         }
     }
+    //packed = true; //@REVIEW@ testing!
     return { serializedData, packed };
 }
 
