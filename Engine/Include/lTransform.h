@@ -14,7 +14,7 @@ namespace Lumen
 {
     CLASS_PTR_DEF(Transform);
     CLASS_WEAK_PTR_DEF(Transform);
-    CLASS_WEAK_PTR_DEF(GameObject);
+    CLASS_WEAK_PTR_DEF(Entity);
 
     /// Transform class
     class Transform : public Object
@@ -27,7 +27,7 @@ namespace Lumen
         ~Transform() override;
 
         /// creates a smart pointer version of the transform
-        static TransformPtr MakePtr(const GameObjectWeakPtr &gameObject);
+        static TransformPtr MakePtr(const EntityWeakPtr &entity);
 
         /// serialize
         void Serialize(Serialized::Type &out, bool packed) const;
@@ -35,8 +35,8 @@ namespace Lumen
         /// deserialize
         void Deserialize(const Serialized::Type &in, bool packed);
 
-        /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GameObject() const;
+        /// get owning entity
+        [[nodiscard]] EntityWeakPtr Entity() const;
 
         /// get parent
         [[nodiscard]] const TransformWeakPtr &GetParent() const;
@@ -67,7 +67,7 @@ namespace Lumen
 
     private:
         /// constructor
-        explicit Transform(const GameObjectWeakPtr &gameObject);
+        explicit Transform(const EntityWeakPtr &entity);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

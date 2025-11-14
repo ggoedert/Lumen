@@ -71,13 +71,13 @@ private:
 DEFINE_COMPONENT_TYPEINFO(Camera);
 
 /// constructs a camera with a background color
-Camera::Camera(const GameObjectWeakPtr &gameObject) :
-    Component(Type(), Name(), gameObject), mImpl(Camera::Impl::MakeUniquePtr()) {}
+Camera::Camera(const EntityWeakPtr &entity) :
+    Component(Type(), Name(), entity), mImpl(Camera::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the camera component
-ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
+ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)
 {
-    return ComponentPtr(new Camera(gameObject));
+    return ComponentPtr(new Camera(entity));
 }
 
 /// serialize

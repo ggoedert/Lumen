@@ -6,8 +6,8 @@
 
 #include "lSceneManager.h"
 #include "lCamera.h"
-#include "lMeshFilter.h"
-#include "lMeshRenderer.h"
+#include "lGeometry.h"
+#include "lRenderer.h"
 
 using namespace Lumen;
 
@@ -27,8 +27,8 @@ namespace Lumen::Hidden
         /// map of component makers
         std::unordered_map<HashType, SceneManager::ComponentMaker, HashTypeHasher, HashTypeEqual> mComponentMakers;
 
-        /// game objects in the scene
-        std::vector<GameObjectPtr> mGameObjects;
+        /// entities in the scene
+        std::vector<EntityPtr> mEntities;
 
         /// components that need to be started
         std::vector<ComponentPtr> mNewComponents;
@@ -82,14 +82,14 @@ void SceneManager::Unload()
     {
         Hidden::gSceneManagerState->mCurrentScene->Release();
         Hidden::gSceneManagerState->mNewComponents.clear();
-        Hidden::gSceneManagerState->mGameObjects.clear();
+        Hidden::gSceneManagerState->mEntities.clear();
         Hidden::gSceneManagerState->mComponentsMap.clear();
         Hidden::gSceneManagerState->mCurrentScene.reset();
     }
 }
 
 /// create component of a specific type
-ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, Hash type)
+ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, const EntityWeakPtr &entity, Hash type)
 {
     L_ASSERT(Hidden::gSceneManagerState);
     L_ASSERT(Hidden::gSceneManagerState->mComponentMakers.contains(type));
@@ -99,30 +99,30 @@ ComponentWeakPtr SceneManager::CreateComponent(const EngineWeakPtr &engine, cons
     {
         return {};
     }
-    return RegisterComponent(it->second(engine, gameObject));
+    return RegisterComponent(it->second(engine, entity));
 }
 
-/// register game object in the current scene
-GameObjectWeakPtr SceneManager::RegisterGameObject(const GameObjectPtr &gameObject)
+/// register entity in the current scene
+EntityWeakPtr SceneManager::RegisterEntity(const EntityPtr &entity)
 {
     L_ASSERT(Hidden::gSceneManagerState);
 
-    Hidden::gSceneManagerState->mGameObjects.push_back(gameObject);
-    return gameObject;
+    Hidden::gSceneManagerState->mEntities.push_back(entity);
+    return entity;
 }
 
-/// unregister game object from the current scene
-/// the passed GameObjectWeakPtr must have been originally created from a shared GameObjectPtr stored in the SceneManager
-bool SceneManager::UnregisterGameObject(const GameObjectWeakPtr &gameObject)
+/// unregister entity from the current scene
+/// the passed EntityWeakPtr must have been originally created from a shared EntityPtr stored in the SceneManager
+bool SceneManager::UnregisterEntity(const EntityWeakPtr &entity)
 {
     L_ASSERT(Hidden::gSceneManagerState);
 
-    auto lockedGameObject = gameObject.lock();
-    if (!lockedGameObject)
+    auto lockedEntity = entity.lock();
+    if (!lockedEntity)
     {
         return false;
     }
-    return RemoveFromVector(Hidden::gSceneManagerState->mGameObjects, lockedGameObject);
+    return RemoveFromVector(Hidden::gSceneManagerState->mEntities, lockedEntity);
 }
 
 /// register component
@@ -187,8 +187,8 @@ void SceneManager::Run()
         Hidden::gSceneManagerState->mNewComponents.clear();
     }
 
-    for (const GameObjectPtr &gameObject : Hidden::gSceneManagerState->mGameObjects)
+    for (const EntityPtr &entity : Hidden::gSceneManagerState->mEntities)
     {
-        gameObject->Run();
+        entity->Run();
     }
 }

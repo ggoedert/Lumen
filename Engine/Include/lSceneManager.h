@@ -6,7 +6,7 @@
 #pragma once
 
 #include "lComponent.h"
-#include "lGameObject.h"
+#include "lEntity.h"
 #include "lScene.h"
 
 #include <functional>
@@ -20,7 +20,7 @@ namespace Lumen
     namespace SceneManager
     {
         /// component maker function type
-        using ComponentMaker = std::function<ComponentPtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)>;
+        using ComponentMaker = std::function<ComponentPtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)>;
 
         /// initialize scene manager namespace
         void Initialize();
@@ -41,16 +41,16 @@ namespace Lumen
         [[nodiscard]] ScenePtr CurrentScene();
 
         /// create component of a specific type
-        ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject, Hash type);
+        ComponentWeakPtr CreateComponent(const EngineWeakPtr &engine, const EntityWeakPtr &entity, Hash type);
 
-        /// register game object in the current scene
-        [[nodiscard]] GameObjectWeakPtr RegisterGameObject(const GameObjectPtr &gameObject);
+        /// register entity in the current scene
+        [[nodiscard]] EntityWeakPtr RegisterEntity(const EntityPtr &entity);
 
-        /// unregister game object from the current scene
-        bool UnregisterGameObject(const GameObjectWeakPtr &gameObject);
+        /// unregister entity from the current scene
+        bool UnregisterEntity(const EntityWeakPtr &entity);
 
-        /// get the count of game objects
-        [[nodiscard]] size_t GameObjectCount();
+        /// get the count of entities
+        [[nodiscard]] size_t EntityCount();
 
         /// register component
         [[nodiscard]] ComponentWeakPtr RegisterComponent(const ComponentPtr &component);

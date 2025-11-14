@@ -1,12 +1,12 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     MeshRenderer
+/// \brief     Renderer
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lMeshRenderer.h"
+#include "lRenderer.h"
 #include "lMaterial.h"
-#include "lMeshFilter.h"
+#include "lGeometry.h"
 #include "lShader.h"
 #include "lTransform.h"
 #include "lStringMap.h"
@@ -14,16 +14,16 @@
 
 using namespace Lumen;
 
-/// MeshRenderer::Impl class
-class MeshRenderer::Impl
+/// Renderer::Impl class
+class Renderer::Impl
 {
     CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
-    friend class MeshRenderer;
+    friend class Renderer;
 
 public:
-    /// constructs a mesh renderer
+    /// constructs a renderer
     explicit Impl(const EngineWeakPtr &engine) : mEngine(engine) {}
 
     /// serialize
@@ -81,7 +81,7 @@ public:
         {
             for (auto &inProperty : propertiesObj.items())
             {
-                if (inProperty.key() == "_MainTex")
+                if (inProperty.key() == "diffuseTex")
                 {
                     Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
 
@@ -94,7 +94,7 @@ public:
                     const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
 
                     // set property
-                    SetProperty("_MainTex", texture);
+                    SetProperty("diffuseTex", texture);
                 }
             }
         }
@@ -109,7 +109,7 @@ public:
     /// set property
     void SetProperty(std::string_view name, const PropertyValue &property)
     {
-        //DebugLog::Info("MeshRenderer::SetProperty {} to {}", name, property);
+        //DebugLog::Info("Renderer::SetProperty {} to {}", name, property);
         mProperties.insert_or_assign(std::string(name), property);
     }
 
@@ -124,21 +124,21 @@ public:
         return Expected<PropertyValue>::Unexpected(std::format("Property '{}' not found", name));
     }
 
-    /// render with a mesh filter
+    /// render with a geometry
     void Render()
     {
         if (auto engineLock = mEngine.lock())
         {
-            if (auto meshRenderer = mOwner.lock())
+            if (auto renderer = mOwner.lock())
             {
-                if (auto gameObject = meshRenderer->GameObject().lock())
+                if (auto entity = renderer->Entity().lock())
                 {
-                    if (auto meshFilter = std::static_pointer_cast<MeshFilter>(gameObject->Component(MeshFilter::Type()).lock()))
+                    if (auto geometry = std::static_pointer_cast<Geometry>(entity->Component(Geometry::Type()).lock()))
                     {
-                        MeshPtr mesh = meshFilter->GetMesh();
+                        MeshPtr mesh = geometry->GetMesh();
                         ShaderPtr shader = mMaterial->GetShader();
                         TexturePtr texture;
-                        auto textureProperty = GetProperty("_MainTex");
+                        auto textureProperty = GetProperty("diffuseTex");
                         if (textureProperty.HasValue())
                         {
                             if (auto pTexture = std::get_if<TexturePtr>(&textureProperty.Value()))
@@ -152,7 +152,7 @@ public:
                             drawPrimitive.meshId = mesh->GetMeshId();
                             drawPrimitive.shaderId = shader->GetShaderId();
                             drawPrimitive.texId = texture->GetTextureId();
-                            gameObject->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
+                            entity->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
                             engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
                         }
 
@@ -163,7 +163,7 @@ public:
     }
 
     /// owner
-    MeshRendererWeakPtr mOwner;
+    RendererWeakPtr mOwner;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -177,40 +177,40 @@ public:
 
 //==============================================================================================================================================================================
 
-DEFINE_COMPONENT_TYPEINFO(MeshRenderer);
+DEFINE_COMPONENT_TYPEINFO(Renderer);
 
-/// constructs a mesh renderer with an material
-MeshRenderer::MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject) :
-    Component(Type(), Name(), gameObject), mImpl(MeshRenderer::Impl::MakeUniquePtr(engine)) {}
+/// constructs a renderer with an material
+Renderer::Renderer(const EngineWeakPtr &engine, const EntityWeakPtr &entity) :
+    Component(Type(), Name(), entity), mImpl(Renderer::Impl::MakeUniquePtr(engine)) {}
 
-/// creates a smart pointer version of the mesh renderer component
-ComponentPtr MeshRenderer::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
+/// creates a smart pointer version of the renderer component
+ComponentPtr Renderer::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)
 {
-    auto ptr = MeshRendererPtr(new MeshRenderer(engine, gameObject));
+    auto ptr = RendererPtr(new Renderer(engine, entity));
     ptr->mImpl->mOwner = ptr;
     return ptr;
 }
 
 /// serialize
-void MeshRenderer::Serialize(Serialized::Type &out, bool packed) const
+void Renderer::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshRenderer::Deserialize(const Serialized::Type &in, bool packed)
+void Renderer::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }
 
 /// set property
-void MeshRenderer::SetProperty(std::string_view name, const PropertyValue &property) { mImpl->SetProperty(name, property); }
+void Renderer::SetProperty(std::string_view name, const PropertyValue &property) { mImpl->SetProperty(name, property); }
 
 /// get property
-[[nodiscard]] Expected<MeshRenderer::PropertyValue> MeshRenderer::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
+[[nodiscard]] Expected<Renderer::PropertyValue> Renderer::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
 
-/// render with a mesh filter
-void MeshRenderer::Render()
+/// render with a geometry
+void Renderer::Render()
 {
     mImpl->Render();
 }

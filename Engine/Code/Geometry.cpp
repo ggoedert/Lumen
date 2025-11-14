@@ -1,24 +1,24 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     MeshFilter
+/// \brief     Geometry
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lMeshFilter.h"
+#include "lGeometry.h"
 #include "lTexture.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;
 
-/// MeshFilter::Impl class
-class MeshFilter::Impl
+/// Geometry::Impl class
+class Geometry::Impl
 {
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
-    friend class MeshFilter;
+    friend class Geometry;
 
 public:
-    /// constructs a mesh filter
+    /// constructs a geometry
     explicit Impl() = default;
 
     /// serialize
@@ -60,32 +60,32 @@ private:
 
 //==============================================================================================================================================================================
 
-DEFINE_COMPONENT_TYPEINFO(MeshFilter);
+DEFINE_COMPONENT_TYPEINFO(Geometry);
 
-/// constructs a mesh filter with a mesh
-MeshFilter::MeshFilter(const GameObjectWeakPtr &gameObject) :
-    Component(Type(), Name(), gameObject), mImpl(MeshFilter::Impl::MakeUniquePtr()) {}
+/// constructs a geometry with a mesh
+Geometry::Geometry(const EntityWeakPtr &entity) :
+    Component(Type(), Name(), entity), mImpl(Geometry::Impl::MakeUniquePtr()) {}
 
-/// creates a smart pointer version of the mesh filter component
-ComponentPtr MeshFilter::MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject)
+/// creates a smart pointer version of the geometry component
+ComponentPtr Geometry::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)
 {
-    return ComponentPtr(new MeshFilter(gameObject));
+    return ComponentPtr(new Geometry(entity));
 }
 
 /// serialize
-void MeshFilter::Serialize(Serialized::Type &out, bool packed) const
+void Geometry::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void MeshFilter::Deserialize(const Serialized::Type &in, bool packed)
+void Geometry::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }
 
 /// get mesh
-const MeshPtr MeshFilter::GetMesh() const { return mImpl->GetMesh(); }
+const MeshPtr Geometry::GetMesh() const { return mImpl->GetMesh(); }
 
 /// set mesh
-void MeshFilter::SetMesh(const MeshPtr &mesh) { mImpl->SetMesh(mesh); }
+void Geometry::SetMesh(const MeshPtr &mesh) { mImpl->SetMesh(mesh); }

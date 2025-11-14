@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lGameObject.h"
+#include "lEntity.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -19,7 +19,7 @@ namespace Lumen
     {
         CLASS_NO_DEFAULT_CTOR(Component);
         CLASS_NO_COPY_MOVE(Component);
-        friend class GameObject;
+        friend class Entity;
         friend void SceneManager::Run();
 
     public:
@@ -32,12 +32,12 @@ namespace Lumen
         /// get name
         [[nodiscard]] std::string_view Name() const;
 
-        /// get owning game object
-        [[nodiscard]] GameObjectWeakPtr GameObject() const;
+        /// get owning entity
+        [[nodiscard]] EntityWeakPtr Entity() const;
 
     protected:
         /// constructs a component with type, name, and parent. called by derived classes
-        explicit Component(HashType type, std::string_view name, const GameObjectWeakPtr &gameObject);
+        explicit Component(HashType type, std::string_view name, const EntityWeakPtr &entity);
 
         /// destroys component
         ~Component() override;

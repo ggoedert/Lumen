@@ -31,8 +31,8 @@ public:
 
 private:
     /// constructs a sphere script
-    explicit SphereScript(const Lumen::GameObjectWeakPtr &gameObject);
+    explicit SphereScript(const Lumen::EntityWeakPtr &entity);
 
     /// creates a smart pointer version of the sphere script component
-    static Lumen::ComponentPtr MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject);
+    static Lumen::ComponentPtr MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::EntityWeakPtr &entity);
 };

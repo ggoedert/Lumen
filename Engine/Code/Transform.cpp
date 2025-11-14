@@ -17,7 +17,7 @@ class Transform::Impl
 
 public:
     /// constructs a transform
-    explicit Impl(const GameObjectWeakPtr &gameObject) : mGameObject(gameObject) {}
+    explicit Impl(const EntityWeakPtr &entity) : mEntity(entity) {}
 
     /// destroys transform
     ~Impl() = default;
@@ -86,8 +86,8 @@ public:
         }
     }
 
-    /// get owning game object
-    [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
+    /// get owning entity
+    [[nodiscard]] EntityWeakPtr Entity() const { return mEntity; }
 
     /// get parent
     [[nodiscard]] const TransformWeakPtr &GetParent() const { return mParent; }
@@ -149,8 +149,8 @@ public:
     /// owner
     TransformWeakPtr mOwner;
 
-    /// owning game object
-    GameObjectWeakPtr mGameObject;
+    /// owning entity
+    EntityWeakPtr mEntity;
 
     /// parent transform
     TransformWeakPtr mParent;
@@ -168,15 +168,15 @@ public:
 //==============================================================================================================================================================================
 
 /// constructor
-Transform::Transform(const GameObjectWeakPtr &gameObject) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(gameObject)) {}
+Transform::Transform(const EntityWeakPtr &entity) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(entity)) {}
 
 /// destructor
 Transform::~Transform() = default;
 
 /// creates a smart pointer version of the transform component
-TransformPtr Transform::MakePtr(const GameObjectWeakPtr &gameObject)
+TransformPtr Transform::MakePtr(const EntityWeakPtr &entity)
 {
-    auto ptr = TransformPtr(new Transform(gameObject));
+    auto ptr = TransformPtr(new Transform(entity));
     ptr->mImpl->mOwner = ptr;
     return ptr;
 }
@@ -193,10 +193,10 @@ void Transform::Deserialize(const Serialized::Type &in, bool packed)
     mImpl->Deserialize(in, packed);
 }
 
-/// get owning game object
-GameObjectWeakPtr Transform::GameObject() const
+/// get owning entity
+EntityWeakPtr Transform::Entity() const
 {
-    return mImpl->GameObject();
+    return mImpl->Entity();
 }
 
 /// get parent

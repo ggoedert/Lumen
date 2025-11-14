@@ -18,8 +18,8 @@ class Component::Impl
 
 public:
     /// constructs a component
-    explicit Impl(std::string_view name, const GameObjectWeakPtr &gameObject) :
-        mName(name), mGameObject(gameObject) {}
+    explicit Impl(std::string_view name, const EntityWeakPtr &entity) :
+        mName(name), mEntity(entity) {}
 
     /// destroys component
     ~Impl() = default;
@@ -28,22 +28,22 @@ public:
     /// get name
     [[nodiscard]] std::string_view Name() const { return mName; }
 
-    /// get owning game object
-    [[nodiscard]] GameObjectWeakPtr GameObject() const { return mGameObject; }
+    /// get owning entity
+    [[nodiscard]] EntityWeakPtr Entity() const { return mEntity; }
 
 private:
     /// name
     const std::string mName;
 
-    /// owning game object
-    GameObjectWeakPtr mGameObject;
+    /// owning entity
+    EntityWeakPtr mEntity;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs a component with type, name, and parent. called by derived classes
-Component::Component(HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
-    Object(type), mImpl(Component::Impl::MakeUniquePtr(name, gameObject)) {}
+Component::Component(HashType type, std::string_view name, const EntityWeakPtr &entity) :
+    Object(type), mImpl(Component::Impl::MakeUniquePtr(name, entity)) {}
 
 /// destructor
 Component::~Component() = default;
@@ -54,8 +54,8 @@ std::string_view Component::Name() const
     return mImpl->Name();
 }
 
-/// get owning game object
-GameObjectWeakPtr Component::GameObject() const
+/// get owning entity
+EntityWeakPtr Component::Entity() const
 {
-    return mImpl->GameObject();
+    return mImpl->Entity();
 }

@@ -26,13 +26,13 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        for (auto &gameObject : mGameObjects)
+        for (auto &entity : mEntities)
         {
-            if (auto gameObjectLock = gameObject.lock())
+            if (auto entityLock = entity.lock())
             {
-                Serialized::Type gameObjectData;
-                gameObjectLock->Serialize(gameObjectData, packed);
-                out[gameObjectLock->Name()] = gameObjectData;
+                Serialized::Type entityData;
+                entityLock->Serialize(entityData, packed);
+                out[entityLock->Name()] = entityData;
             }
         }
 
@@ -46,11 +46,11 @@ public:
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        for (auto &gameObject : in.items())
+        for (auto &entity : in.items())
         {
-            if (auto gameObjectLock = mGameObjects.emplace_back(Lumen::GameObject::MakePtr(mApplication, gameObject.key())).lock())
+            if (auto entityLock = mEntities.emplace_back(Lumen::Entity::MakePtr(mApplication, entity.key())).lock())
             {
-                gameObjectLock->Deserialize(gameObject.value(), packed);
+                entityLock->Deserialize(entity.value(), packed);
             }
         }
     }
@@ -107,15 +107,15 @@ public:
     /// release scene
     void Release()
     {
-        if (!mGameObjects.empty())
+        if (!mEntities.empty())
         {
             Lumen::DebugLog::Info("Scene::Release");
-            for (auto gameObjectWeakPtr : mGameObjects)
+            for (auto entityWeakPtr : mEntities)
             {
-                SceneManager::UnregisterGameObject(gameObjectWeakPtr);
+                SceneManager::UnregisterEntity(entityWeakPtr);
 
             }
-            mGameObjects.clear();
+            mEntities.clear();
         }
     }
 
@@ -125,8 +125,8 @@ public:
     /// application reference
     Lumen::Application &mApplication;
 
-    /// game objects in the scene
-    GameObjects mGameObjects;
+    /// entities in the scene
+    Entities mEntities;
 };
 
 //==============================================================================================================================================================================

@@ -36,8 +36,8 @@ private:
 //==============================================================================================================================================================================
 
 /// constructor
-Behavior::Behavior(HashType type, std::string_view name, const GameObjectWeakPtr &gameObject) :
-    Component(type, name, gameObject), mImpl(Behavior::Impl::MakeUniquePtr()) {}
+Behavior::Behavior(HashType type, std::string_view name, const EntityWeakPtr &entity) :
+    Component(type, name, entity), mImpl(Behavior::Impl::MakeUniquePtr()) {}
 
 /// destructor
 Behavior::~Behavior() = default;

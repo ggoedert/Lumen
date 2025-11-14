@@ -20,13 +20,13 @@
     },
     "Sphere": {
         "Components": {
-            "Lumen::MeshFilter": {
+            "Lumen::Geometry": {
                 "Lumen::Mesh": "|Procedural|Sphere"
             },
-            "Lumen::MeshRenderer": {
+            "Lumen::Renderer": {
                 "Lumen::Material": "Assets/Material.mat",
                 "Properties": {
-                    "_MainTex": {
+                    "diffuseTex": {
                         "Lumen::Texture": "|Procedural|Checker-Gray"
                     }
                 }

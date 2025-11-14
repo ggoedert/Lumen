@@ -1,34 +1,34 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     game object
+/// \brief     entity
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
-#include "lGameObject.h"
-#include "lMeshFilter.h"
-#include "lMeshRenderer.h"
+#include "lEntity.h"
+#include "lGeometry.h"
+#include "lRenderer.h"
 #include "lTransform.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;
 
-/// GameObject::Impl class
-class GameObject::Impl
+/// Entity::Impl class
+class Entity::Impl
 {
     CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
-    friend class GameObject;
+    friend class Entity;
 
 public:
-    /// constructs a game object
-    explicit Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application, std::string_view name);
+    /// constructs a entity
+    explicit Impl(EntityWeakPtr &entity, Lumen::Application &application, std::string_view name);
 
-    /// destroys game object
+    /// destroys entity
     ~Impl();
 
-    /// unregister game object from scene manager
-    void Unregister() { SceneManager::UnregisterGameObject(mOwner); }
+    /// unregister entity from scene manager
+    void Unregister() { SceneManager::UnregisterEntity(mOwner); }
 
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
@@ -118,15 +118,15 @@ public:
     [[nodiscard]] ComponentWeakPtr Component(Hash type) const noexcept;
 
     /// add a component
-    [[maybe_unused]] ComponentWeakPtr AddComponent(const GameObjectWeakPtr &gameObject, Hash type);
+    [[maybe_unused]] ComponentWeakPtr AddComponent(const EntityWeakPtr &entity, Hash type);
 
 protected:
-    /// run game object
+    /// run entity
     void Run();
 
 private:
     /// owner
-    const GameObjectWeakPtr mOwner;
+    const EntityWeakPtr mOwner;
 
     /// application reference
     Lumen::Application &mApplication;
@@ -141,22 +141,22 @@ private:
     std::vector<ComponentWeakPtr> mComponents;
 };
 
-/// constructs a game object
-GameObject::Impl::Impl(GameObjectWeakPtr &gameObject, Lumen::Application &application, std::string_view name) :
-    mOwner(gameObject), mApplication(application), mName(name), mTransform(Transform::MakePtr(gameObject)) {}
+/// constructs a entity
+Entity::Impl::Impl(EntityWeakPtr &entity, Lumen::Application &application, std::string_view name) :
+    mOwner(entity), mApplication(application), mName(name), mTransform(Transform::MakePtr(entity)) {}
 
-/// destroys game object
-GameObject::Impl::~Impl()
+/// destroys entity
+Entity::Impl::~Impl()
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
         SceneManager::UnregisterComponent(component);
     }
-    SceneManager::UnregisterGameObject(mOwner);
+    SceneManager::UnregisterEntity(mOwner);
 }
 
 /// get component
-ComponentWeakPtr GameObject::Impl::Component(Hash type) const noexcept
+ComponentWeakPtr Entity::Impl::Component(Hash type) const noexcept
 {
     for (const ComponentWeakPtr &component : mComponents)
     {
@@ -171,95 +171,95 @@ ComponentWeakPtr GameObject::Impl::Component(Hash type) const noexcept
 }
 
 /// add a component
-ComponentWeakPtr GameObject::Impl::AddComponent(const GameObjectWeakPtr &gameObject, Hash type)
+ComponentWeakPtr Entity::Impl::AddComponent(const EntityWeakPtr &entity, Hash type)
 {
-    ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), gameObject, type);
+    ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), entity, type);
     mComponents.push_back(component);
     return component;
 }
 
-/// run game object
-void GameObject::Impl::Run()
+/// run entity
+void Entity::Impl::Run()
 {
-    MeshRendererPtr meshRendererPtr;
+    RendererPtr rendererPtr;
     for (const ComponentWeakPtr &component : mComponents)
     {
         auto componentPtr = component.lock();
         L_ASSERT(componentPtr);
-        if (componentPtr->Type() == MeshRenderer::Type())
+        if (componentPtr->Type() == Renderer::Type())
         {
-            L_ASSERT(meshRendererPtr == nullptr);
-            meshRendererPtr = static_pointer_cast<MeshRenderer>(componentPtr);
+            L_ASSERT(rendererPtr == nullptr);
+            rendererPtr = static_pointer_cast<Renderer>(componentPtr);
         }
         componentPtr->Run();
     }
-    if (meshRendererPtr)
+    if (rendererPtr)
     {
-        meshRendererPtr->Render();
+        rendererPtr->Render();
     }
 }
 
 //==============================================================================================================================================================================
 
-/// constructs a game object
-GameObject::GameObject() : Object(Type()) {}
+/// constructs a entity
+Entity::Entity() : Object(Type()) {}
 
-/// destroys game object
-GameObject::~GameObject() {}
+/// destroys entity
+Entity::~Entity() {}
 
 /// custom smart pointer maker, self registers into scene manager
-GameObjectWeakPtr GameObject::MakePtr(Lumen::Application &application, std::string_view name)
+EntityWeakPtr Entity::MakePtr(Lumen::Application &application, std::string_view name)
 {
-    GameObjectPtr gameObject = GameObjectPtr(new GameObject());
-    GameObjectWeakPtr gameObjectWeak = SceneManager::RegisterGameObject(gameObject);
-    gameObject->mImpl = std::make_unique<GameObject::Impl>(gameObjectWeak, application, name);
-    return gameObjectWeak;
+    EntityPtr entity = EntityPtr(new Entity());
+    EntityWeakPtr entityWeak = SceneManager::RegisterEntity(entity);
+    entity->mImpl = std::make_unique<Entity::Impl>(entityWeak, application, name);
+    return entityWeak;
 }
 
 /// serialize
-void GameObject::Serialize(Serialized::Type &out, bool packed) const
+void Entity::Serialize(Serialized::Type &out, bool packed) const
 {
     mImpl->Serialize(out, packed);
 }
 
 /// deserialize
-void GameObject::Deserialize(const Serialized::Type &in, bool packed)
+void Entity::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }
 
 /// get application
-Application &GameObject::GetApplication()
+Application &Entity::GetApplication()
 {
     return mImpl->GetApplication();
 }
 
 /// get name
-std::string_view GameObject::Name() const
+std::string_view Entity::Name() const
 {
     return mImpl->Name();
 }
 
 /// get transform
-TransformWeakPtr GameObject::Transform() const
+TransformWeakPtr Entity::Transform() const
 {
     return mImpl->Transform();
 }
 
 /// get component
-ComponentWeakPtr GameObject::Component(Hash type) const
+ComponentWeakPtr Entity::Component(Hash type) const
 {
     return mImpl->Component(type);
 }
 
 /// add a component
-ComponentWeakPtr GameObject::AddComponent(Hash type)
+ComponentWeakPtr Entity::AddComponent(Hash type)
 {
     return mImpl->AddComponent(shared_from_this(), type);
 }
 
-/// run game object
-void GameObject::Run()
+/// run entity
+void Entity::Run()
 {
     mImpl->Run();
 }

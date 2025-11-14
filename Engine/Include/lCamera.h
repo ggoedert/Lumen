@@ -35,10 +35,10 @@ namespace Lumen
 
     private:
         /// constructs a camera with a background color
-        explicit Camera(const GameObjectWeakPtr &gameObject);
+        explicit Camera(const EntityWeakPtr &entity);
 
         /// creates a smart pointer version of the camera component
-        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

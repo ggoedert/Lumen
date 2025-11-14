@@ -12,13 +12,13 @@
 DEFINE_COMPONENT_TYPEINFO(SphereScript);
 
 /// constructs a sphere script with a background color
-SphereScript::SphereScript(const Lumen::GameObjectWeakPtr &gameObject) :
-    Behavior(Type(), Name(), gameObject) {}
+SphereScript::SphereScript(const Lumen::EntityWeakPtr &entity) :
+    Behavior(Type(), Name(), entity) {}
 
 /// creates a smart pointer version of the sphere script component
-Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::GameObjectWeakPtr &gameObject)
+Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::EntityWeakPtr &entity)
 {
-    return Lumen::ComponentPtr(new SphereScript(gameObject));
+    return Lumen::ComponentPtr(new SphereScript(entity));
 }
 
 /// serialize
@@ -41,11 +41,11 @@ void SphereScript::Start()
 /// update is called once per frame
 void SphereScript::Update()
 {
-    if (auto gameObject = GameObject().lock())
+    if (auto entity = Entity().lock())
     {
-        if (auto transform = gameObject->Transform().lock())
+        if (auto transform = entity->Transform().lock())
         {
-            transform->Rotate(0.f, 90.f * gameObject->GetApplication().DeltaTime(), 0.f);
+            transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
         }
     }
 }

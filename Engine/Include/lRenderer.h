@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     MeshRenderer interface
+/// \brief     Renderer interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -11,14 +11,14 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(MeshRenderer);
-    CLASS_WEAK_PTR_DEF(MeshRenderer);
+    CLASS_PTR_DEF(Renderer);
+    CLASS_WEAK_PTR_DEF(Renderer);
 
-    /// MeshRenderer class
-    class MeshRenderer : public Component
+    /// Renderer class
+    class Renderer : public Component
     {
-        CLASS_NO_DEFAULT_CTOR(MeshRenderer);
-        CLASS_NO_COPY_MOVE(MeshRenderer);
+        CLASS_NO_DEFAULT_CTOR(Renderer);
+        CLASS_NO_COPY_MOVE(Renderer);
         COMPONENT_TYPEINFO;
 
     public:
@@ -41,11 +41,11 @@ namespace Lumen
         void Render();
 
     private:
-        /// constructs a mesh renderer with an material
-        explicit MeshRenderer(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
+        /// constructs a renderer with an material
+        explicit Renderer(const EngineWeakPtr &engine, const EntityWeakPtr &entity);
 
-        /// creates a smart pointer version of the mesh renderer component
-        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const GameObjectWeakPtr &gameObject);
+        /// creates a smart pointer version of the renderer component
+        static ComponentPtr MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
