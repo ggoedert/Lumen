@@ -1,6 +1,6 @@
 # Lumen
 
-**Lumen** is an experimental game engine built around the Composite design pattern for flexible scene management. It currently targets Windows NT10 family with DirectX support, with future plans for cross-platform portability.
+**Lumen** is an experimental game engine built around a component-based architecture for flexible scene management. It currently targets the Windows NT 10 family with DirectX support, with future plans for cross-platform portability.
 
 ## Disclaimer
 
