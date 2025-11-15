@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 
 #include "Sandbox.h"
-#include "SphereScript.h"
 
 #include "lMaterial.h"
 #include "lSceneManager.h"
@@ -43,7 +42,11 @@ public:
         {
             return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());
         }
-        return Lumen::Expected<Lumen::AssetPtr>(materialExpected.Value());
+        if (!materialExpected.Value()->Load())
+        {
+            return Lumen::Expected<Lumen::AssetPtr>::Unexpected(std::format("Unable to load material resource, {}", Path()));
+        }
+        return materialExpected;
     }
 
 private:

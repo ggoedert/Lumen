@@ -19,9 +19,6 @@ namespace Lumen
         /// serialized type alias
         using Type = nlohmann::basic_json<nlohmann::ordered_map>;
 
-        /// path token
-        extern const std::string cPathToken;
-
         /// transform token
         extern const std::string cTransformToken;
 
@@ -81,6 +78,12 @@ namespace Lumen
 
         /// texture type token packed
         extern const Hash cTextureTypeTokenPacked;
+
+        /// shader type token
+        extern const std::string cShaderTypeToken;
+
+        /// shader type token packed
+        extern const Hash cShaderTypeTokenPacked;
 
         /// serialized value
         inline void SerializeValue(Type &out, bool packed, const std::string &key, const Hash &keyPacked, const Type &value)

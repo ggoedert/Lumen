@@ -5,7 +5,10 @@
 //==============================================================================================================================================================================
 
 #include "lDefs.h"
+#include "lStringMap.h"
 #include "lMaterial.h"
+#include "lTexture.h"
+#include "lRenderer.h"
 #include "lShader.h"
 
 using namespace Lumen;
@@ -13,20 +16,143 @@ using namespace Lumen;
 /// Material::Impl class
 class Material::Impl
 {
-    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Material;
 
 public:
     /// constructs a material
-    explicit Impl(ShaderPtr shader) : mShader(shader) {}
+    explicit Impl() {}
+
+    /// serialize
+    void Serialize(Serialized::Type &out, bool packed) const
+    {
+        Serialized::SerializeValue(out, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, mShader->Name());
+
+        Serialized::Type propertiesObj = Serialized::Type::object();
+        for (const auto &[key, value] : mProperties)
+        {
+            if (std::holds_alternative<int>(value))
+            {
+                propertiesObj[key] = std::get<int>(value);
+            }
+            else if (std::holds_alternative<float>(value))
+            {
+                propertiesObj[key] = std::get<float>(value);
+            }
+            else if (std::holds_alternative<Lumen::TexturePtr>(value))
+            {
+                Serialized::Type textureValue = {};
+                auto tex = std::get<Lumen::TexturePtr>(value);
+                if (tex)
+                {
+                    Serialized::SerializeValue(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Path().string());
+                }
+                propertiesObj[key] = textureValue;
+            }
+        }
+        Serialized::SerializeValue(out, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj);
+    }
+
+    /// deserialize
+    void Deserialize(const Serialized::Type &in, bool packed)
+    {
+        mShader.reset();
+        mProperties.clear();
+
+        // load shader
+        Serialized::Type shaderName = {};
+        Serialized::DeserializeValue(in, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, shaderName);
+        if (shaderName.empty())
+        {
+            throw std::runtime_error(std::format("Unable to load material resource, no shader name in material asset"));
+        }
+        Expected<std::string_view> shaderPathExp = Shader::FindPath(shaderName);
+        if (!shaderPathExp.HasValue())
+        {
+            throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderName.get<std::string_view>(), shaderPathExp.Error()));
+        }
+        Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderPathExp.Value());
+        if (!shaderExp.HasValue())
+        {
+            throw std::runtime_error(shaderExp.Error());
+        }
+        mShader = static_pointer_cast<Shader>(shaderExp.Value());
+
+        // load properties
+        Serialized::Type propertiesObj = Serialized::Type::object();
+        if (Serialized::DeserializeValue(in, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj))
+        {
+            Serialized::Type path = {};
+            for (auto &inProperty : propertiesObj.items())
+            {
+                if (inProperty.key() == "diffuseTex")
+                {
+                    Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
+
+                    // load texture
+                    Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), path);
+                    if (!textureExp.HasValue())
+                    {
+                        throw std::runtime_error(std::format("Unable to load texture resource {}, {}", path.get<std::string>(), textureExp.Error()));
+                    }
+                    const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
+
+                    // set property
+                    SetProperty("diffuseTex", texture);
+                }
+            }
+        }
+    }
+
+    /// set property
+    void SetProperty(std::string_view name, const PropertyValue &property)
+    {
+        //DebugLog::Info("Renderer::SetProperty {} to {}", name, property);
+        mProperties.insert_or_assign(std::string(name), property);
+    }
+
+    /// get property
+    [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const
+    {
+        auto it = mProperties.find(name);
+        if (it != mProperties.end())
+        {
+            return it->second;
+        }
+        return Expected<PropertyValue>::Unexpected(std::format("Property '{}' not found", name));
+    }
 
     /// save material
     bool Save() const { return true; }
 
     /// load material
-    bool Load() { return true; }
+    bool Load()
+    {
+        const std::filesystem::path &path = mOwner.lock()->Path();
+        Lumen::DebugLog::Info("Material::Impl::Load {}", path.string());
+
+        // read the material
+        auto [materialData, packed] = FileSystem::ReadSerializedData(path);
+        if (materialData.empty())
+        {
+            Lumen::DebugLog::Error("Unable to read the material");
+            return false;
+        }
+
+        // parse the material
+        try
+        {
+            const Serialized::Type in = Serialized::Type::parse(materialData);
+            Deserialize(in, packed);
+        }
+        catch (const std::exception &e)
+        {
+            Lumen::DebugLog::Error("{}", e.what());
+            return false;
+        }
+        return true;
+    }
 
     /// release material
     void Release() {}
@@ -38,36 +164,27 @@ public:
     void SetShader(const ShaderPtr &shader) { mShader = shader; }
 
 private:
+    /// owner
+    MaterialWeakPtr mOwner;
+
     /// shader
     ShaderPtr mShader;
+
+    /// map of properties
+    StringMap<PropertyValue> mProperties;
 };
 
 //==============================================================================================================================================================================
 
-/// constructs a material with an shader
-Material::Material(ShaderPtr shader, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Material::Impl::MakeUniquePtr(shader)) {}
+/// constructs a material
+Material::Material(const std::filesystem::path &path) : Asset(Type(), path), mImpl(Material::Impl::MakeUniquePtr()) {}
 
 /// custom smart pointer maker
 Expected<AssetPtr> Material::MakePtr(const std::filesystem::path &path)
 {
-    //@REVIEW@ FIXME we should really open the material and get the shaderName from it
-    std::string shaderName = "Simple/Diffuse";
-
-    // get shader information
-    Expected<std::string_view> shaderPathExp = Shader::FindPath(shaderName);
-    if (!shaderPathExp.HasValue())
-    {
-        return Expected<AssetPtr>::Unexpected(std::format("Unable to load {} shader resource, {}", shaderName, shaderPathExp.Error()));
-    }
-
-    // load shader
-    Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderPathExp.Value());
-    if (!shaderExp.HasValue())
-    {
-        return Expected<AssetPtr>::Unexpected(shaderExp.Error());
-    }
-
-    return AssetPtr(new Material(static_pointer_cast<Shader>(shaderExp.Value()), path));
+    auto ptr = MaterialPtr(new Material(path));
+    ptr->mImpl->mOwner = ptr;
+    return ptr;
 }
 
 /// save material
@@ -87,6 +204,12 @@ void Material::Release()
 {
     mImpl->Release();
 }
+
+/// set property
+void Material::SetProperty(std::string_view name, const PropertyValue &property) { mImpl->SetProperty(name, property); }
+
+/// get property
+[[nodiscard]] Expected<Material::PropertyValue> Material::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
 
 /// get shader
 ShaderPtr Material::GetShader() const

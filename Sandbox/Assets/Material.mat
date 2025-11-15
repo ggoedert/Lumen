@@ -1,7 +1,7 @@
 {
     "Lumen::Shader": "Simple/Diffuse",
     "Properties": {
-        "_MainTex": {
+        "diffuseTex": {
             "Lumen::Texture": "|Procedural|Checker-Gray"
         }
     }

@@ -8,12 +8,13 @@
 #include "lDefs.h"
 #include "lExpected.h"
 #include "lAsset.h"
-#include "lFileSystem.h"
+#include "lTexture.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(Material);
+    CLASS_WEAK_PTR_DEF(Material);
     CLASS_PTR_DEF(Shader);
 
     /// Material class
@@ -24,6 +25,9 @@ namespace Lumen
         OBJECT_TYPEINFO;
 
     public:
+        /// property value type
+        using PropertyValue = std::variant<int, float, Lumen::TexturePtr>;
+
         /// creates a smart pointer version of the Material
         static Expected<AssetPtr> MakePtr(const std::filesystem::path &path);
 
@@ -36,6 +40,12 @@ namespace Lumen
         /// release material
         void Release() override;
 
+        /// set property
+        void SetProperty(std::string_view name, const PropertyValue &property);
+
+        /// get property
+        [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const;
+
         /// get shader
         [[nodiscard]] ShaderPtr GetShader() const;
 
@@ -43,8 +53,8 @@ namespace Lumen
         void SetShader(const ShaderPtr &shader);
 
     private:
-        /// constructs a material with an shader
-        explicit Material(ShaderPtr shader, const std::filesystem::path &path);
+        /// constructs a material
+        explicit Material(const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

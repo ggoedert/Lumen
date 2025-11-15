@@ -6,7 +6,6 @@
 #pragma once
 
 #include "lComponent.h"
-#include "lTexture.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -22,20 +21,11 @@ namespace Lumen
         COMPONENT_TYPEINFO;
 
     public:
-        /// property value type
-        using PropertyValue = std::variant<int, float, Lumen::TexturePtr>;
-
         /// serialize
         void Serialize(Serialized::Type &out, bool packed) const override;
 
         /// deserialize
         void Deserialize(const Serialized::Type &in, bool packed) override;
-
-        /// set property
-        void SetProperty(std::string_view name, const PropertyValue &property);
-
-        /// get property
-        [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const;
 
         /// render
         void Render();

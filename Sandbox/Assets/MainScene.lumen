@@ -24,12 +24,7 @@
                 "Lumen::Mesh": "|Procedural|Sphere"
             },
             "Lumen::Renderer": {
-                "Lumen::Material": "Assets/Material.mat",
-                "Properties": {
-                    "diffuseTex": {
-                        "Lumen::Texture": "|Procedural|Checker-Gray"
-                    }
-                }
+                "Lumen::Material": "Assets/Material.mat"
             },
             "SphereScript": {}
         }

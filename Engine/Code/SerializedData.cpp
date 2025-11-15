@@ -8,8 +8,6 @@
 
 using namespace Lumen;
 
-const std::string Serialized::cPathToken = std::string("Path");
-
 const std::string Serialized::cTransformToken = std::string("Transform");
 const Hash        Serialized::cTransformTokenPacked = HashString(Serialized::cTransformToken.c_str());
 
@@ -35,3 +33,6 @@ const std::string Serialized::cPropertiesToken = std::string("Properties");
 const Hash        Serialized::cPropertiesTokenPacked = HashString(Serialized::cPropertiesToken.c_str());
 const std::string Serialized::cTextureTypeToken = std::string("Lumen::Texture");
 const Hash        Serialized::cTextureTypeTokenPacked = HashString(Serialized::cTextureTypeToken.c_str());
+
+const std::string Serialized::cShaderTypeToken = std::string("Lumen::Shader");
+const Hash        Serialized::cShaderTypeTokenPacked = HashString(Serialized::cShaderTypeToken.c_str());

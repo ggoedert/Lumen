@@ -30,37 +30,12 @@ public:
     void Serialize(Serialized::Type &out, bool packed) const
     {
         Serialized::SerializeValue(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Path().string());
-
-        Serialized::Type propertiesObj = Serialized::Type::object();
-        for (const auto &[key, value] : mProperties)
-        {
-            if (std::holds_alternative<int>(value))
-            {
-                propertiesObj[key] = std::get<int>(value);
-            }
-            else if (std::holds_alternative<float>(value))
-            {
-                propertiesObj[key] = std::get<float>(value);
-            }
-            else if (std::holds_alternative<Lumen::TexturePtr>(value))
-            {
-                Serialized::Type textureValue = {};
-                auto tex = std::get<Lumen::TexturePtr>(value);
-                if (tex)
-                {
-                    Serialized::SerializeValue(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Path().string());
-                }
-                propertiesObj[key] = textureValue;
-            }
-        }
-        Serialized::SerializeValue(out, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj);
     }
 
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
         mMaterial.reset();
-        mProperties.clear();
 
         // load material
         Serialized::Type path = {};
@@ -75,29 +50,6 @@ public:
             throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));
         }
         mMaterial = static_pointer_cast<Material>(materialExp.Value());
-
-        Serialized::Type propertiesObj = Serialized::Type::object();
-        if (Serialized::DeserializeValue(in, packed, Serialized::cPropertiesToken, Serialized::cPropertiesTokenPacked, propertiesObj))
-        {
-            for (auto &inProperty : propertiesObj.items())
-            {
-                if (inProperty.key() == "diffuseTex")
-                {
-                    Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
-
-                    // load texture
-                    Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), path);
-                    if (!textureExp.HasValue())
-                    {
-                        throw std::runtime_error(std::format("Unable to load texture resource {}, {}", path.get<std::string>(), textureExp.Error()));
-                    }
-                    const TexturePtr texture = static_pointer_cast<Texture>(textureExp.Value());
-
-                    // set property
-                    SetProperty("diffuseTex", texture);
-                }
-            }
-        }
     }
 
     /// get material
@@ -105,24 +57,6 @@ public:
 
     /// set material
     void SetMaterial(const MaterialPtr &material) { mMaterial = material; }
-
-    /// set property
-    void SetProperty(std::string_view name, const PropertyValue &property)
-    {
-        //DebugLog::Info("Renderer::SetProperty {} to {}", name, property);
-        mProperties.insert_or_assign(std::string(name), property);
-    }
-
-    /// get property
-    [[nodiscard]] Expected<PropertyValue> GetProperty(std::string_view name) const
-    {
-        auto it = mProperties.find(name);
-        if (it != mProperties.end())
-        {
-            return it->second;
-        }
-        return Expected<PropertyValue>::Unexpected(std::format("Property '{}' not found", name));
-    }
 
     /// render with a geometry
     void Render()
@@ -138,7 +72,7 @@ public:
                         MeshPtr mesh = geometry->GetMesh();
                         ShaderPtr shader = mMaterial->GetShader();
                         TexturePtr texture;
-                        auto textureProperty = GetProperty("diffuseTex");
+                        auto textureProperty = mMaterial->GetProperty("diffuseTex");
                         if (textureProperty.HasValue())
                         {
                             if (auto pTexture = std::get_if<TexturePtr>(&textureProperty.Value()))
@@ -170,9 +104,6 @@ public:
 
     /// material
     MaterialPtr mMaterial;
-
-    /// map of properties
-    StringMap<PropertyValue> mProperties;
 };
 
 //==============================================================================================================================================================================
@@ -202,12 +133,6 @@ void Renderer::Deserialize(const Serialized::Type &in, bool packed)
 {
     mImpl->Deserialize(in, packed);
 }
-
-/// set property
-void Renderer::SetProperty(std::string_view name, const PropertyValue &property) { mImpl->SetProperty(name, property); }
-
-/// get property
-[[nodiscard]] Expected<Renderer::PropertyValue> Renderer::GetProperty(std::string_view name) const { return mImpl->GetProperty(name); }
 
 /// render with a geometry
 void Renderer::Render()
