@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lId.h"
+#include "lUniqueByteArray.h"
 #include "lAsset.h"
 
 /// Lumen namespace
@@ -47,8 +48,11 @@ namespace Lumen
         /// get texture id
         Id::Type GetTextureId();
 
-        /// get texture data
-        void GetTextureData(byte *data, int pitch);
+        /// push texture data
+        void PushTextureData(UniqueByteArray textureData);
+
+        /// pop texture data
+        UniqueByteArray PopTextureData();
 
     private:
         /// constructs a texture

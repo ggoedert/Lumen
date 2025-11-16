@@ -45,32 +45,16 @@ public:
         }
     }
 
-    /// get texture data
-    void GetTextureData(byte *data, int pitch)
+    /// push texture data
+    void PushTextureData(UniqueByteArray textureData)
     {
-        const std::filesystem::path &path = mOwner.lock()->Path();
-        if (path.string() == "|Procedural|Checker-Gray") //@REVIEW@ FIXME temp hack
-        {
-            for (int y = 0; y < mInfo.mHeight; y++)
-            {
-                for (int x = 0; x < mInfo.mWidth; x++)
-                {
-                    if ((x < (mInfo.mWidth >> 1)) == (y < (mInfo.mHeight >> 1)))
-                    {
-                        data[y * pitch + 4 * x + 0] = 198;
-                        data[y * pitch + 4 * x + 1] = 197;
-                        data[y * pitch + 4 * x + 2] = 198;
-                    }
-                    else
-                    {
-                        data[y * pitch + 4 * x + 0] = 156;
-                        data[y * pitch + 4 * x + 1] = 158;
-                        data[y * pitch + 4 * x + 2] = 156;
-                    }
-                    data[y * pitch + 4 * x + 3] = 255;
-                }
-            }
-        }
+        mTextureData = std::move(textureData);
+    }
+
+    /// pop texture data
+    UniqueByteArray PopTextureData()
+    {
+        return std::move(mTextureData);
     }
 
     /// owner
@@ -81,6 +65,9 @@ public:
 
     /// texture info
     Info mInfo;
+
+    /// texture data
+    UniqueByteArray mTextureData;
 
     /// engine texture id
     Id::Type mTextureId;
@@ -135,8 +122,14 @@ Id::Type Texture::GetTextureId()
     return mImpl->mTextureId;
 }
 
-/// get texture data
-void Texture::GetTextureData(byte *data, int pitch)
+/// push texture data
+void Texture::PushTextureData(UniqueByteArray textureData)
 {
-    mImpl->GetTextureData(data, pitch);
+    mImpl->PushTextureData(std::move(textureData));
+}
+
+/// pop texture data
+UniqueByteArray Texture::PopTextureData()
+{
+    return mImpl->PopTextureData();
 }

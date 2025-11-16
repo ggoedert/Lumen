@@ -70,7 +70,33 @@ public:
     /// import the checker gray texture
     [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
     {
-        return Texture::MakePtr(engine, Path(), Texture::Info {64, 64});
+        Texture::Info textureInfo { 64, 64 };
+        TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path(), textureInfo));
+
+        UniqueByteArray textureData(textureInfo.mWidth * textureInfo.mHeight * 4);
+        int textureDataPitch = textureInfo.mWidth * 4;
+        for (int y = 0; y < textureInfo.mHeight; y++)
+        {
+            for (int x = 0; x < textureInfo.mWidth; x++)
+            {
+                if ((x < (textureInfo.mWidth >> 1)) == (y < (textureInfo.mHeight >> 1)))
+                {
+                    textureData[y * textureDataPitch + 4 * x + 0] = 198;
+                    textureData[y * textureDataPitch + 4 * x + 1] = 197;
+                    textureData[y * textureDataPitch + 4 * x + 2] = 198;
+                }
+                else
+                {
+                    textureData[y * textureDataPitch + 4 * x + 0] = 156;
+                    textureData[y * textureDataPitch + 4 * x + 1] = 158;
+                    textureData[y * textureDataPitch + 4 * x + 2] = 156;
+                }
+                textureData[y * textureDataPitch + 4 * x + 3] = 255;
+            }
+        }
+        texture->PushTextureData(std::move(textureData));
+
+        return texture;
     }
 
 private:

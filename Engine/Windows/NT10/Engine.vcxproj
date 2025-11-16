@@ -329,6 +329,7 @@
     <ClInclude Include="..\..\Include\lTexture.h" />
     <ClInclude Include="..\..\Include\lMaterial.h" />
     <ClInclude Include="..\..\Include\lTransform.h" />
+    <ClInclude Include="..\..\Include\lUniqueByteArray.h" />
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
     <ClInclude Include="..\..\Include\Windows\lFramework.h" />
   </ItemGroup>

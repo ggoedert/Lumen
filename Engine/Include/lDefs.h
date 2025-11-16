@@ -293,12 +293,19 @@ do {                                                                            
 public:                             \
 TYPE() = delete
 
-#define CLASS_NO_COPY_MOVE(TYPE)        \
-public:                                 \
-TYPE(const TYPE &) = delete;            \
-TYPE &operator=(const TYPE &) = delete; \
-TYPE(TYPE &&) = delete;                 \
+#define CLASS_NO_COPY(TYPE)            \
+public:                                \
+TYPE(const TYPE &) = delete;           \
+TYPE &operator=(const TYPE &) = delete
+
+#define CLASS_NO_MOVE(TYPE)       \
+public:                           \
+TYPE(TYPE &&) = delete;           \
 TYPE &operator=(TYPE &&) = delete
+
+#define CLASS_NO_COPY_MOVE(TYPE)        \
+CLASS_NO_COPY(TYPE);                    \
+CLASS_NO_MOVE(TYPE)
 
 #define CLASS_PTR_DEF(TYPE)             \
 class TYPE;                             \

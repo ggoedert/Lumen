@@ -551,7 +551,7 @@ namespace Lumen::WindowsNT10
             static constexpr int BPElem = 8;
             int width = textureDataIt->second.mWidth;
             int height = textureDataIt->second.mHeight;
-            int screenTexPitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
+            int surfacePitch = (width * elements * BPElem + (BPElem - 1)) / BPElem;
 
             std::vector<byte> ddsTexture(ddsPrefix + width * height * elements);
             *((DWORD *)ddsTexture.data()) = DDS_MAGIC;
@@ -562,13 +562,18 @@ namespace Lumen::WindowsNT10
             header->flags = DDS_HEADER_FLAGS_TEXTURE | DDS_HEADER_FLAGS_PITCH | DDS_HEADER_FLAGS_MIPMAP;
             header->height = height;
             header->width = width;
-            header->pitchOrLinearSize = screenTexPitch;
+            header->pitchOrLinearSize = surfacePitch;
             header->mipMapCount = 1;
             header->ddspf = DDSPF_A8B8G8R8;
             header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
             // create texture
-            textureDataIt->second.mTexture->GetTextureData(ddsTexture.data() + ddsPrefix, screenTexPitch);
+            UniqueByteArray textureData = textureDataIt->second.mTexture->PopTextureData();
+            int textureDataPitch = width * elements;
+            for (int y = 0; y < height; ++y)
+            {
+                memcpy(ddsTexture.data() + ddsPrefix + y * surfacePitch, textureData.data() + y * textureDataPitch, textureDataPitch);
+            }
             textureDataIt->second.mIndex = mResourceDescriptors->Allocate();
             ThrowIfFailed(
                 CreateDDSTextureFromMemory(device, resourceUpload, ddsTexture.data(), ddsTexture.size(), textureDataIt->second.mResource.ReleaseAndGetAddressOf(), true));

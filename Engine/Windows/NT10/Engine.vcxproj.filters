@@ -170,6 +170,9 @@
     <ClInclude Include="..\..\Include\lAssetManager.h">
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lUniqueByteArray.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
