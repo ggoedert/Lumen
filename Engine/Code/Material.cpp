@@ -24,6 +24,27 @@ public:
     /// constructs a material
     explicit Impl() {}
 
+    /// register material name / path
+    static void Register(std::string_view name, std::string_view path)
+    {
+        // register asset
+        mAssetPaths.insert_or_assign(std::string(name), path);
+    }
+
+    /// find material path from name
+    static Expected<std::string_view> Find(std::string_view name)
+    {
+        // find asset
+        auto it = mAssetPaths.find(name);
+        if (it != mAssetPaths.end())
+        {
+            return it->second;
+        }
+
+        // none found
+        return Expected<std::string_view>::Unexpected(std::format("Material path for '{}' not found", name));
+    }
+
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
@@ -67,7 +88,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load material resource, no shader name in material asset"));
         }
-        Expected<std::string_view> shaderPathExp = Shader::FindPath(shaderName);
+        Expected<std::string_view> shaderPathExp = Shader::Find(shaderName);
         if (!shaderPathExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderName.get<std::string_view>(), shaderPathExp.Error()));
@@ -172,7 +193,12 @@ private:
 
     /// map of properties
     StringMap<PropertyValue> mProperties;
+
+    /// static map of asset names to paths
+    static StringMap<std::string> mAssetPaths;
 };
+
+StringMap<std::string> Material::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
@@ -185,6 +211,18 @@ Expected<AssetPtr> Material::MakePtr(const std::filesystem::path &path)
     auto ptr = MaterialPtr(new Material(path));
     ptr->mImpl->mOwner = ptr;
     return ptr;
+}
+
+/// register material name / path
+void Material::Register(std::string_view name, std::string_view path)
+{
+    Material::Impl::Register(name, path);
+}
+
+/// find material path from name
+Expected<std::string_view> Material::Find(std::string_view name)
+{
+    return Material::Impl::Find(name);
 }
 
 /// save material

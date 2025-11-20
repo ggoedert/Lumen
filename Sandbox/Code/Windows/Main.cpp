@@ -10,6 +10,7 @@
 #include <crtdbg.h>
 #endif
 #include "resource.h"
+#include "SimpleMath.h"
 
 #include "Sandbox.h"
 

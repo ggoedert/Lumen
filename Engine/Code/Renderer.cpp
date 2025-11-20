@@ -9,7 +9,7 @@
 #include "lGeometry.h"
 #include "lShader.h"
 #include "lTransform.h"
-#include "lStringMap.h"
+#include "lAssetManager.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;

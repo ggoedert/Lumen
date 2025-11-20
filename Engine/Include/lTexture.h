@@ -7,6 +7,7 @@
 
 #include "lId.h"
 #include "lUniqueByteArray.h"
+#include "lExpected.h"
 #include "lAsset.h"
 
 /// Lumen namespace
@@ -35,6 +36,12 @@ namespace Lumen
 
         /// creates a smart pointer version of the texture asset
         static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
+
+        /// register texture name / path
+        static void Register(std::string_view name, std::string_view path);
+
+        /// find texture path from name
+        static Expected<std::string_view> Find(std::string_view name);
 
         /// save a texture
         bool Save() const override;

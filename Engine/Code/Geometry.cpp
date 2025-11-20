@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lGeometry.h"
-#include "lTexture.h"
+#include "lAssetManager.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;

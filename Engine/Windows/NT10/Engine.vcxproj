@@ -307,6 +307,7 @@
     <ClInclude Include="..\..\Include\lBehavior.h" />
     <ClInclude Include="..\..\Include\lCamera.h" />
     <ClInclude Include="..\..\Include\lComponent.h" />
+    <ClInclude Include="..\..\Include\lConcurrentBatchQueue.h" />
     <ClInclude Include="..\..\Include\lDebugLog.h" />
     <ClInclude Include="..\..\Include\lDefs.h" />
     <ClInclude Include="..\..\Include\lEngine.h" />

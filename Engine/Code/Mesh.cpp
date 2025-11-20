@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lMesh.h"
+#include "lStringMap.h"
 #include "lEngine.h"
 
 using namespace Lumen;
@@ -20,6 +21,27 @@ class Mesh::Impl
 public:
     /// constructs a mesh
     explicit Impl(const EngineWeakPtr &engine) : mEngine(engine), mMeshId(Id::Invalid) {}
+
+    /// register mesh name / path
+    static void Register(std::string_view name, std::string_view path)
+    {
+        // register asset
+        mAssetPaths.insert_or_assign(std::string(name), path);
+    }
+
+    /// find mesh path from name
+    static Expected<std::string_view> Find(std::string_view name)
+    {
+        // find asset
+        auto it = mAssetPaths.find(name);
+        if (it != mAssetPaths.end())
+        {
+            return it->second;
+        }
+
+        // none found
+        return Expected<std::string_view>::Unexpected(std::format("Mesh path for '{}' not found", name));
+    }
 
     /// save a mesh
     bool Save() const { return true; }
@@ -56,7 +78,12 @@ public:
 
     /// engine mesh id
     Id::Type mMeshId;
+
+    /// static map of asset names to paths
+    static StringMap<std::string> mAssetPaths;
 };
+
+StringMap<std::string> Mesh::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
@@ -80,6 +107,18 @@ AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path)
         L_ASSERT_MSG(ptr->mImpl->mMeshId != Id::Invalid, "Failed to create mesh");
     }
     return ptr;
+}
+
+/// register mesh name / path
+void Mesh::Register(std::string_view name, std::string_view path)
+{
+    Mesh::Impl::Register(name, path);
+}
+
+/// find mesh path from name
+Expected<std::string_view> Mesh::Find(std::string_view name)
+{
+    return Mesh::Impl::Find(name);
 }
 
 /// save a mesh

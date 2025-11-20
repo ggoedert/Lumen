@@ -13,6 +13,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <list>
 #include <ranges>
 #include <algorithm>
 #include <any>

@@ -7,6 +7,7 @@
 #include "Sandbox.h"
 
 #include "lMaterial.h"
+#include "lAssetManager.h"
 #include "lSceneManager.h"
 #include "lEngine.h"
 

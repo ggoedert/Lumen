@@ -7,8 +7,8 @@
 
 #include "lDefs.h"
 #include "lId.h"
-#include "SimpleMath.h"
 #include "lFileSystem.h"
+#include "lAsset.h"
 #include "lApplication.h"
 
 /// Lumen namespace
@@ -37,6 +37,15 @@ namespace Lumen
             Math::Matrix44 world;
         };
         using RenderCommand = std::variant<DrawPrimitive>;
+
+        enum class FileChangeType { FileAdded, FileModified, FileRenamed, FileRemoved };
+
+        struct FileChange
+        {
+            FileChangeType fileChange;
+            std::string filename;
+            std::string oldFilename;
+        };
 
         /// destructor
         ~Engine() = default;
@@ -76,6 +85,12 @@ namespace Lumen
 
         /// create a file system for the assets
         [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
+
+        /// push a batch of file changes (monitoring)
+        void PushFileChangeBatch(std::vector<FileChange> &&batch);
+
+        /// pop all batches of items
+        void PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue);
 
         /// begin scene
         void BeginScene();

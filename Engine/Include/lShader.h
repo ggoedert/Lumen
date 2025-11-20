@@ -7,6 +7,7 @@
 
 #include "lDefs.h"
 #include "lAsset.h"
+#include "lAssetManager.h"
 #include "lEngine.h"
 
 /// Lumen namespace
@@ -24,8 +25,11 @@ namespace Lumen
         /// creates a smart pointer version of the shader asset
         static Expected<AssetPtr> MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name);
 
+        /// register shader name / path
+        static void Register(std::string_view name, std::string_view path);
+
         /// find shader path from name
-        static Expected<std::string_view> FindPath(std::string_view name);
+        static Expected<std::string_view> Find(std::string_view name);
 
         /// destroys shader
         ~Shader() override;

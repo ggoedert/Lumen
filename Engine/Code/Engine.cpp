@@ -71,6 +71,11 @@ bool Engine::Open()
 /// basic game loop
 bool Engine::Run()
 {
+    // process file changes
+    std::list<std::vector<FileChange>> batchQueue;
+    PopFileChangeBatchQueue(batchQueue);
+    AssetManager::ProcessFileChanges(std::move(batchQueue));
+
     // run application
     if (mApplication)
         return mImpl->Run(std::function<bool()>([&]() { return mApplication->Run(mImpl->GetElapsedTime()); }));
@@ -97,6 +102,18 @@ void Engine::GetDefaultSize(int &width, int &height) const
 IFileSystemPtr Engine::AssetsFileSystem() const
 {
     return mImpl->AssetsFileSystem();
+}
+
+/// push a batch of file changes (monitoring)
+void Engine::PushFileChangeBatch(std::vector<FileChange> &&batch)
+{
+    mImpl->PushFileChangeBatch(std::move(batch));
+}
+
+/// pop all batches of items
+void Engine::PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue)
+{
+    mImpl->PopFileChangeBatchQueue(batchQueue);
 }
 
 /// begin scene

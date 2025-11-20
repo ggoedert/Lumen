@@ -40,6 +40,9 @@ namespace Lumen::WindowsNT10
         explicit EngineWindowsNT10();
         ~EngineWindowsNT10() override;
 
+        /// set owner
+        void SetOwner(EngineWeakPtr owner) override { mOwner = owner; }
+
         // initialization and management
         bool Initialize(const Object &config) override;
 
@@ -71,11 +74,119 @@ namespace Lumen::WindowsNT10
         // properties
         void GetDefaultSize(int &width, int &height) const noexcept override;
 
+        static BYTE sBuffer[65536];
+        static OVERLAPPED sOverlapped;
+        static HANDLE sDirHandle;
+
         /// create a file system for the assets
         IFileSystemPtr AssetsFileSystem() const override
         {
             return FolderFileSystem::MakePtr("Assets");
         }
+
+#ifdef EDITOR
+        static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped)
+        {
+            if (errorCode == ERROR_SUCCESS)
+            {
+                reinterpret_cast<EngineWindowsNT10 *>(overlapped->hEvent)->FileChangeCallback();
+            }
+            else
+            {
+                std::string message;
+                LPSTR buffer = nullptr;
+                DWORD size = FormatMessage(
+                    FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                    FORMAT_MESSAGE_FROM_SYSTEM |
+                    FORMAT_MESSAGE_IGNORE_INSERTS,
+                    nullptr,
+                    errorCode,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    (LPTSTR)&buffer,
+                    0, nullptr);
+                if (size != 0 && buffer != nullptr)
+                {
+                    message = buffer;
+                    LocalFree(buffer);
+                }
+                else
+                {
+                    message = "Unknown error";
+                }
+                Lumen::DebugLog::Error("FileChange callback error: {}", message);  // OutputDebugStringA should be thread safe
+            }
+
+            // re-arm the watcher
+            ReadDirectoryChangesW(
+                sDirHandle,
+                sBuffer,
+                sizeof(sBuffer),
+                TRUE, // recursive
+                FILE_NOTIFY_CHANGE_FILE_NAME |
+                FILE_NOTIFY_CHANGE_DIR_NAME |
+                FILE_NOTIFY_CHANGE_LAST_WRITE,
+                NULL,
+                overlapped,
+                StaticFileChangeCallback
+            );
+        }
+
+        void FileChangeCallback()
+        {
+            static DWORD sLastAction = -1;
+            static double sLastTimer = -1.f;
+            static std::string sLastFilename;
+            static std::vector<Lumen::Engine::FileChange> batch;
+
+            /// get elapsed milliseconds since last callback
+            double timer = mTimer.GetElapsedSeconds();
+            double elapsedMiliseconds = (sLastTimer >= 0.f) ? (timer - sLastTimer) * 1000.f : FLT_MAX;
+            sLastTimer = timer;
+
+            FILE_NOTIFY_INFORMATION *info = (FILE_NOTIFY_INFORMATION *)sBuffer;
+            while (true)
+            {
+                std::wstring wfilename(info->FileName, info->FileNameLength / sizeof(WCHAR));
+                int size_needed = WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), nullptr, 0, nullptr, nullptr);
+                std::string filename(size_needed, 0);
+                WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), filename.data(), size_needed, nullptr, nullptr);
+
+                if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
+                {
+                    switch (info->Action)
+                    {
+                    case FILE_ACTION_ADDED:
+                        batch.push_back({ Lumen::Engine::FileChangeType::FileAdded, filename, "" });
+                        break;
+                    case FILE_ACTION_MODIFIED:
+                        batch.push_back({ Lumen::Engine::FileChangeType::FileModified, filename, "" });
+                        break;
+                    case FILE_ACTION_RENAMED_NEW_NAME:
+                        batch.push_back({ Lumen::Engine::FileChangeType::FileRenamed, filename, sLastFilename });
+                        break;
+                    case FILE_ACTION_REMOVED:
+                        batch.push_back({ Lumen::Engine::FileChangeType::FileRemoved, filename, "" });
+                        break;
+                    }
+                    sLastFilename = filename;
+                    sLastAction = info->Action;
+                }
+
+                if (info->NextEntryOffset == 0)
+                {
+                    break;
+                }
+                info = (FILE_NOTIFY_INFORMATION *) (((BYTE *)info) + info->NextEntryOffset);
+            }
+            if (!batch.empty())
+            {
+                if (auto owner = mOwner.lock())
+                {
+                    owner->PushFileChangeBatch(std::move(batch));
+                }
+            }
+        }
+#endif
 
         /// begin scene
         void BeginScene() override;
@@ -173,6 +284,9 @@ namespace Lumen::WindowsNT10
         std::vector<TextureMapType::iterator> mNewDeviceTextureMap;
 
         std::vector<Engine::RenderCommand> mRenderCommands;
+
+        /// owner
+        EngineWeakPtr mOwner;
     };
 
     EngineWindowsNT10::EngineWindowsNT10() :
@@ -213,6 +327,70 @@ namespace Lumen::WindowsNT10
 
         mDeviceResources->CreateWindowSizeDependentResources();
         CreateWindowSizeDependentResources();
+
+        try
+        {
+            static std::vector<Lumen::Engine::FileChange> batch;
+            for (const auto &entry : std::filesystem::recursive_directory_iterator("Assets"))
+            {
+                if (entry.is_regular_file())
+                {
+                    std::string filename = entry.path().lexically_relative("Assets").string();
+                    batch.push_back({ Lumen::Engine::FileChangeType::FileAdded, filename, "" });
+                }
+            }
+            if (!batch.empty())
+            {
+                if (auto owner = mOwner.lock())
+                {
+                    owner->PushFileChangeBatch(std::move(batch));
+                }
+            }
+        }
+        catch (const std::exception &e)
+        {
+            DebugLog::Error("Initialize engine, unable to process {} directory: {}", "Assets", e.what());
+        }
+
+#ifdef EDITOR
+        std::string monitorDir = "Assets";
+        sDirHandle = CreateFileA(
+            monitorDir.c_str(),
+            FILE_LIST_DIRECTORY,
+            FILE_SHARE_READ |
+            FILE_SHARE_WRITE |
+            FILE_SHARE_DELETE,
+            NULL,
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS |
+            FILE_FLAG_OVERLAPPED,
+            NULL
+        );
+
+        if (sDirHandle != INVALID_HANDLE_VALUE)
+        {
+            sOverlapped = {};
+            sOverlapped.hEvent = this; // store "this" so callback can find the object
+
+            // start watching
+            ReadDirectoryChangesW(
+                sDirHandle,
+                sBuffer,
+                sizeof(sBuffer),
+                TRUE, // recursive
+                FILE_NOTIFY_CHANGE_FILE_NAME |
+                FILE_NOTIFY_CHANGE_DIR_NAME |
+                FILE_NOTIFY_CHANGE_LAST_WRITE,
+                NULL,
+                &sOverlapped,
+                StaticFileChangeCallback
+            );
+        }
+        else
+        {
+            Lumen::DebugLog::Error("Could not open directory to monitor: {}", monitorDir);
+        }
+#endif
 
         return true;
     }
@@ -295,6 +473,11 @@ namespace Lumen::WindowsNT10
             return false;
 
         Render();
+
+#ifdef EDITOR
+        // allow APC callbacks to run (e.g., file watcher)
+        SleepEx(0, TRUE);
+#endif
         return true;
     }
 #pragma endregion
@@ -705,6 +888,12 @@ namespace Lumen::WindowsNT10
         CreateWindowSizeDependentResources();
     }
 #pragma endregion
+
+#ifdef EDITOR
+    BYTE EngineWindowsNT10::sBuffer[65536];
+    OVERLAPPED EngineWindowsNT10::sOverlapped;
+    HANDLE EngineWindowsNT10::sDirHandle;
+#endif
 }
 
 //==============================================================================================================================================================================
@@ -712,7 +901,9 @@ namespace Lumen::WindowsNT10
 /// allocate smart pointer version of the engine, implemented at platform level
 EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
-    return EnginePtr(new Engine(application, new WindowsNT10::EngineWindowsNT10()));
+    auto ptr = EnginePtr(new Engine(application, new WindowsNT10::EngineWindowsNT10()));
+    ptr->mImpl->SetOwner(ptr);
+    return ptr;
 }
 
 /// debug log, implemented at platform level

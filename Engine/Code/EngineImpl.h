@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lEngine.h"
+#include "lConcurrentBatchQueue.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -22,6 +23,9 @@ namespace Lumen
 
         /// virtual destroys engine
         virtual ~Impl() = default;
+
+        /// set owner
+        virtual void SetOwner(EngineWeakPtr owner) = 0;
 
         /// initialization and management
         virtual bool Initialize(const Object &config) = 0;
@@ -79,5 +83,15 @@ namespace Lumen
 
         /// release a mesh
         virtual void ReleaseMesh(Id::Type meshId) = 0;
+
+        /// push a batch of file changes (monitoring)
+        void PushFileChangeBatch(std::vector<FileChange> &&batch) { mFileChangeBatches.PushBatch(std::move(batch)); }
+
+        /// pop all batches of items
+        void PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue) { mFileChangeBatches.PopBatchQueue(batchQueue); }
+
+    private:
+        /// file change batches
+        ConcurrentBatchQueue<FileChange> mFileChangeBatches;
     };
 }

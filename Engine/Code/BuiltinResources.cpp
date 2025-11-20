@@ -19,7 +19,15 @@ public:
     /// creates a smart pointer version of the sphere mesh info
     static AssetInfoPtr MakePtr()
     {
-        return AssetInfoPtr(new SphereMeshInfo());
+        auto ptr = new SphereMeshInfo();
+        Mesh::Register(ptr->Name(), ptr->Path());
+        return AssetInfoPtr(ptr);
+    }
+
+    /// get name
+    [[nodiscard]] std::string_view Name() const
+    {
+        return "Sphere";
     }
 
     /// get type
@@ -35,7 +43,7 @@ public:
     }
 
     /// import the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
     {
         return Mesh::MakePtr(engine, Path());
     }
@@ -52,7 +60,15 @@ public:
     /// creates a smart pointer version of the checker gray texture info
     static AssetInfoPtr MakePtr()
     {
-        return AssetInfoPtr(new CheckerGrayTextureInfo());
+        auto ptr = new CheckerGrayTextureInfo();
+        Texture::Register(ptr->Name(), ptr->Path());
+        return AssetInfoPtr(ptr);
+    }
+
+    /// get name
+    [[nodiscard]] std::string_view Name() const
+    {
+        return "Checker-Gray";
     }
 
     /// get type
@@ -68,7 +84,7 @@ public:
     }
 
     /// import the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
     {
         Texture::Info textureInfo { 64, 64 };
         TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path(), textureInfo));
@@ -111,7 +127,15 @@ public:
     /// creates a smart pointer version of the simple diffuse shader info
     static AssetInfoPtr MakePtr()
     {
-        return AssetInfoPtr(new SimpleDiffuseShaderInfo());
+        auto ptr = new SimpleDiffuseShaderInfo();
+        Shader::Register(ptr->Name(), ptr->Path());
+        return AssetInfoPtr(ptr);
+    }
+
+    /// get name
+    [[nodiscard]] std::string_view Name() const
+    {
+        return "Simple/Diffuse";
     }
 
     /// get type
@@ -127,9 +151,9 @@ public:
     }
 
     /// import the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine)
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
     {
-        return Shader::MakePtr(engine, Path(), "Simple/Diffuse");
+        return Shader::MakePtr(engine, Path(), Name());
     }
 
 private:

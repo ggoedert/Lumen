@@ -5,6 +5,8 @@
 //==============================================================================================================================================================================
 
 #include "lScene.h"
+#include "lStringMap.h"
+#include "lAssetManager.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;
@@ -22,6 +24,27 @@ public:
 
     /// destroys behavior
     ~Impl() = default;
+
+    /// register scene name / path
+    static void Register(std::string_view name, std::string_view path)
+    {
+        // register asset
+        mAssetPaths.insert_or_assign(std::string(name), path);
+    }
+
+    /// find scene path from name
+    static Expected<std::string_view> Find(std::string_view name)
+    {
+        // find asset
+        auto it = mAssetPaths.find(name);
+        if (it != mAssetPaths.end())
+        {
+            return it->second;
+        }
+
+        // none found
+        return Expected<std::string_view>::Unexpected(std::format("Scene path for '{}' not found", name));
+    }
 
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
@@ -127,7 +150,12 @@ public:
 
     /// entities in the scene
     Entities mEntities;
+
+    /// static map of asset names to paths
+    static StringMap<std::string> mAssetPaths;
 };
+
+StringMap<std::string> Scene::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
@@ -147,6 +175,18 @@ ScenePtr Scene::MakePtr(Lumen::Application &application, const std::filesystem::
     auto ptr = ScenePtr(new Scene(application, path));
     ptr->mImpl->mOwner = ptr;
     return ptr;
+}
+
+/// register scene name / path
+void Scene::Register(std::string_view name, std::string_view path)
+{
+    Scene::Impl::Register(name, path);
+}
+
+/// find scene path from name
+Expected<std::string_view> Scene::Find(std::string_view name)
+{
+    return Scene::Impl::Find(name);
 }
 
 /// serialize

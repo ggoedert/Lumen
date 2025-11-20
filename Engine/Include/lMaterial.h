@@ -31,6 +31,12 @@ namespace Lumen
         /// creates a smart pointer version of the Material
         static Expected<AssetPtr> MakePtr(const std::filesystem::path &path);
 
+        /// register material name / path
+        static void Register(std::string_view name, std::string_view path);
+
+        /// find material path from name
+        static Expected<std::string_view> Find(std::string_view name);
+
         /// save material
         bool Save() const override;
 

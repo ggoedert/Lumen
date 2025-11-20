@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lTexture.h"
+#include "lStringMap.h"
 #include "lEngine.h"
 
 using namespace Lumen;
@@ -19,6 +20,27 @@ class Texture::Impl
 public:
     /// constructs a texture
     explicit Impl(const EngineWeakPtr &engine, const Info &info) : mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
+
+    /// register texture name / path
+    static void Register(std::string_view name, std::string_view path)
+    {
+        // register asset
+        mAssetPaths.insert_or_assign(std::string(name), path);
+    }
+
+    /// find texture path from name
+    static Expected<std::string_view> Find(std::string_view name)
+    {
+        // find asset
+        auto it = mAssetPaths.find(name);
+        if (it != mAssetPaths.end())
+        {
+            return it->second;
+        }
+
+        // none found
+        return Expected<std::string_view>::Unexpected(std::format("Texture path for '{}' not found", name));
+    }
 
     /// save a texture
     bool Save() const
@@ -71,7 +93,12 @@ public:
 
     /// engine texture id
     Id::Type mTextureId;
+
+    /// static map of asset names to paths
+    static StringMap<std::string> mAssetPaths;
 };
+
+StringMap<std::string> Texture::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
@@ -96,6 +123,18 @@ AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &pa
         L_ASSERT_MSG(ptr->mImpl->mTextureId != Id::Invalid, "Failed to create texture size {} {}", info.mWidth, info.mHeight);
     }
     return ptr;
+}
+
+/// register texture name / path
+void Texture::Register(std::string_view name, std::string_view path)
+{
+    Texture::Impl::Register(name, path);
+}
+
+/// find texture path from name
+Expected<std::string_view> Texture::Find(std::string_view name)
+{
+    return Texture::Impl::Find(name);
 }
 
 /// save a texture

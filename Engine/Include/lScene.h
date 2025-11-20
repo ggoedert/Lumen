@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lExpected.h"
 #include "lAsset.h"
 
 /// Lumen namespace
@@ -28,6 +29,12 @@ namespace Lumen
 
         /// creates a smart pointer version of the scene
         static ScenePtr MakePtr(Application &application, const std::filesystem::path &path);
+
+        /// register scene name / path
+        static void Register(std::string_view name, std::string_view path);
+
+        /// find scene path from name
+        static Expected<std::string_view> Find(std::string_view name);
 
         /// serialize
         void Serialize(Serialized::Type &out, bool packed) const;

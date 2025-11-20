@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lShader.h"
+#include "lStringMap.h"
 
 using namespace Lumen;
 
@@ -17,21 +18,29 @@ class Shader::Impl
     friend class Shader;
 
 public:
-    /// find shader path from name
-    static Expected<std::string_view> FindPath(std::string_view name)
+    /// constructs a shader
+    explicit Impl(const EngineWeakPtr &engine, std::string_view name) : mEngine(engine), mName(name), mShaderId(Id::Invalid) {}
+
+    /// register shader name / path
+    static void Register(std::string_view name, std::string_view path)
     {
-        // @REVIEW@ TEMP code
-        if (name == "Simple/Diffuse")
+        // register asset
+        mAssetPaths.insert_or_assign(std::string(name), path);
+    }
+
+    /// find shader path from name
+    static Expected<std::string_view> Find(std::string_view name)
+    {
+        // find asset
+        auto it = mAssetPaths.find(name);
+        if (it != mAssetPaths.end())
         {
-            return "|Procedural|Simple-Diffuse";
+            return it->second;
         }
 
         // none found
         return Expected<std::string_view>::Unexpected(std::format("Shader path for '{}' not found", name));
     }
-
-    /// constructs a shader
-    explicit Impl(const EngineWeakPtr &engine, std::string_view name) : mEngine(engine), mName(name), mShaderId(Id::Invalid) {}
 
     /// save a shader
     bool Save() const
@@ -86,7 +95,11 @@ public:
     /// engine shader id
     Id::Type mShaderId;
 
+    /// static map of asset names to paths
+    static StringMap<std::string> mAssetPaths;
 };
+
+StringMap<std::string> Shader::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
@@ -116,10 +129,16 @@ Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, const std::filesystem:
     return shaderExp.Value();
 }
 
-/// find shader path from name
-Expected<std::string_view> Shader::FindPath(std::string_view name)
+/// register shader name / path
+void Shader::Register(std::string_view name, std::string_view path)
 {
-    return Shader::Impl::FindPath(name);
+    Shader::Impl::Register(name, path);
+}
+
+/// find shader path from name
+Expected<std::string_view> Shader::Find(std::string_view name)
+{
+    return Shader::Impl::Find(name);
 }
 
 /// save a shader

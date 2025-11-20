@@ -8,7 +8,7 @@
 #include "lDefs.h"
 #include "lExpected.h"
 #include "lAsset.h"
-#include "lFileSystem.h"
+#include "lEngine.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -64,6 +64,9 @@ namespace Lumen
 
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory);
+
+        /// process file changes
+        void ProcessFileChanges(std::list<std::vector<Engine::FileChange>> &&batchQueue);
 
         /// import asset
         Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);
