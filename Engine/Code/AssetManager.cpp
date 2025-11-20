@@ -115,26 +115,26 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
     Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
 }
 
-/// process file changes
-void AssetManager::ProcessFileChanges(std::list<std::vector<Engine::FileChange>> &&batchQueue)
+/// process asset changes
+void AssetManager::ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue)
 {
     for (auto batch : batchQueue)
     {
-        for (auto fileChange : batch)
+        for (auto item: batch)
         {
-            switch (fileChange.fileChange)
+            switch (item.change)
             {
-            case Engine::FileChangeType::FileAdded:
-                Lumen::DebugLog::Info("Added: {}", fileChange.filename);
+            case AssetChange::Type::Added:
+                Lumen::DebugLog::Info("Added: {}", item.name);
                 break;
-            case Engine::FileChangeType::FileModified:
-                Lumen::DebugLog::Info("Modified: {}", fileChange.filename);
+            case AssetChange::Type::Modified:
+                Lumen::DebugLog::Info("Modified: {}", item.name);
                 break;
-            case Engine::FileChangeType::FileRenamed:
-                Lumen::DebugLog::Info("Renamed: {} -> {}", fileChange.oldFilename, fileChange.filename);
+            case AssetChange::Type::Renamed:
+                Lumen::DebugLog::Info("Renamed: {} -> {}", item.oldName, item.name);
                 break;
-            case Engine::FileChangeType::FileRemoved:
-                Lumen::DebugLog::Info("Removed: {}", fileChange.filename);
+            case AssetChange::Type::Removed:
+                Lumen::DebugLog::Info("Removed: {}", item.name);
                 break;
             }
         }

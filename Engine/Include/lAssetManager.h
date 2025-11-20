@@ -56,6 +56,22 @@ namespace Lumen
     /// AssetManager namespace
     namespace AssetManager
     {
+        /// AssetChange struct
+        struct AssetChange
+        {
+            /// type
+            enum class Type { Added, Modified, Renamed, Removed };
+
+            /// change
+            Type change;
+
+            /// name
+            std::string name;
+
+            /// old name
+            std::string oldName;
+        };
+
         /// initialize asset manager namespace
         void Initialize(const EngineWeakPtr &engine);
 
@@ -65,8 +81,8 @@ namespace Lumen
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
-        /// process file changes
-        void ProcessFileChanges(std::list<std::vector<Engine::FileChange>> &&batchQueue);
+        /// process asset changes
+        void ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue);
 
         /// import asset
         Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);

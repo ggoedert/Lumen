@@ -72,9 +72,9 @@ bool Engine::Open()
 bool Engine::Run()
 {
     // process file changes
-    std::list<std::vector<FileChange>> batchQueue;
-    PopFileChangeBatchQueue(batchQueue);
-    AssetManager::ProcessFileChanges(std::move(batchQueue));
+    std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+    PopAssetChangeBatchQueue(batchQueue);
+    AssetManager::ProcessAssetChanges(std::move(batchQueue));
 
     // run application
     if (mApplication)
@@ -104,16 +104,16 @@ IFileSystemPtr Engine::AssetsFileSystem() const
     return mImpl->AssetsFileSystem();
 }
 
-/// push a batch of file changes (monitoring)
-void Engine::PushFileChangeBatch(std::vector<FileChange> &&batch)
+/// push a batch of asset changes (monitoring)
+void Engine::PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch)
 {
-    mImpl->PushFileChangeBatch(std::move(batch));
+    mImpl->PushAssetChangeBatch(std::move(batch));
 }
 
 /// pop all batches of items
-void Engine::PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue)
+void Engine::PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue)
 {
-    mImpl->PopFileChangeBatchQueue(batchQueue);
+    mImpl->PopAssetChangeBatchQueue(batchQueue);
 }
 
 /// begin scene

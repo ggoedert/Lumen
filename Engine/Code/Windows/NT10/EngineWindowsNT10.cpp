@@ -9,6 +9,7 @@
 #include "lTexture.h"
 #include "lShader.h"
 #include "lMesh.h"
+#include "lAssetManager.h"
 #include "lEngine.h"
 
 #include "EngineImpl.h"
@@ -136,7 +137,7 @@ namespace Lumen::WindowsNT10
             static DWORD sLastAction = -1;
             static double sLastTimer = -1.f;
             static std::string sLastFilename;
-            static std::vector<Lumen::Engine::FileChange> batch;
+            static std::vector<Lumen::AssetManager::AssetChange> batch;
 
             /// get elapsed milliseconds since last callback
             double timer = mTimer.GetElapsedSeconds();
@@ -156,16 +157,16 @@ namespace Lumen::WindowsNT10
                     switch (info->Action)
                     {
                     case FILE_ACTION_ADDED:
-                        batch.push_back({ Lumen::Engine::FileChangeType::FileAdded, filename, "" });
+                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, filename, "" });
                         break;
                     case FILE_ACTION_MODIFIED:
-                        batch.push_back({ Lumen::Engine::FileChangeType::FileModified, filename, "" });
+                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Modified, filename, "" });
                         break;
                     case FILE_ACTION_RENAMED_NEW_NAME:
-                        batch.push_back({ Lumen::Engine::FileChangeType::FileRenamed, filename, sLastFilename });
+                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Renamed, filename, sLastFilename });
                         break;
                     case FILE_ACTION_REMOVED:
-                        batch.push_back({ Lumen::Engine::FileChangeType::FileRemoved, filename, "" });
+                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Removed, filename, "" });
                         break;
                     }
                     sLastFilename = filename;
@@ -182,7 +183,7 @@ namespace Lumen::WindowsNT10
             {
                 if (auto owner = mOwner.lock())
                 {
-                    owner->PushFileChangeBatch(std::move(batch));
+                    owner->PushAssetChangeBatch(std::move(batch));
                 }
             }
         }
@@ -330,20 +331,20 @@ namespace Lumen::WindowsNT10
 
         try
         {
-            static std::vector<Lumen::Engine::FileChange> batch;
+            static std::vector<Lumen::AssetManager::AssetChange> batch;
             for (const auto &entry : std::filesystem::recursive_directory_iterator("Assets"))
             {
                 if (entry.is_regular_file())
                 {
                     std::string filename = entry.path().lexically_relative("Assets").string();
-                    batch.push_back({ Lumen::Engine::FileChangeType::FileAdded, filename, "" });
+                    batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, filename, "" });
                 }
             }
             if (!batch.empty())
             {
                 if (auto owner = mOwner.lock())
                 {
-                    owner->PushFileChangeBatch(std::move(batch));
+                    owner->PushAssetChangeBatch(std::move(batch));
                 }
             }
         }

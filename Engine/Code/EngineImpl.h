@@ -84,14 +84,14 @@ namespace Lumen
         /// release a mesh
         virtual void ReleaseMesh(Id::Type meshId) = 0;
 
-        /// push a batch of file changes (monitoring)
-        void PushFileChangeBatch(std::vector<FileChange> &&batch) { mFileChangeBatches.PushBatch(std::move(batch)); }
+        /// push a batch of asset changes (monitoring)
+        void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch) { mAssetChangeBatches.PushBatch(std::move(batch)); }
 
         /// pop all batches of items
-        void PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue) { mFileChangeBatches.PopBatchQueue(batchQueue); }
+        void PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) { mAssetChangeBatches.PopBatchQueue(batchQueue); }
 
     private:
-        /// file change batches
-        ConcurrentBatchQueue<FileChange> mFileChangeBatches;
+        /// asset change batches
+        ConcurrentBatchQueue<AssetManager::AssetChange> mAssetChangeBatches;
     };
 }

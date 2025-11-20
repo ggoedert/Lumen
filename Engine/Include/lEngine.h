@@ -21,6 +21,9 @@ namespace Lumen
     CLASS_PTR_DEF(Shader);
     CLASS_PTR_DEF(Mesh);
 
+    /// AssetChange struct forward declaration
+    namespace AssetManager { struct AssetChange; }
+
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
     {
@@ -37,15 +40,6 @@ namespace Lumen
             Math::Matrix44 world;
         };
         using RenderCommand = std::variant<DrawPrimitive>;
-
-        enum class FileChangeType { FileAdded, FileModified, FileRenamed, FileRemoved };
-
-        struct FileChange
-        {
-            FileChangeType fileChange;
-            std::string filename;
-            std::string oldFilename;
-        };
 
         /// destructor
         ~Engine() = default;
@@ -86,11 +80,11 @@ namespace Lumen
         /// create a file system for the assets
         [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
 
-        /// push a batch of file changes (monitoring)
-        void PushFileChangeBatch(std::vector<FileChange> &&batch);
+        /// push a batch of asset changes (monitoring)
+        void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch);
 
         /// pop all batches of items
-        void PopFileChangeBatchQueue(std::list<std::vector<FileChange>> &batchQueue);
+        void PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue);
 
         /// begin scene
         void BeginScene();
