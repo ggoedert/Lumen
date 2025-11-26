@@ -88,7 +88,7 @@ namespace Lumen
         void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch) { mAssetChangeBatches.PushBatch(std::move(batch)); }
 
         /// pop all batches of items
-        void PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) { mAssetChangeBatches.PopBatchQueue(batchQueue); }
+        bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) { return mAssetChangeBatches.PopBatchQueue(batchQueue); }
 
     private:
         /// asset change batches

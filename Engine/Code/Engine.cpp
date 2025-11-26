@@ -35,8 +35,20 @@ bool Engine::Initialize(const Object &config)
 
     // initialize application
     mApplication->Initialize();
+    if (!mImpl->Initialize(config))
+    {
+        return false;
+    }
 
-    return mImpl->Initialize(config);
+    // process initial detected files
+    std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+    if (PopAssetChangeBatchQueue(batchQueue))
+    {
+        AssetManager::ProcessAssetChanges(std::move(batchQueue));
+    }
+
+    // success
+    return true;
 }
 
 /// shutdown
@@ -73,8 +85,10 @@ bool Engine::Run()
 {
     // process file changes
     std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-    PopAssetChangeBatchQueue(batchQueue);
-    AssetManager::ProcessAssetChanges(std::move(batchQueue));
+    if (PopAssetChangeBatchQueue(batchQueue))
+    {
+        AssetManager::ProcessAssetChanges(std::move(batchQueue));
+    }
 
     // run application
     if (mApplication)
@@ -111,9 +125,9 @@ void Engine::PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch
 }
 
 /// pop all batches of items
-void Engine::PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue)
+bool Engine::PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue)
 {
-    mImpl->PopAssetChangeBatchQueue(batchQueue);
+    return mImpl->PopAssetChangeBatchQueue(batchQueue);
 }
 
 /// begin scene

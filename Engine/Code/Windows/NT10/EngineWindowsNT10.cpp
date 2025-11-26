@@ -337,7 +337,7 @@ namespace Lumen::WindowsNT10
                 if (entry.is_regular_file())
                 {
                     std::string filename = entry.path().lexically_relative("Assets").string();
-                    batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, filename, "" });
+                    batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, entry.path().generic_string(), "" });
                 }
             }
             if (!batch.empty())

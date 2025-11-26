@@ -37,10 +37,15 @@ namespace Lumen
         }
 
         /// pop all batches of items
-        void PopBatchQueue(std::list<std::vector<T>> &batchQueue)
+        bool PopBatchQueue(std::list<std::vector<T>> &batchQueue)
         {
             std::lock_guard<std::mutex> lock(mMtx);
-            batchQueue.splice(batchQueue.end(), mBatchQueue);
+            if (!mBatchQueue.empty())
+            {
+                batchQueue.splice(batchQueue.end(), mBatchQueue);
+                return true;
+            }
+            return false;
         }
 
     private:
