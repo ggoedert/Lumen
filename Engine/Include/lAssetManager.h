@@ -45,8 +45,8 @@ namespace Lumen
         /// gets priority
         [[nodiscard]] float Priority() const noexcept { return mPriority; }
 
-        /// get asset infos
-        [[nodiscard]] virtual std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const = 0;
+        /// import asset
+        [[nodiscard]] virtual AssetPtr Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const = 0;
 
     private:
         /// priority

@@ -67,18 +67,25 @@ public:
         return Lumen::AssetFactoryPtr(new SandboxFactory(priority));
     }
 
-    /// get asset infos
-    [[nodiscard]] std::vector<Lumen::AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const override
+    /// import asset
+    [[nodiscard]] Lumen::AssetPtr Import(Lumen::EngineWeakPtr &engine, Lumen::HashType type, const std::filesystem::path &path) const override
     {
-        std::vector<Lumen::AssetInfoPtr> result;
         for (auto assetInfo : mAssetInfos)
         {
-            if (assetInfo->Path() == path)
+            if ((assetInfo->Type() == type) && (assetInfo->Path() == path))
             {
-                result.push_back(assetInfo);
+                auto assetExpected = assetInfo->Import(engine);
+                if (assetExpected)
+                {
+                    return assetExpected.Value();
+                }
+                else
+                {
+                    Lumen::DebugLog::Error("SandboxFactory import, {}", assetExpected.Error());
+                }
             }
         }
-        return result;
+        return nullptr;
     }
 
 private:

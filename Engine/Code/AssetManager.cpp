@@ -56,27 +56,19 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem
     // normalize the path
     std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
 
-    // combined asset infos from all factories
-    std::vector<AssetInfoPtr> combinedAssetInfos;
-
     // get asset infos that are on the path from all factories
     for (auto &priorityFactory : mAssetFactories)
     {
         auto &assetFactory = priorityFactory.second;
-        std::vector<AssetInfoPtr> assetInfos = assetFactory->GetAssetInfos(normalizedPath);
-        combinedAssetInfos.insert(combinedAssetInfos.end(), assetInfos.begin(), assetInfos.end());
-    }
-
-    for (AssetInfoPtr &assetInfo : combinedAssetInfos)
-    {
-        if (assetInfo->Type() == type)
+        AssetPtr assetPtr = assetFactory->Import(mEngine, type, normalizedPath);
+        if (assetPtr)
         {
-            return assetInfo->Import(mEngine);
+            return assetPtr;
         }
     }
 
-    // none found, return empty
-    return Expected<AssetPtr>::Unexpected("Asset Information not found");
+    // not found
+    return Expected<AssetPtr>::Unexpected("Asset not found");
 }
 
 //==============================================================================================================================================================================

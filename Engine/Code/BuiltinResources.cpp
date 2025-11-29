@@ -182,18 +182,25 @@ public:
     /// destructor
     ~Impl() = default;
 
-    /// get asset infos
-    [[nodiscard]] std::vector<AssetInfoPtr> GetAssetInfos(const std::filesystem::path &path) const
+    /// import asset
+    [[nodiscard]] AssetPtr Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
     {
-        std::vector<AssetInfoPtr> result;
         for (auto assetInfo : mAssetInfos)
         {
-            if (assetInfo->Path() == path)
+            if ((assetInfo->Type() == type) && (assetInfo->Path() == path))
             {
-                result.push_back(assetInfo);
+                auto assetExpected = assetInfo->Import(engine);
+                if (assetExpected)
+                {
+                    return assetExpected.Value();
+                }
+                else
+                {
+                    Lumen::DebugLog::Error("BuiltinResources import, {}", assetExpected.Error());
+                }
             }
         }
-        return result;
+        return nullptr;
     }
 
 private:
@@ -212,8 +219,8 @@ AssetFactoryPtr BuiltinResources::MakePtr(float priority)
     return AssetFactoryPtr(new BuiltinResources(priority));
 }
 
-/// get asset infos
-std::vector<AssetInfoPtr> BuiltinResources::GetAssetInfos(const std::filesystem::path &path) const
+/// import asset
+AssetPtr BuiltinResources::Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
 {
-    return mImpl->GetAssetInfos(path);
+    return mImpl->Import(engine, type, path);
 }
