@@ -45,6 +45,9 @@ namespace Lumen
         /// checks if a path is packed
         bool IsPacked(const std::filesystem::path &path);
 
+        /// check if a file exists
+        bool Exists(const std::filesystem::path &path);
+
         /// opens a file on the specified path
         Id::Type Open(const std::filesystem::path &path, const FileMode mode);
 
@@ -78,6 +81,9 @@ namespace Lumen
 
         /// whether this file system handles the specified file handle
         virtual bool HandlesFileId(Id::Type handle) = 0;
+
+        /// check if a file exists
+        virtual bool Exists(const std::filesystem::path &path) = 0;
 
         /// opens a file on the specified path
         virtual Id::Type Open(const std::filesystem::path &path, const FileSystem::FileMode mode) = 0;

@@ -14,23 +14,6 @@
 namespace Lumen
 {
     CLASS_WEAK_PTR_DEF(Engine);
-    CLASS_PTR_DEF(AssetInfo);
-
-    /// AssetInfo class
-    class AssetInfo
-    {
-    public:
-
-        /// get type
-        [[nodiscard]] virtual HashType Type() const = 0;
-
-        /// get path
-        [[nodiscard]] virtual std::string_view Path() const = 0;
-
-        /// import the asset
-        [[nodiscard]] virtual Lumen::Expected<AssetPtr> Import(EngineWeakPtr &engine) = 0;
-    };
-
     CLASS_PTR_DEF(AssetFactory);
 
     /// AssetFactory class
@@ -45,8 +28,11 @@ namespace Lumen
         /// gets priority
         [[nodiscard]] float Priority() const noexcept { return mPriority; }
 
+        /// check if asset exists
+        [[nodiscard]] virtual bool Exists(const std::filesystem::path &path) const = 0;
+
         /// import asset
-        [[nodiscard]] virtual AssetPtr Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const = 0;
+        [[nodiscard]] virtual Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const = 0;
 
     private:
         /// priority

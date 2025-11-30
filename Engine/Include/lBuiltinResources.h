@@ -20,8 +20,11 @@ namespace Lumen
         /// creates a smart pointer version of the default resources
         static AssetFactoryPtr MakePtr(float priority);
 
+        /// check if asset exists
+        [[nodiscard]] bool Exists(const std::filesystem::path &path) const override;
+
         /// import asset
-        [[nodiscard]] AssetPtr Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const override;
+        [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const override;
 
     private:
         /// constructor

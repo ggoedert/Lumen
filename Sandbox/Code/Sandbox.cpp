@@ -6,106 +6,15 @@
 
 #include "Sandbox.h"
 
-#include "lMaterial.h"
-#include "lAssetManager.h"
-#include "lSceneManager.h"
 #include "lEngine.h"
+#include "lSceneManager.h"
 
 #include <fstream>
-
-/// MaterialInfo class
-class MaterialInfo : public Lumen::AssetInfo
-{
-public:
-    /// creates a smart pointer version of the material info
-    static Lumen::AssetInfoPtr MakePtr()
-    {
-        return Lumen::AssetInfoPtr(new MaterialInfo());
-    }
-
-    /// get type
-    [[nodiscard]] Lumen::HashType Type() const override
-    {
-        return Lumen::Material::Type();
-    }
-
-    /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "Assets/Material.mat";
-    }
-
-    /// import the material
-    [[nodiscard]] Lumen::Expected<Lumen::AssetPtr> Import(Lumen::EngineWeakPtr &engine)
-    {
-        auto materialExpected = Lumen::Material::MakePtr(Path());
-        if (!materialExpected)
-        {
-            return Lumen::Expected<Lumen::AssetPtr>::Unexpected(materialExpected.Error());
-        }
-        if (!materialExpected.Value()->Load())
-        {
-            return Lumen::Expected<Lumen::AssetPtr>::Unexpected(std::format("Unable to load material resource, {}", Path()));
-        }
-        return materialExpected;
-    }
-
-private:
-    /// constructs a material info
-    explicit MaterialInfo() {}
-};
-
-/// SandboxFactory class
-class SandboxFactory : public Lumen::AssetFactory
-{
-    CLASS_NO_DEFAULT_CTOR(SandboxFactory);
-
-public:
-    /// creates a smart pointer version of the builtin extra
-    static Lumen::AssetFactoryPtr MakePtr(float priority)
-    {
-        return Lumen::AssetFactoryPtr(new SandboxFactory(priority));
-    }
-
-    /// import asset
-    [[nodiscard]] Lumen::AssetPtr Import(Lumen::EngineWeakPtr &engine, Lumen::HashType type, const std::filesystem::path &path) const override
-    {
-        for (auto assetInfo : mAssetInfos)
-        {
-            if ((assetInfo->Type() == type) && (assetInfo->Path() == path))
-            {
-                auto assetExpected = assetInfo->Import(engine);
-                if (assetExpected)
-                {
-                    return assetExpected.Value();
-                }
-                else
-                {
-                    Lumen::DebugLog::Error("SandboxFactory import, {}", assetExpected.Error());
-                }
-            }
-        }
-        return nullptr;
-    }
-
-private:
-    /// constructor
-    explicit SandboxFactory(float priority) : Lumen::AssetFactory(priority)
-    {
-        mAssetInfos.push_back(MaterialInfo::MakePtr());
-    }
-
-    /// asset infos
-    std::vector<Lumen::AssetInfoPtr> mAssetInfos;
-};
 
 /// initialize sandbox
 void Sandbox::Initialize()
 {
     Lumen::Application::Initialize();
-
-    Lumen::AssetManager::RegisterFactory(SandboxFactory::MakePtr(2.0f));
-
     if (auto engineLock = GetEngine().lock())
     {
         Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());

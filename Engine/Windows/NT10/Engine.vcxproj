@@ -313,8 +313,8 @@
     <ClInclude Include="..\..\Include\lEngine.h" />
     <ClInclude Include="..\..\Include\lExpected.h" />
     <ClInclude Include="..\..\Include\lFileSystem.h" />
+    <ClInclude Include="..\..\Include\lFileSystemResources.h" />
     <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
-    <ClInclude Include="..\..\Include\lFolderResources.h" />
     <ClInclude Include="..\..\Include\lEntity.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
@@ -345,8 +345,8 @@
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
     <ClCompile Include="..\..\Code\Engine.cpp" />
     <ClCompile Include="..\..\Code\FileSystem.cpp" />
-    <ClCompile Include="..\..\Code\FolderResources.cpp" />
     <ClCompile Include="..\..\Code\Entity.cpp" />
+    <ClCompile Include="..\..\Code\FileSystemResources.cpp" />
     <ClCompile Include="..\..\Code\Math.cpp" />
     <ClCompile Include="..\..\Code\Mesh.cpp" />
     <ClCompile Include="..\..\Code\Geometry.cpp" />

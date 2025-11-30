@@ -60,10 +60,13 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem
     for (auto &priorityFactory : mAssetFactories)
     {
         auto &assetFactory = priorityFactory.second;
-        AssetPtr assetPtr = assetFactory->Import(mEngine, type, normalizedPath);
-        if (assetPtr)
+        if (assetFactory->Exists(normalizedPath))
         {
-            return assetPtr;
+            auto assetExpected = assetFactory->Import(mEngine, type, normalizedPath);
+            if (assetExpected)
+            {
+                return assetExpected.Value();
+            }
         }
     }
 
@@ -72,14 +75,6 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem
 }
 
 //==============================================================================================================================================================================
-
-/*/// factory options
-struct FactoryOptions
-{
-    std::string_view mBaseDir {};
-    std::string_view mFileName {};
-    bool mRecursive = true;
-};*/
 
 /// Lumen Hidden namespace
 namespace Lumen::Hidden

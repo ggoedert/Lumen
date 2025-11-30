@@ -35,6 +35,13 @@ public:
         return mOpenFiles.find(handle) != mOpenFiles.end();
     }
 
+    /// check if a file exists
+    bool Exists(const std::filesystem::path &path)
+    {
+        std::filesystem::path fullPath = mPath / path;
+        return std::filesystem::exists(fullPath);
+    }
+
     /// opens a file on the specified path
     Id::Type Open(const std::filesystem::path &path, const FileSystem::FileMode mode)
     {
@@ -147,6 +154,12 @@ bool FolderFileSystem::Packed() const
 bool FolderFileSystem::HandlesFileId(Id::Type handle)
 {
     return mImpl->HandlesFileId(handle);
+}
+
+/// check if a file exists
+bool FolderFileSystem::Exists(const std::filesystem::path &path)
+{
+    return mImpl->Exists(path);
 }
 
 /// opens a file on the specified path

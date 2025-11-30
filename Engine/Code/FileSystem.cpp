@@ -139,6 +139,21 @@ bool FileSystem::IsPacked(const std::filesystem::path &path)
     return false;
 }
 
+/// check if a file exists
+bool FileSystem::Exists(const std::filesystem::path &path)
+{
+    L_ASSERT(Hidden::gFileState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    {
+        if (Hidden::StartsWith(path, mountPoint))
+        {
+            std::filesystem::path relativePath = path.lexically_relative(mountPoint);
+            return fileSystem->Exists(relativePath.string());
+        }
+    }
+    return false;
+}
+
 /// opens a file on the specified path
 Id::Type FileSystem::Open(const std::filesystem::path &path, const FileSystem::FileMode mode)
 {

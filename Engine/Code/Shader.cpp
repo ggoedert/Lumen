@@ -115,18 +115,18 @@ Shader::~Shader()
 /// creates a smart pointer version of the shader asset
 Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, std::string_view name)
 {
-    Expected<AssetPtr> shaderExp = AssetPtr(new Shader(engine, path, name));
-    if (!shaderExp.HasValue())
+    AssetPtr shaderPtr = AssetPtr(new Shader(engine, path, name));
+    if (!shaderPtr)
     {
-        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource, {}", path.string(), name, shaderExp.Error()));
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource", path.string(), name));
     }
-    ShaderPtr ptr = static_pointer_cast<Shader>(shaderExp.Value());
+    ShaderPtr ptr = static_pointer_cast<Shader>(shaderPtr);
     if (auto engineLock = engine.lock())
     {
         ptr->mImpl->mShaderId = engineLock->CreateShader(ptr);
         L_ASSERT_MSG(ptr->mImpl->mShaderId != Id::Invalid, "Failed to create shader");
     }
-    return shaderExp.Value();
+    return shaderPtr;
 }
 
 /// register shader name / path

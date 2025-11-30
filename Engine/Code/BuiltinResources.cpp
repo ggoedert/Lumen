@@ -12,6 +12,23 @@
 
 using namespace Lumen;
 
+CLASS_PTR_DEF(AssetInfo);
+
+/// AssetInfo class
+class AssetInfo
+{
+public:
+
+    /// get type
+    [[nodiscard]] virtual HashType Type() const = 0;
+
+    /// get path
+    [[nodiscard]] virtual std::string_view Path() const = 0;
+
+    /// import the asset
+    [[nodiscard]] virtual Expected<AssetPtr> Import(EngineWeakPtr &engine) = 0;
+};
+
 /// SphereMeshInfo class
 class SphereMeshInfo : public AssetInfo
 {
@@ -182,8 +199,21 @@ public:
     /// destructor
     ~Impl() = default;
 
+    /// check if asset exists
+    [[nodiscard]] bool Exists(const std::filesystem::path &path) const
+    {
+        for (auto assetInfo : mAssetInfos)
+        {
+            if (assetInfo->Path() == path)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// import asset
-    [[nodiscard]] AssetPtr Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
     {
         for (auto assetInfo : mAssetInfos)
         {
@@ -200,7 +230,7 @@ public:
                 }
             }
         }
-        return nullptr;
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load builtin resource, {}", path.string()));
     }
 
 private:
@@ -219,8 +249,14 @@ AssetFactoryPtr BuiltinResources::MakePtr(float priority)
     return AssetFactoryPtr(new BuiltinResources(priority));
 }
 
+/// check if asset exists
+[[nodiscard]] bool BuiltinResources::Exists(const std::filesystem::path &path) const
+{
+    return mImpl->Exists(path);
+}
+
 /// import asset
-AssetPtr BuiltinResources::Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+Expected<AssetPtr> BuiltinResources::Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
 {
     return mImpl->Import(engine, type, path);
 }

@@ -6,6 +6,7 @@
 
 #include "lEngine.h"
 #include "lSceneManager.h"
+#include "lFileSystemResources.h"
 #include "lBuiltinResources.h"
 
 #include "EngineImpl.h"
@@ -19,7 +20,8 @@ Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(app
 bool Engine::Initialize(const Object &config)
 {
     AssetManager::Initialize(shared_from_this());
-    AssetManager::RegisterFactory(BuiltinResources::MakePtr(1.0f));
+    AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
+    AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
 
     FileSystem::Initialize();
     SceneManager::Initialize();
