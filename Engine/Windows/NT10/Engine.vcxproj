@@ -311,6 +311,8 @@
     <ClInclude Include="..\..\Include\lDebugLog.h" />
     <ClInclude Include="..\..\Include\lDefs.h" />
     <ClInclude Include="..\..\Include\lEngine.h" />
+    <ClInclude Include="..\..\Include\lEvent.h" />
+    <ClInclude Include="..\..\Include\lEventReceiver.h" />
     <ClInclude Include="..\..\Include\lExpected.h" />
     <ClInclude Include="..\..\Include\lFileSystem.h" />
     <ClInclude Include="..\..\Include\lFileSystemResources.h" />
@@ -330,6 +332,7 @@
     <ClInclude Include="..\..\Include\lTexture.h" />
     <ClInclude Include="..\..\Include\lMaterial.h" />
     <ClInclude Include="..\..\Include\lTransform.h" />
+    <ClInclude Include="..\..\Include\lEventDispatcher.h" />
     <ClInclude Include="..\..\Include\lUniqueByteArray.h" />
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
     <ClInclude Include="..\..\Include\Windows\lFramework.h" />
@@ -344,6 +347,7 @@
     <ClCompile Include="..\..\Code\Component.cpp" />
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
     <ClCompile Include="..\..\Code\Engine.cpp" />
+    <ClCompile Include="..\..\Code\Event.cpp" />
     <ClCompile Include="..\..\Code\FileSystem.cpp" />
     <ClCompile Include="..\..\Code\Entity.cpp" />
     <ClCompile Include="..\..\Code\FileSystemResources.cpp" />
@@ -356,6 +360,7 @@
     <ClCompile Include="..\..\Code\SceneManager.cpp" />
     <ClCompile Include="..\..\Code\SerializedData.cpp" />
     <ClCompile Include="..\..\Code\Shader.cpp" />
+    <ClCompile Include="..\..\Code\EventDispatcher.cpp" />
     <ClCompile Include="..\..\Code\Texture.cpp" />
     <ClCompile Include="..\..\Code\Material.cpp" />
     <ClCompile Include="..\..\Code\Transform.cpp" />

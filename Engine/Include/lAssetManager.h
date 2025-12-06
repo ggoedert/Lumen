@@ -20,6 +20,7 @@ namespace Lumen
     class AssetFactory
     {
         CLASS_NO_DEFAULT_CTOR(AssetFactory);
+        CLASS_NO_COPY_MOVE(AssetFactory);
 
     public:
         /// constructs an assets factory implementation with priority

@@ -15,6 +15,7 @@ namespace Lumen
     class BuiltinResources : public AssetFactory
     {
         CLASS_NO_DEFAULT_CTOR(BuiltinResources);
+        CLASS_NO_COPY_MOVE(BuiltinResources);
 
     public:
         /// creates a smart pointer version of the default resources

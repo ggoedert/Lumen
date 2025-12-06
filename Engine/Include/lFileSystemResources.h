@@ -15,6 +15,7 @@ namespace Lumen
     class FileSystemResources : public AssetFactory
     {
         CLASS_NO_DEFAULT_CTOR(FileSystemResources);
+        CLASS_NO_COPY_MOVE(FileSystemResources);
 
     public:
         /// creates a smart pointer version of the folder resources

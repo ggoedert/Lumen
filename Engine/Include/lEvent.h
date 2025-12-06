@@ -1,34 +1,35 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Object interface
+/// \brief     Event interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
 #include "lDefs.h"
+#include "lObject.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    /// Object class
-    class Object
+    CLASS_PTR_DEF(Event);
+
+    /// Event class
+    class Event : public Object
     {
-        CLASS_NO_DEFAULT_CTOR(Object);
-        CLASS_NO_COPY_MOVE(Object);
+        CLASS_NO_DEFAULT_CTOR(Event);
+        CLASS_NO_COPY_MOVE(Event);
 
     public:
-        /// get type
-        [[nodiscard]] HashType Type() const noexcept;
+        /// simple events
+        static Lumen::HashType AttachType;
+        static Lumen::HashType DettachType;
+
+        /// creates a smart pointer version of the event
+        static EventPtr MakePtr(HashType type);
 
     protected:
-        /// constructs an object with type. called by derived classes
-        explicit Object(HashType type);
-
-        /// virtual destructor
-        virtual ~Object();
-
-    private:
-        /// private implementation
-        CLASS_PIMPL_DEF(Impl);
+        /// constructor
+        explicit Event(HashType type);
     };
+
 }

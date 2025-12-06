@@ -1,34 +1,33 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Object interface
+/// \brief     EventReceiver interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
 
 #include "lDefs.h"
+#include "lEvent.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    /// Object class
-    class Object
+    CLASS_PTR_DEF(EventReceiver);
+    CLASS_WEAK_PTR_DEF(EventReceiver);
+
+    /// EventReceiver class
+    class EventReceiver
     {
-        CLASS_NO_DEFAULT_CTOR(Object);
-        CLASS_NO_COPY_MOVE(Object);
+        CLASS_NO_COPY_MOVE(EventReceiver);
 
     public:
-        /// get type
-        [[nodiscard]] HashType Type() const noexcept;
+        /// handle event
+        virtual bool HandleEvent(const EventPtr &event) = 0;
 
     protected:
-        /// constructs an object with type. called by derived classes
-        explicit Object(HashType type);
+        /// default constructor
+        explicit EventReceiver() = default;
 
-        /// virtual destructor
-        virtual ~Object();
-
-    private:
-        /// private implementation
-        CLASS_PIMPL_DEF(Impl);
+        /// pure virtual destructor
+        virtual ~EventReceiver() = default;
     };
 }
