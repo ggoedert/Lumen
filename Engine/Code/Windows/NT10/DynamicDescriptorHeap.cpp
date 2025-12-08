@@ -11,28 +11,33 @@
 Lumen::WindowsNT10::DynamicDescriptorHeap::DynamicDescriptorHeap(ID3D12Device *device, int initialSize)
 {
     mResourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(device, initialSize);
-    mTop = 0;
+    mFreeIndices.reserve(initialSize);
+    for (int n = initialSize; n > 0; n--)
+    {
+        mFreeIndices.push_back(n - 1);
+    }
+}
+
+Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::DynamicDescriptorHeap::GetIndex(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) const
+{
+    IndexType cpuIndex = (cpuHandle.ptr - mResourceDescriptors->GetFirstCpuHandle().ptr) / mResourceDescriptors->Increment();
+    IndexType gpuIndex = (gpuHandle.ptr - mResourceDescriptors->GetFirstGpuHandle().ptr) / mResourceDescriptors->Increment();
+    L_ASSERT_MSG(cpuIndex == gpuIndex, "CPU and GPU descriptor handles do not match indices");
+    return static_cast<IndexType>(cpuIndex);
 }
 
 Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::DynamicDescriptorHeap::Allocate()
 {
-    // get the current top
-    Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType index = mTop;
-
-    // increment top with new request
-    mTop++;
-
     // make sure we have enough room
     L_ASSERT_MSG(
-        mTop <= mResourceDescriptors->Count(),
+        mFreeIndices.size() > 0,
         "DescriptorPile has %zu of %zu descriptors; failed request for one more",
-        static_cast<size_t>(index),
+        static_cast<size_t>(mFreeIndices.size()),
         static_cast<size_t>(mResourceDescriptors->Count())
     );
-    return index;
-}
 
-void Lumen::WindowsNT10::DynamicDescriptorHeap::Free(IndexType index)
-{
-    DebugLog::Warning("Trying to free descriptor heap index {}, please implement DynamicDescriptorHeap::Free()", index);
+    // get a free index
+    Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType index = mFreeIndices.back();
+    mFreeIndices.pop_back();
+    return index;
 }

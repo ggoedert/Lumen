@@ -60,6 +60,9 @@
     <Filter Include="Source Files\Events">
       <UniqueIdentifier>{9dc02a52-5ee7-4346-8068-eed4687641fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\System\Windows\NT10">
+      <UniqueIdentifier>{843f344b-4857-4229-bb57-5ba2ccd968e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h">
@@ -191,6 +194,9 @@
     <ClInclude Include="..\..\Include\lEventReceiver.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Windows\NT10\lImGuiLib.h">
+      <Filter>Header Files\System\Windows\NT10</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -285,6 +291,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Event.cpp">
       <Filter>Source Files\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\ImGuiLib.cpp">
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -33,12 +33,14 @@ namespace Lumen::WindowsNT10
 
         inline D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(IndexType index) const { return mResourceDescriptors->GetCpuHandle(static_cast<size_t>(index)); }
 
+        IndexType GetIndex(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) const;
+
         IndexType Allocate();
 
-        void Free(IndexType index);
+        inline void Free(IndexType index) { mFreeIndices.push_back(index); }
 
     private:
         std::unique_ptr<DirectX::DescriptorHeap> mResourceDescriptors;
-        IndexType mTop;
+        std::vector<IndexType> mFreeIndices;
     };
 }

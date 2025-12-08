@@ -21,6 +21,11 @@
 #include "StepTimer.h"
 #include "DDS.h"
 
+#ifdef EDITOR
+// ImGui editor support
+#include "lImGuiLib.h"
+#endif
+
 using namespace DX;
 using namespace DirectX;
 using namespace SimpleMath;
@@ -227,6 +232,11 @@ namespace Lumen::WindowsNT10
         void CreateDeviceDependentResources();
         void CreateWindowSizeDependentResources();
 
+#ifdef EDITOR
+        // ImGui monitor scale information
+        float mMainScale;
+#endif
+
         // device resources
         std::unique_ptr<DX::DeviceResources> mDeviceResources;
 
@@ -310,6 +320,12 @@ namespace Lumen::WindowsNT10
     /// initialize the Direct3D resources required to run
     bool EngineWindowsNT10::Initialize(const Object &config)
     {
+#ifdef EDITOR
+        // Make process DPI aware and obtain main monitor scale
+        ImGui_ImplWin32_EnableDpiAwareness();
+        mMainScale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+#endif
+
         if (config.Type() != Windows::Config::Type())
         {
 #ifdef TYPEINFO
@@ -328,6 +344,70 @@ namespace Lumen::WindowsNT10
 
         mDeviceResources->CreateWindowSizeDependentResources();
         CreateWindowSizeDependentResources();
+
+#ifdef EDITOR
+        // --------------------------------------------------------------
+        //  Initialize Dear ImGui Resources
+        // --------------------------------------------------------------
+
+        // for backbuffer count
+        DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+        mDeviceResources->GetSwapChain()->GetDesc(&swapChainDesc);
+
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+        //io.ConfigViewportsNoAutoMerge = true;
+        //io.ConfigViewportsNoTaskBarIcon = true;
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        //ImGui::StyleColorsLight();
+
+        // Setup scaling
+        ImGuiStyle &style = ImGui::GetStyle();
+        style.ScaleAllSizes(mMainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+        style.FontScaleDpi = mMainScale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+        io.ConfigDpiScaleFonts = true;          // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
+        io.ConfigDpiScaleViewports = true;      // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
+
+        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+
+        // Setup Platform/Renderer backends
+        ImGui_ImplWin32_Init(initializeConfig.mWindow);
+
+        ImGui_ImplDX12_InitInfo init_info = {};
+        init_info.Device = mDeviceResources->GetD3DDevice();
+        init_info.CommandQueue = mDeviceResources->GetCommandQueue();
+        init_info.NumFramesInFlight = swapChainDesc.BufferCount;
+        init_info.RTVFormat = mDeviceResources->GetBackBufferFormat();
+        init_info.DSVFormat = mDeviceResources->GetDepthBufferFormat();
+        // Allocating SRV descriptors (for textures) is up to the application, so we provide callbacks.
+        // (current version of the backend will only allocate one descriptor, future versions will need to allocate more)
+        init_info.SrvDescriptorHeap = mResourceDescriptors->Heap();
+        init_info.UserData = static_cast<void *>(mResourceDescriptors.get());
+        init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE *out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE *out_gpu_handle) {
+            DynamicDescriptorHeap *resourceDescriptors = static_cast<DynamicDescriptorHeap *>(init_info->UserData);
+            DynamicDescriptorHeap::IndexType index = resourceDescriptors->Allocate();
+            *out_cpu_handle = resourceDescriptors->GetCpuHandle(index);
+            *out_gpu_handle = resourceDescriptors->GetGpuHandle(index);
+        };
+        init_info.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle) {
+            DynamicDescriptorHeap *resourceDescriptors = static_cast<DynamicDescriptorHeap *>(init_info->UserData);
+            resourceDescriptors->Free(resourceDescriptors->GetIndex(cpu_handle, gpu_handle));
+        };
+        ImGui_ImplDX12_Init(&init_info);
+#endif
 
         try
         {
@@ -407,6 +487,13 @@ namespace Lumen::WindowsNT10
     /// shutdown
     void EngineWindowsNT10::Shutdown()
     {
+#ifdef EDITOR
+        // Shutdown ImGui first
+        ImGui_ImplDX12_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+#endif
+
         mNewDeviceMeshMap.clear();
         mNewDeviceShaderMap.clear();
         mNewWindowShaderMap.clear();
@@ -541,6 +628,53 @@ namespace Lumen::WindowsNT10
             }
         }
         mRenderCommands.clear();
+
+#ifdef EDITOR
+        ImGuiIO &io = ImGui::GetIO();
+
+        ImGui_ImplWin32_NewFrame();  // window/input
+        ImGui_ImplDX12_NewFrame();   // renderer backend
+        ImGui::NewFrame();
+
+        {
+            static bool show_demo_window = true;
+            static bool show_another_window = false;
+            static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
+
+        // Render
+        ImGui::Render();
+
+        // Render Dear ImGui graphics
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+
+        // Update and Render additional Platform Windows
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
+#endif
 
         PIXEndEvent(commandList);
 
