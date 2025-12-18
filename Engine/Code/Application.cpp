@@ -8,6 +8,10 @@
 #include "lCamera.h"
 #include "lSceneManager.h"
 
+#ifdef EDITOR
+#include "lEditor.h"
+#endif
+
 using namespace Lumen;
 
 /// Application::Impl class
@@ -46,6 +50,11 @@ public:
     [[nodiscard]] const Math::Vector4 &BackgroundColor() const;
 
 protected:
+#ifdef EDITOR
+    /// run editor
+    void Editor();
+#endif
+
     /// run application
     bool Run(float deltaTime);
 
@@ -61,6 +70,11 @@ private:
 
     /// engine pointer
     EngineWeakPtr mEngine;
+
+#ifdef EDITOR
+    /// editor pointer
+    EditorPtr mEditor;
+#endif
 
     /// interval in seconds from the last frame to the current one
     float mDeltaTime { 0.f };
@@ -84,12 +98,23 @@ void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 /// initialize application
 void Application::Impl::Initialize()
 {
+#ifdef EDITOR
+    mEditor = Editor::MakePtr();
+#endif
 }
 
 /// shutdown aplication
 void Application::Impl::Shutdown()
 {
 }
+
+#ifdef EDITOR
+/// run editor
+void Application::Impl::Editor()
+{
+    mEditor->Run();
+}
+#endif
 
 /// run application
 bool Application::Impl::Run(float deltaTime)
@@ -173,6 +198,14 @@ const Math::Vector4 &Application::BackgroundColor() const
 {
     return mImpl->BackgroundColor();
 }
+
+#ifdef EDITOR
+/// run editor
+void Application::Editor()
+{
+    return mImpl->Editor();
+}
+#endif
 
 /// run application
 bool Application::Run(float deltaTime)

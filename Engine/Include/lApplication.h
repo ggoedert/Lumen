@@ -13,6 +13,9 @@ namespace Lumen
 {
     CLASS_PTR_DEF(Engine);
     CLASS_WEAK_PTR_DEF(Engine);
+#ifdef EDITOR
+    CLASS_PTR_DEF(Editor);
+#endif
 
     /// Application class
     class Application
@@ -54,6 +57,11 @@ namespace Lumen
 
         /// virtual destructor
         virtual ~Application();
+
+#ifdef EDITOR
+        /// run editor
+        void Editor();
+#endif
 
         /// run application
         bool Run(float deltaTime);

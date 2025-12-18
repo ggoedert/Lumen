@@ -24,6 +24,7 @@
 #ifdef EDITOR
 // ImGui editor support
 #include "lImGuiLib.h"
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
 
 using namespace DX;
@@ -62,20 +63,20 @@ namespace Lumen::WindowsNT10
         float GetElapsedTime() override;
 
         // basic game loop
-        bool Run(std::function<bool()> update) override;
+        bool Run(std::function<bool()> update, std::function<void()> preRender) override;
 
         // IDeviceNotify
         void OnDeviceLost() override;
         void OnDeviceRestored() override;
 
         // messages
-        void OnActivated() override;
-        void OnDeactivated() override;
-        void OnSuspending() override;
-        void OnResuming() override;
-        void OnWindowMoved() override;
-        void OnDisplayChange() override;
-        void OnWindowSizeChanged(int width, int height) override;
+        void OnActivated();
+        void OnDeactivated();
+        void OnSuspending();
+        void OnResuming();
+        void OnWindowMoved();
+        void OnDisplayChange();
+        void OnWindowSizeChanged(int width, int height);
 
         // properties
         void GetDefaultSize(int &width, int &height) const noexcept override;
@@ -221,6 +222,11 @@ namespace Lumen::WindowsNT10
         /// release a mesh
         void ReleaseMesh(Id::Type meshId) override;
 
+#ifdef EDITOR
+        /// check if ImGui is initialized
+        bool ImGuiInitialized() { return mImGuiInitialized; }
+#endif
+
     private:
         void Render();
 
@@ -233,7 +239,10 @@ namespace Lumen::WindowsNT10
         void CreateWindowSizeDependentResources();
 
 #ifdef EDITOR
-        // ImGui monitor scale information
+        /// ImGui initialized
+        bool mImGuiInitialized = false;
+
+        /// ImGui monitor scale information
         float mMainScale;
 #endif
 
@@ -350,10 +359,6 @@ namespace Lumen::WindowsNT10
         //  Initialize Dear ImGui Resources
         // --------------------------------------------------------------
 
-        // for backbuffer count
-        DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-        mDeviceResources->GetSwapChain()->GetDesc(&swapChainDesc);
-
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -386,6 +391,11 @@ namespace Lumen::WindowsNT10
         // Setup Platform/Renderer backends
         ImGui_ImplWin32_Init(initializeConfig.mWindow);
 
+        // for backbuffer count
+        DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+        mDeviceResources->GetSwapChain()->GetDesc(&swapChainDesc);
+
+        // Setup Dear ImGui DirectX12 backend
         ImGui_ImplDX12_InitInfo init_info = {};
         init_info.Device = mDeviceResources->GetD3DDevice();
         init_info.CommandQueue = mDeviceResources->GetCommandQueue();
@@ -396,17 +406,22 @@ namespace Lumen::WindowsNT10
         // (current version of the backend will only allocate one descriptor, future versions will need to allocate more)
         init_info.SrvDescriptorHeap = mResourceDescriptors->Heap();
         init_info.UserData = static_cast<void *>(mResourceDescriptors.get());
-        init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE *out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE *out_gpu_handle) {
+        init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE *out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE *out_gpu_handle)
+        {
             DynamicDescriptorHeap *resourceDescriptors = static_cast<DynamicDescriptorHeap *>(init_info->UserData);
             DynamicDescriptorHeap::IndexType index = resourceDescriptors->Allocate();
             *out_cpu_handle = resourceDescriptors->GetCpuHandle(index);
             *out_gpu_handle = resourceDescriptors->GetGpuHandle(index);
         };
-        init_info.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle) {
+        init_info.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo *init_info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+        {
             DynamicDescriptorHeap *resourceDescriptors = static_cast<DynamicDescriptorHeap *>(init_info->UserData);
             resourceDescriptors->Free(resourceDescriptors->GetIndex(cpu_handle, gpu_handle));
         };
         ImGui_ImplDX12_Init(&init_info);
+
+        // mark ImGui initialized
+        mImGuiInitialized = true;
 #endif
 
         try
@@ -544,22 +559,32 @@ namespace Lumen::WindowsNT10
 
 #pragma region Frame Update
     /// executes the basic game loop
-    bool EngineWindowsNT10::Run(std::function<bool()> update)
+    bool EngineWindowsNT10::Run(std::function<bool()> update, std::function<void()> preRender)
     {
         bool updateResult = true;
 
+        PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
         mTimer.Tick([&]()
         {
-            if (updateResult)
+            if (updateResult && update)
             {
-                PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
                 updateResult = update();
-                PIXEndEvent();
             }
         });
+        PIXEndEvent();
         if (!updateResult)
             return false;
 
+#ifdef EDITOR
+        ImGui_ImplWin32_NewFrame();  // window/input
+        ImGui_ImplDX12_NewFrame();   // renderer backend
+        ImGui::NewFrame();
+#endif
+
+        if (preRender)
+        {
+            preRender();
+        }
         Render();
 
 #ifdef EDITOR
@@ -630,46 +655,12 @@ namespace Lumen::WindowsNT10
         mRenderCommands.clear();
 
 #ifdef EDITOR
-        ImGuiIO &io = ImGui::GetIO();
-
-        ImGui_ImplWin32_NewFrame();  // window/input
-        ImGui_ImplDX12_NewFrame();   // renderer backend
-        ImGui::NewFrame();
-
-        {
-            static bool show_demo_window = true;
-            static bool show_another_window = false;
-            static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
-
-        // Render
+        // render editor
         ImGui::Render();
-
-        // Render Dear ImGui graphics
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
-        // Update and Render additional Platform Windows
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        // update and render additional platorm windows
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
@@ -1029,6 +1020,230 @@ namespace Lumen::WindowsNT10
     OVERLAPPED EngineWindowsNT10::sOverlapped;
     HANDLE EngineWindowsNT10::sDirHandle;
 #endif
+}
+
+/// Lumen Windows namespace
+namespace Lumen::Windows
+{
+    /// windows procedure
+    LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    {
+        static bool s_in_sizemove = false;
+        static bool s_in_suspend = false;
+        static bool s_minimized = false;
+#ifdef _DEBUG
+        static bool s_fullscreen = false;
+#else
+        static bool s_fullscreen = true;
+#endif
+
+        Engine *engine = reinterpret_cast<Engine *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        WindowsNT10::EngineWindowsNT10 *engineImpl = nullptr;
+        if (engine)
+        {
+            engineImpl = static_cast<WindowsNT10::EngineWindowsNT10 *>(engine->GetImpl());
+        }
+
+#ifdef EDITOR
+        if (engineImpl && engineImpl->ImGuiInitialized())
+        {
+            ImGuiIO &io = ImGui::GetIO();
+            if (io.WantCaptureMouse || io.WantCaptureMouseUnlessPopupClose)
+            {
+                switch (message)
+                {
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_LBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_RBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONUP:
+                case WM_MBUTTONDBLCLK:
+                case WM_MOUSEWHEEL:
+                case WM_MOUSEMOVE:
+                    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+                    return TRUE;
+                }
+            }
+            if (io.WantCaptureKeyboard)
+            {
+                switch (message)
+                {
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                case WM_SYSKEYDOWN:
+                case WM_SYSKEYUP:
+                case WM_CHAR:
+                    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+                    return TRUE;
+                }
+            }
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+            {
+                return true;
+            }
+        }
+#endif
+
+        switch (message)
+        {
+        case WM_PAINT:
+            if (s_in_sizemove && engine)
+            {
+                engine->Run();
+            }
+            else
+            {
+                PAINTSTRUCT ps;
+                (void)BeginPaint(hWnd, &ps);
+                EndPaint(hWnd, &ps);
+            }
+            break;
+
+        case WM_DISPLAYCHANGE:
+            if (engineImpl)
+            {
+                engineImpl->OnDisplayChange();
+            }
+            break;
+
+        case WM_MOVE:
+            if (engineImpl)
+            {
+                engineImpl->OnWindowMoved();
+            }
+            break;
+
+        case WM_SIZE:
+            if (wParam == SIZE_MINIMIZED)
+            {
+                if (!s_minimized)
+                {
+                    s_minimized = true;
+                    if (!s_in_suspend && engineImpl)
+                        engineImpl->OnSuspending();
+                    s_in_suspend = true;
+                }
+            }
+            else if (s_minimized)
+            {
+                s_minimized = false;
+                if (s_in_suspend && engineImpl)
+                    engineImpl->OnResuming();
+                s_in_suspend = false;
+            }
+            else if (!s_in_sizemove && engineImpl)
+            {
+                engineImpl->OnWindowSizeChanged(LOWORD(lParam), HIWORD(lParam));
+            }
+            break;
+
+        case WM_ENTERSIZEMOVE:
+            s_in_sizemove = true;
+            break;
+
+        case WM_EXITSIZEMOVE:
+            s_in_sizemove = false;
+            if (engineImpl)
+            {
+                RECT rc;
+                GetClientRect(hWnd, &rc);
+
+                engineImpl->OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
+            }
+            break;
+
+        case WM_GETMINMAXINFO:
+            if (lParam)
+            {
+                auto info = reinterpret_cast<MINMAXINFO *>(lParam);
+                info->ptMinTrackSize.x = 320;
+                info->ptMinTrackSize.y = 200;
+            }
+            break;
+
+        case WM_ACTIVATEAPP:
+            if (engineImpl)
+            {
+                if (wParam)
+                {
+                    engineImpl->OnActivated();
+                }
+                else
+                {
+                    engineImpl->OnDeactivated();
+                }
+            }
+            break;
+
+        case WM_POWERBROADCAST:
+            switch (wParam)
+            {
+            case PBT_APMQUERYSUSPEND:
+                if (!s_in_suspend && engineImpl)
+                    engineImpl->OnSuspending();
+                s_in_suspend = true;
+                return TRUE;
+
+            case PBT_APMRESUMESUSPEND:
+                if (!s_minimized)
+                {
+                    if (s_in_suspend && engineImpl)
+                        engineImpl->OnResuming();
+                    s_in_suspend = false;
+                }
+                return TRUE;
+            }
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+#ifdef _DEBUG
+        case WM_SYSKEYDOWN:
+            if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
+            {
+                // implements the classic ALT+ENTER fullscreen toggle
+                if (s_fullscreen)
+                {
+                    SetWindowLongPtr(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+                    SetWindowLongPtr(hWnd, GWL_EXSTYLE, 0);
+
+                    int width = 800;
+                    int height = 600;
+                    if (engineImpl)
+                        engineImpl->GetDefaultSize(width, height);
+
+                    ShowWindow(hWnd, SW_SHOWNORMAL);
+
+                    SetWindowPos(hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+                }
+                else
+                {
+                    SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP);
+                    SetWindowLongPtr(hWnd, GWL_EXSTYLE, WS_EX_TOPMOST);
+
+                    SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+                    ShowWindow(hWnd, SW_SHOWMAXIMIZED);
+                }
+
+                s_fullscreen = !s_fullscreen;
+            }
+            break;
+#endif
+
+        case WM_MENUCHAR:
+            // a menu is active and the user presses a key that does not correspond
+            // to any mnemonic or accelerator key. Ignore so we don't produce an error beep.
+            return MAKELRESULT(0, MNC_CLOSE);
+        }
+
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
 }
 
 //==============================================================================================================================================================================

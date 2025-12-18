@@ -310,6 +310,7 @@
     <ClInclude Include="..\..\Include\lConcurrentBatchQueue.h" />
     <ClInclude Include="..\..\Include\lDebugLog.h" />
     <ClInclude Include="..\..\Include\lDefs.h" />
+    <ClInclude Include="..\..\Include\lEditor.h" />
     <ClInclude Include="..\..\Include\lEngine.h" />
     <ClInclude Include="..\..\Include\lEvent.h" />
     <ClInclude Include="..\..\Include\lEventReceiver.h" />
@@ -347,6 +348,7 @@
     <ClCompile Include="..\..\Code\Camera.cpp" />
     <ClCompile Include="..\..\Code\Component.cpp" />
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
+    <ClCompile Include="..\..\Code\Editor.cpp" />
     <ClCompile Include="..\..\Code\Engine.cpp" />
     <ClCompile Include="..\..\Code\Event.cpp" />
     <ClCompile Include="..\..\Code\FileSystem.cpp" />

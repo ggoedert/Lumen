@@ -40,16 +40,7 @@ namespace Lumen
         virtual float GetElapsedTime() = 0;
 
         /// basic game loop
-        virtual bool Run(std::function<bool()> update) = 0;
-
-        /// messages
-        virtual void OnActivated() = 0;
-        virtual void OnDeactivated() = 0;
-        virtual void OnSuspending() = 0;
-        virtual void OnResuming() = 0;
-        virtual void OnWindowMoved() = 0;
-        virtual void OnDisplayChange() = 0;
-        virtual void OnWindowSizeChanged(int width, int height) = 0;
+        virtual bool Run(std::function<bool()> update, std::function<void()> preRender) = 0;
 
         /// properties
         virtual void GetDefaultSize(int &width, int &height) const = 0;

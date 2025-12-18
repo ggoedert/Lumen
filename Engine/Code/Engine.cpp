@@ -16,6 +16,12 @@ using namespace Lumen;
 /// constructor
 Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(application), mImpl(ImplUniquePtr(impl)) {}
 
+/// get implementation
+Engine::Impl *Engine::GetImpl() const
+{
+    return mImpl.get();
+}
+
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
@@ -94,19 +100,17 @@ bool Engine::Run()
 
     // run application
     if (mApplication)
-        return mImpl->Run(std::function<bool()>([&]() { return mApplication->Run(mImpl->GetElapsedTime()); }));
+    {
+        return mImpl->Run(std::function<bool()>([&]() { return mApplication->Run(mImpl->GetElapsedTime()); }),
+#ifdef EDITOR
+            std::function<void()>([&]() { mApplication->Editor(); }));
+#else
+            nullptr);
+#endif
+    }
 
     return false;
 }
-
-/// messages
-void Engine::OnActivated() { mImpl->OnActivated(); }
-void Engine::OnDeactivated() { mImpl->OnDeactivated(); }
-void Engine::OnSuspending() { mImpl->OnSuspending(); }
-void Engine::OnResuming() { mImpl->OnResuming(); }
-void Engine::OnWindowMoved() { mImpl->OnWindowMoved(); }
-void Engine::OnDisplayChange() { mImpl->OnDisplayChange(); }
-void Engine::OnWindowSizeChanged(int width, int height) { mImpl->OnWindowSizeChanged(width, height); }
 
 /// properties
 void Engine::GetDefaultSize(int &width, int &height) const

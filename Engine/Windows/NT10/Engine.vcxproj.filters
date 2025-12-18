@@ -197,6 +197,9 @@
     <ClInclude Include="..\..\Include\Windows\NT10\lImGuiLib.h">
       <Filter>Header Files\System\Windows\NT10</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lEditor.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -294,6 +297,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\NT10\ImGuiLib.cpp">
       <Filter>Source Files\Systems\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Editor.cpp">
+      <Filter>Source Files\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

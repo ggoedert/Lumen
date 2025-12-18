@@ -47,6 +47,9 @@ namespace Lumen
         /// allocate smart pointer version of the engine, implemented at platform level
         [[nodiscard]] static EnginePtr MakePtr(const ApplicationPtr &application);
 
+        /// get implementation
+        [[nodiscard]] Impl *GetImpl() const;
+
         /// debug log, implemented at platform level
         static void DebugOutput(const std::string &message);
 
@@ -64,15 +67,6 @@ namespace Lumen
 
         /// basic game loop
         bool Run();
-
-        /// messages
-        void OnActivated();
-        void OnDeactivated();
-        void OnSuspending();
-        void OnResuming();
-        void OnWindowMoved();
-        void OnDisplayChange();
-        void OnWindowSizeChanged(int width, int height);
 
         /// properties
         void GetDefaultSize(int &width, int &height) const;
