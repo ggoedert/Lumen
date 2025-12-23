@@ -30,23 +30,37 @@ namespace Lumen::Windows
             if (!RegisterClassExW(&wcex))
                 return 1;
 
+#ifdef EDITOR
             // create window
-            int width = 800;
-            int height = 600;
-            engine->GetDefaultSize(width, height);
-
+            int width = 1280;
+            int height = 720;
+            engine->GetFullscreenSize(width, height);
             RECT rc = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+            AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
+            HWND hwnd = CreateWindowExW(0, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+                CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
+                nullptr);
+            if (!hwnd)
+                return 1;
+            ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+#else
+            // create window
+            int width = 1280 / 3;
+            int height = 720 / 3;
+            if (auto application = engine->GetApplication().lock())
+            {
+                application->GetWindowSize(width, height);
+            }
+            RECT rc = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 #ifdef _DEBUG
             AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
             HWND hwnd = CreateWindowExW(0, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
                 nullptr);
-
             if (!hwnd)
                 return 1;
-
             ShowWindow(hwnd, nCmdShow);
 #else
             AdjustWindowRect(&rc, WS_POPUP, FALSE);
@@ -54,11 +68,10 @@ namespace Lumen::Windows
             HWND hwnd = CreateWindowExW(0, szWindowClass, szTitle, WS_POPUP,
                 WS_EX_TOPMOST, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
                 nullptr);
-
             if (!hwnd)
                 return 1;
-
             ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+#endif
 #endif
 
             SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(engine.get()));

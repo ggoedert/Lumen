@@ -19,10 +19,13 @@ class Sandbox : public Lumen::Application
 
 public:
     /// initialize sandbox
-    void Initialize() override;
+    void Initialize(const Lumen::ApplicationWeakPtr &application) override;
 
     /// shutdown sandbox
     void Shutdown() override;
+
+    /// get winwdow size
+    void GetWindowSize(int &width, int &height) override;
 
     /// TEMP DELME!
     void New() override;

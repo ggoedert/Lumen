@@ -10,6 +10,7 @@
 #include "imgui_draw.cpp"
 #include "imgui_widgets.cpp"
 #include "imgui_tables.cpp"
+#define SHOW_DEMO_WINDOW
 #ifdef SHOW_DEMO_WINDOW
 #include "imgui_demo.cpp"
 #endif

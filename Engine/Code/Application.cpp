@@ -35,7 +35,7 @@ public:
     void SetEngine(const EngineWeakPtr &engine);
 
     /// initialize application
-    void Initialize();
+    void Initialize(const Lumen::ApplicationWeakPtr &application);
 
     /// shutdown aplication
     void Shutdown();
@@ -96,16 +96,20 @@ void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 }
 
 /// initialize application
-void Application::Impl::Initialize()
+void Application::Impl::Initialize(const Lumen::ApplicationWeakPtr &application)
 {
 #ifdef EDITOR
-    mEditor = Editor::MakePtr();
+    mEditor = Editor::MakePtr(application);
+    mEditor->Initialize();
 #endif
 }
 
 /// shutdown aplication
 void Application::Impl::Shutdown()
 {
+#ifdef EDITOR
+    mEditor->Shutdown();
+#endif
 }
 
 #ifdef EDITOR
@@ -170,9 +174,9 @@ void Application::SetEngine(const EngineWeakPtr &engine)
 }
 
 /// initialize application
-void Application::Initialize()
+void Application::Initialize(const ApplicationWeakPtr &application)
 {
-    mImpl->Initialize();
+    mImpl->Initialize(application);
 }
 
 /// shutdown aplication

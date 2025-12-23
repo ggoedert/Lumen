@@ -97,9 +97,9 @@ namespace Lumen
 #else
     /// lean version of HashType
     using HashType = Hash;
-    struct HashTypeHasher { size_t operator()(HashType &h) const { return static_cast<size_t>(h); } };
-    struct HashTypeComparator { bool operator()(HashType &a, HashType &b) const { return a < b; } };
-    struct HashTypeEqual { bool operator()(HashType &a, HashType &b) const { return a == b; } };
+    struct HashTypeHasher { size_t operator()(const HashType &h) const { return static_cast<size_t>(h); } };
+    struct HashTypeComparator { bool operator()(const HashType &a, const HashType &b) const { return a < b; } };
+    struct HashTypeEqual { bool operator()(const HashType &a, const HashType &b) const { return a == b; } };
 
     /// hash (FNV-1a) type from type name evaluated at compile time
     constexpr HashType EncodeType(const char *typeName)

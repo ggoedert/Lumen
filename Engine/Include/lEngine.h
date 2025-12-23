@@ -10,6 +10,7 @@
 #include "lFileSystem.h"
 #include "lAsset.h"
 #include "lApplication.h"
+#include "lImGuiLib.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -17,6 +18,7 @@ namespace Lumen
     CLASS_PTR_DEF(Engine);
     CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(Application);
+    CLASS_WEAK_PTR_DEF(Application);
     CLASS_PTR_DEF(Texture);
     CLASS_PTR_DEF(Shader);
     CLASS_PTR_DEF(Mesh);
@@ -32,6 +34,18 @@ namespace Lumen
         class Impl;
 
     public:
+#ifdef EDITOR
+        struct LayoutSettings
+        {
+            int posX = 0;
+            int posY = 0;
+            int width = 0;
+            int height = 0;
+            bool isMaximized = true;
+            std::vector<std::string> imGuiIni;
+        };
+#endif
+
         struct DrawPrimitive
         {
             Id::Type meshId;
@@ -50,6 +64,9 @@ namespace Lumen
         /// get implementation
         [[nodiscard]] Impl *GetImpl() const;
 
+        /// get application
+        [[nodiscard]] ApplicationWeakPtr GetApplication() const;
+        
         /// debug log, implemented at platform level
         static void DebugOutput(const std::string &message);
 
@@ -68,8 +85,16 @@ namespace Lumen
         /// basic game loop
         bool Run();
 
-        /// properties
-        void GetDefaultSize(int &width, int &height) const;
+#ifdef EDITOR
+        /// get windows settings
+        LayoutSettings GetLayoutSettings() const;
+
+        /// set windows settings
+        void SetLayoutSettings(LayoutSettings &layoutSettings);
+#endif
+
+        /// get fullscreen size
+        void GetFullscreenSize(int &width, int &height) const;
 
         /// create a file system for the assets
         [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
@@ -106,6 +131,12 @@ namespace Lumen
 
         /// release a mesh
         void ReleaseMesh(Id::Type meshId);
+
+        /// set ImGui render texture size
+        void SetImRenderTextureSize(Id::Type texId, ImVec2 size);
+
+        /// get ImGui render texture id
+        ImTextureID GetImRenderTextureID(Id::Type texId);
 
     protected:
         /// protected constructor

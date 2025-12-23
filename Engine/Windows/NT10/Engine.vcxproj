@@ -133,7 +133,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -152,7 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -173,7 +173,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -217,7 +217,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -236,7 +236,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -257,7 +257,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -280,7 +280,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\json\single_include;..\..\..\External\imgui;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows;..\..\Code\Windows\NT10;..\..\Include;..\..\Include\Windows;..\..\Include\Windows\NT10</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>

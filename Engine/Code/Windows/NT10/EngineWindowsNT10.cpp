@@ -78,8 +78,16 @@ namespace Lumen::WindowsNT10
         void OnDisplayChange();
         void OnWindowSizeChanged(int width, int height);
 
-        // properties
-        void GetDefaultSize(int &width, int &height) const noexcept override;
+#ifdef EDITOR
+        /// get layout settings
+        Engine::LayoutSettings GetLayoutSettings() noexcept override;
+
+        /// set layout settings
+        void SetLayoutSettings(Engine::LayoutSettings &layoutSettings) noexcept override;
+#endif
+
+        // get fullscreen size
+        void GetFullscreenSize(int &width, int &height) const noexcept override;
 
         static BYTE sBuffer[65536];
         static OVERLAPPED sOverlapped;
@@ -222,6 +230,12 @@ namespace Lumen::WindowsNT10
         /// release a mesh
         void ReleaseMesh(Id::Type meshId) override;
 
+        /// set ImGui render texture size
+        void SetImRenderTextureSize(Id::Type texId, ImVec2 size) override;
+
+        /// get ImGui render texture id
+        ImTextureID GetImRenderTextureID(Id::Type texId) override;
+
 #ifdef EDITOR
         /// check if ImGui is initialized
         bool ImGuiInitialized() { return mImGuiInitialized; }
@@ -230,13 +244,14 @@ namespace Lumen::WindowsNT10
     private:
         void Render();
 
-        void Clear();
-
         void CreateNewDeviceDependentResources();
         void CreateNewWindowSizeDependentResources();
 
         void CreateDeviceDependentResources();
         void CreateWindowSizeDependentResources();
+
+        /// main window handle
+        HWND mWindow;
 
 #ifdef EDITOR
         /// ImGui initialized
@@ -259,6 +274,18 @@ namespace Lumen::WindowsNT10
         SimpleMath::Matrix mProj;
 
         std::unique_ptr<DynamicDescriptorHeap> mResourceDescriptors;
+
+        /// render target resources (Scene -> Texture)
+        int mSceneWidth, mSceneHeight;
+        bool mSceneNeedsResize;
+        Microsoft::WRL::ComPtr<ID3D12Resource> mSceneRenderTarget;
+        Microsoft::WRL::ComPtr<ID3D12Resource> mSceneDepthStencil;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSceneRTVHeap;
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSceneDSVHeap;
+        DynamicDescriptorHeap::IndexType mSceneSRVIndex = DynamicDescriptorHeap::InvalidIndex;
+        DynamicDescriptorHeap::IndexType mSceneDSVIndex = DynamicDescriptorHeap::InvalidIndex;
+        D3D12_RESOURCE_STATES mSceneState = D3D12_RESOURCE_STATE_COMMON;
+        D3D12_RESOURCE_STATES mSceneDepthState = D3D12_RESOURCE_STATE_COMMON;
 
         /// texture id generator
         Id::Generator mTexIdGenerator;
@@ -305,6 +332,11 @@ namespace Lumen::WindowsNT10
 
         std::vector<Engine::RenderCommand> mRenderCommands;
 
+#ifdef EDITOR
+        /// cached layout settings
+        Engine::LayoutSettings mLayoutSettings;
+#endif
+
         /// owner
         EngineWeakPtr mOwner;
     };
@@ -330,7 +362,7 @@ namespace Lumen::WindowsNT10
     bool EngineWindowsNT10::Initialize(const Object &config)
     {
 #ifdef EDITOR
-        // Make process DPI aware and obtain main monitor scale
+        // make process DPI aware and obtain main monitor scale
         ImGui_ImplWin32_EnableDpiAwareness();
         mMainScale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
 #endif
@@ -346,7 +378,21 @@ namespace Lumen::WindowsNT10
         }
 
         const auto &initializeConfig = static_cast<const Windows::Config &>(config);
-        mDeviceResources->SetWindow(initializeConfig.mWindow, initializeConfig.mWidth, initializeConfig.mHeight);
+        mWindow = initializeConfig.mWindow;
+#ifdef EDITOR
+        /// get cached layout settings
+        mLayoutSettings = GetLayoutSettings();
+        mSceneWidth = mLayoutSettings.width;
+        mSceneHeight = mLayoutSettings.height;
+#else
+        RECT rc;
+        GetClientRect(mWindow, &rc);
+        OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
+        mSceneWidth = rc.right - rc.left;
+        mSceneHeight = rc.bottom - rc.top;
+#endif
+        mSceneNeedsResize = false;
+        mDeviceResources->SetWindow(mWindow, mSceneWidth, mSceneHeight);
 
         mDeviceResources->CreateDeviceResources();
         CreateDeviceDependentResources();
@@ -359,10 +405,11 @@ namespace Lumen::WindowsNT10
         //  Initialize Dear ImGui Resources
         // --------------------------------------------------------------
 
-        // Setup Dear ImGui context
+        // setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
+        io.IniFilename = nullptr;                                 // Disable ini file
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
@@ -370,18 +417,27 @@ namespace Lumen::WindowsNT10
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
-        // Setup Dear ImGui style
+        // load ImGui settings
+        std::string combinedImGuiIni;
+        for (const auto &line : mLayoutSettings.imGuiIni)
+        {
+            combinedImGuiIni += line;
+            combinedImGuiIni += '\n';
+        }
+        ImGui::LoadIniSettingsFromMemory(combinedImGuiIni.c_str(), combinedImGuiIni.size());
+
+        // setup Dear ImGui style
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
 
-        // Setup scaling
+        // setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
-        style.ScaleAllSizes(mMainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-        style.FontScaleDpi = mMainScale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+        //style.ScaleAllSizes(mMainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+        //style.FontScaleDpi = mMainScale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
         io.ConfigDpiScaleFonts = true;          // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
         io.ConfigDpiScaleViewports = true;      // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
 
-        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        // when viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             style.WindowRounding = 0.0f;
@@ -389,7 +445,7 @@ namespace Lumen::WindowsNT10
         }
 
         // Setup Platform/Renderer backends
-        ImGui_ImplWin32_Init(initializeConfig.mWindow);
+        ImGui_ImplWin32_Init(mWindow);
 
         // for backbuffer count
         DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -486,6 +542,11 @@ namespace Lumen::WindowsNT10
         {
             Lumen::DebugLog::Error("Could not open directory to monitor: {}", monitorDir);
         }
+
+        // trigger initial window size changed to setup ImGui
+        RECT rc;
+        GetClientRect(mWindow, &rc);
+        OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
 #endif
 
         return true;
@@ -508,6 +569,19 @@ namespace Lumen::WindowsNT10
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
 #endif
+
+        if (mSceneSRVIndex != DynamicDescriptorHeap::InvalidIndex)
+        {
+            mResourceDescriptors->Free(mSceneSRVIndex);
+            mSceneSRVIndex = DynamicDescriptorHeap::InvalidIndex;
+        }
+        if (mSceneDSVIndex != DynamicDescriptorHeap::InvalidIndex)
+        {
+            mResourceDescriptors->Free(mSceneDSVIndex);
+            mSceneDSVIndex = DynamicDescriptorHeap::InvalidIndex;
+        }
+        mSceneRenderTarget.Reset();
+        mSceneDepthStencil.Reset();
 
         mNewDeviceMeshMap.clear();
         mNewDeviceShaderMap.clear();
@@ -605,98 +679,165 @@ namespace Lumen::WindowsNT10
             return;
         }
 
-        // prepare the command list to render a new frame
-        mDeviceResources->Prepare();
-        Clear();
-
-        auto commandList = mDeviceResources->GetCommandList();
-        PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
-
-        // TODO: add your rendering code here
-        ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
-        commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
-
-        for (auto &cmd : mRenderCommands)
-        {
-            if (auto pDrawPrimitiveData = std::get_if<Engine::DrawPrimitive>(&cmd))
-            {
-                auto &drawPrimitiveData = *pDrawPrimitiveData;
-
-                SimpleMath::Matrix world(*drawPrimitiveData.world);
-                Id::Type meshId = drawPrimitiveData.meshId;
-                Id::Type shaderId = drawPrimitiveData.shaderId;
-                Id::Type texId = drawPrimitiveData.texId;
-
-                auto meshIt = mMeshMap.find(meshId);
-                if (meshIt != mMeshMap.end())
-                {
-                    bool setupDone = false;
-                    auto shaderIt = mShaderMap.find(shaderId);
-                    if (shaderIt != mShaderMap.end())
-                    {
-                        BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderIt->second.mEffect.get());
-                        auto texIt = mTextureMap.find(texId);
-                        if (texIt != mTextureMap.end())
-                        {
-                            basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
-                                mStates->AnisotropicWrap());
-                            setupDone = true;
-                        }
-
-                        basicEffect->SetWorld(world);
-                        basicEffect->Apply(commandList);
-                    }
-
-                    L_ASSERT(setupDone);
-                    meshIt->second.mShape->Draw(commandList);
-                }
-            }
-        }
-        mRenderCommands.clear();
-
 #ifdef EDITOR
-        // render editor
-        ImGui::Render();
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
-
-        // update and render additional platorm windows
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        if (mSceneNeedsResize)
         {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
+            mDeviceResources->WaitForGpu(); // Critical: don't delete resources in use
+            CreateWindowSizeDependentResources();
+            mSceneNeedsResize = false;
         }
 #endif
 
+        // prepare the command list to render a new frame
+        mDeviceResources->Prepare();
+        auto commandList = mDeviceResources->GetCommandList();
+
+        // get render target view and resource
+        // this may be expanded for post effects later like Bloom, Motion Blur, or SSAO, with the use of multiple render targets/ping pong render targets
+        D3D12_CPU_DESCRIPTOR_HANDLE targetRtv;
+        D3D12_CPU_DESCRIPTOR_HANDLE stencilDsv;
+        ID3D12Resource *targetResource;
+        ID3D12Resource *stencilResource;
+#ifdef EDITOR
+        // render to the texture so ImGui can display it in a window
+        targetRtv = mSceneRTVHeap->GetCPUDescriptorHandleForHeapStart();
+        targetResource = mSceneRenderTarget.Get();
+        stencilDsv = mSceneDSVHeap->GetCPUDescriptorHandleForHeapStart();
+        stencilResource = mSceneDepthStencil.Get();
+#else
+        // render directly to the screen's backbuffer
+        targetRtv = mDeviceResources->GetRenderTargetView();
+        targetResource = mDeviceResources->GetRenderTarget();
+        stencilDsv = mDeviceResources->GetDepthStencilView();
+        stencilResource = mDeviceResources->GetDepthStencil();
+#endif
+
+        ID3D12DescriptorHeap *heaps[] = { mResourceDescriptors->Heap(), mStates->Heap() };
+        commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
+
+        // =================================================================================
+        // PASS 1: Render 3D Scene to Texture
+        // =================================================================================
+        PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render Scene");
+        {
+#ifdef EDITOR
+            // in editor mode, we MUST transition our custom texture to RENDER_TARGET
+            // transition target to RENDER_TARGET state
+            // in non-editor mode, DeviceResources::Prepare usually handles this,
+            // but being explicit here ensures the logic is robust
+
+            // transition Color Target to RENDER_TARGET
+            TransitionResource(commandList, targetResource, mSceneState, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            mSceneState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+            // transition Depth Target to DEPTH_WRITE
+            TransitionResource(commandList, stencilResource, mSceneDepthState, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+            mSceneDepthState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+#endif
+
+            commandList->OMSetRenderTargets(1, &targetRtv, FALSE, &stencilDsv);
+
+            // clear
+            commandList->ClearRenderTargetView(targetRtv, Colors::CornflowerBlue, 0, nullptr);
+            commandList->ClearDepthStencilView(stencilDsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+            // set viewport/scissor
+#ifdef EDITOR
+            //FIXME TESTING ONLY
+            //we should add better multi render target support
+            D3D12_VIEWPORT sceneViewport = { 0.0f, 0.0f, (float)mSceneWidth, (float)mSceneHeight, 0.0f, 1.0f };
+            D3D12_RECT sceneScissor = { 0, 0, (long)mSceneWidth, (long)mSceneHeight };
+            commandList->RSSetViewports(1, &sceneViewport);
+            commandList->RSSetScissorRects(1, &sceneScissor);
+            //FIXME TESTING ONLY
+#else
+            auto viewport = mDeviceResources->GetScreenViewport();
+            auto scissorRect = mDeviceResources->GetScissorRect();
+            commandList->RSSetViewports(1, &viewport);
+            commandList->RSSetScissorRects(1, &scissorRect);
+#endif
+
+            // draw 3d objects
+            for (auto &cmd : mRenderCommands)
+            {
+                if (auto pDrawPrimitiveData = std::get_if<Engine::DrawPrimitive>(&cmd))
+                {
+                    auto &drawPrimitiveData = *pDrawPrimitiveData;
+
+                    SimpleMath::Matrix world(*drawPrimitiveData.world);
+                    Id::Type meshId = drawPrimitiveData.meshId;
+                    Id::Type shaderId = drawPrimitiveData.shaderId;
+                    Id::Type texId = drawPrimitiveData.texId;
+
+                    auto meshIt = mMeshMap.find(meshId);
+                    if (meshIt != mMeshMap.end())
+                    {
+                        bool setupDone = false;
+                        auto shaderIt = mShaderMap.find(shaderId);
+                        if (shaderIt != mShaderMap.end())
+                        {
+                            BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderIt->second.mEffect.get());
+                            auto texIt = mTextureMap.find(texId);
+                            if (texIt != mTextureMap.end())
+                            {
+                                basicEffect->SetTexture(mResourceDescriptors->GetGpuHandle(texIt->second.mIndex),
+                                    mStates->AnisotropicWrap());
+                                setupDone = true;
+                            }
+
+                            basicEffect->SetWorld(world);
+                            basicEffect->Apply(commandList);
+                        }
+
+                        L_ASSERT(setupDone);
+                        meshIt->second.mShape->Draw(commandList);
+                    }
+                }
+            }
+            mRenderCommands.clear();
+        }
         PIXEndEvent(commandList);
+
+#ifdef EDITOR
+        // =================================================================================
+        // PASS 2: Render UI / Composite to Back Buffer
+        // =================================================================================
+        PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render UI");
+        {
+            // transition scene texture to SRV so ImGui can read it
+            TransitionResource(commandList, targetResource, mSceneState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            mSceneState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+            // transition Depth Target for ImGui reading
+            TransitionResource(commandList, stencilResource, mSceneDepthState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            mSceneDepthState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+            // switch to the actual back buffer for ImGui
+            auto backBufferRtv = mDeviceResources->GetRenderTargetView();
+            commandList->OMSetRenderTargets(1, &backBufferRtv, FALSE, nullptr);
+
+            // currently clearing to black
+            commandList->ClearRenderTargetView(backBufferRtv, Colors::Black, 0, nullptr);
+
+            // render editor
+            ImGui::Render();
+            ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+
+            // update and render additional platorm windows
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }
+        }
+        PIXEndEvent(commandList);
+#endif
 
         // show the new frame
         PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
         mDeviceResources->Present();
         mGraphicsMemory->Commit(mDeviceResources->GetCommandQueue());
         PIXEndEvent();
-    }
-
-    /// helper method to clear the back buffers
-    void EngineWindowsNT10::Clear()
-    {
-        auto commandList = mDeviceResources->GetCommandList();
-        PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Clear");
-
-        // clear the views
-        auto rtvDescriptor = mDeviceResources->GetRenderTargetView();
-        auto dsvDescriptor = mDeviceResources->GetDepthStencilView();
-
-        commandList->OMSetRenderTargets(1, &rtvDescriptor, FALSE, &dsvDescriptor);
-        commandList->ClearRenderTargetView(rtvDescriptor, Colors::CornflowerBlue, 0, nullptr);
-        commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-        // set the viewport and scissor rect
-        auto viewport = mDeviceResources->GetScreenViewport();
-        auto scissorRect = mDeviceResources->GetScissorRect();
-        commandList->RSSetViewports(1, &viewport);
-        commandList->RSSetScissorRects(1, &scissorRect);
-
-        PIXEndEvent(commandList);
     }
 #pragma endregion
 
@@ -736,20 +877,79 @@ namespace Lumen::WindowsNT10
 
     void EngineWindowsNT10::OnWindowSizeChanged(int width, int height)
     {
-        if (!mDeviceResources->WindowSizeChanged(width, height))
-            return;
+        if (mDeviceResources->GetWindow() != nullptr)
+        {
+            if (!mDeviceResources->WindowSizeChanged(width, height))
+                return;
 
-        CreateWindowSizeDependentResources();
+            CreateWindowSizeDependentResources();
 
-        // TODO: game window is being resized
+            // TODO: game window is being resized
+        }
     }
 
-    // properties
-    void EngineWindowsNT10::GetDefaultSize(int &width, int &height) const noexcept
+#ifdef EDITOR
+    /// get layout settings
+    Engine::LayoutSettings EngineWindowsNT10::GetLayoutSettings() noexcept
     {
-        // TODO: change to desired default window size (note minimum size is 320x200)
-        width = 1600;
-        height = 900;
+        // update cached layout window settings
+        WINDOWPLACEMENT wp;
+        wp.length = sizeof(WINDOWPLACEMENT);
+        if (GetWindowPlacement(mWindow, &wp))
+        {
+            mLayoutSettings.posX = wp.rcNormalPosition.left;
+            mLayoutSettings.posY = wp.rcNormalPosition.top;
+            mLayoutSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+            mLayoutSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+            mLayoutSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+        }
+
+        // update cached layout ImGui settings
+        if (ImGui::GetCurrentContext())
+        {
+            std::string line;
+            std::vector<std::string> imGuiIniSettings;
+            std::stringstream imGuiIniSettingsString(ImGui::SaveIniSettingsToMemory());
+            while (std::getline(imGuiIniSettingsString, line))
+            {
+                imGuiIniSettings.push_back(line);
+            }
+            if (!imGuiIniSettings.empty())
+            {
+                mLayoutSettings.imGuiIni = imGuiIniSettings;
+            }
+        }
+
+        return mLayoutSettings;
+    }
+
+    /// set layout settings
+    void EngineWindowsNT10::SetLayoutSettings(Engine::LayoutSettings &layoutSettings) noexcept
+    {
+        WINDOWPLACEMENT wp;
+        wp.length = sizeof(WINDOWPLACEMENT);
+
+        // get current placement first to preserve flags we aren't changing
+        GetWindowPlacement(GetActiveWindow(), &wp);
+
+        // set cached layout window settings
+        wp.rcNormalPosition.left = layoutSettings.posX;
+        wp.rcNormalPosition.top = layoutSettings.posY;
+        wp.rcNormalPosition.right = layoutSettings.posX + layoutSettings.width;
+        wp.rcNormalPosition.bottom = layoutSettings.posY + layoutSettings.height;
+        wp.showCmd = layoutSettings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+        SetWindowPlacement(GetActiveWindow(), &wp);
+
+        // update the layout cache
+        mLayoutSettings = layoutSettings;
+    }
+#endif
+
+    /// get fullscreen size
+    void EngineWindowsNT10::GetFullscreenSize(int &width, int &height) const noexcept
+    {
+        width = GetSystemMetrics(SM_CXSCREEN);
+        height = GetSystemMetrics(SM_CYSCREEN);
     }
 #pragma endregion
 
@@ -776,7 +976,7 @@ namespace Lumen::WindowsNT10
         TextureData textureData;
         textureData.mTexture = texture;
         textureData.mWidth = width;
-        textureData.mHeight = width;
+        textureData.mHeight = height;
         mNewDeviceTextureMap.push_back(mTextureMap.insert_or_assign(texId, std::move(textureData)).first);
         return texId;
     }
@@ -833,6 +1033,36 @@ namespace Lumen::WindowsNT10
         {
             mMeshMap.erase(it);
         }
+    }
+
+    /// set ImGui render texture size
+    void EngineWindowsNT10::SetImRenderTextureSize(Id::Type texId, ImVec2 size)
+    {
+        //FIXME TESTING ONLY
+        // prevent zero sized textures when window is collapsed
+        if (size.x > 0 && size.y > 0 &&  (mSceneWidth != (int)size.x || mSceneHeight != (int)size.y))
+        {
+            mSceneWidth = (int)size.x;
+            mSceneHeight = (int)size.y;
+            mSceneNeedsResize = true;
+        }
+        //FIXME TESTING ONLY
+    }
+
+    /// get ImGui render texture id
+    ImTextureID EngineWindowsNT10::GetImRenderTextureID(Id::Type texId)
+    {
+        //FIXME TESTING ONLY
+        if (texId == 0)
+        {
+            return (ImTextureID)mResourceDescriptors->GetGpuHandle(mSceneSRVIndex).ptr;
+        }
+        else
+        {
+            return (ImTextureID)mResourceDescriptors->GetGpuHandle(mSceneDSVIndex).ptr;
+        }
+        //FIXME TESTING ONLY
+        return (UINT64)nullptr;
     }
 
 #pragma region Direct3D Resources
@@ -902,6 +1132,9 @@ namespace Lumen::WindowsNT10
 
         uploadResourcesFinished.wait();
 
+        // NOTE: The pipeline state must match the render target format!
+        // we are now rendering to our custom scene texture (mSceneRenderTarget),
+        // which matches the BackBufferFormat
         RenderTargetState rtState(mDeviceResources->GetBackBufferFormat(),
             mDeviceResources->GetDepthBufferFormat());
 
@@ -967,19 +1200,164 @@ namespace Lumen::WindowsNT10
 
         mResourceDescriptors = std::make_unique<DynamicDescriptorHeap>(device, 256);
 
+        // create descriptor heap for scene render target (RTV)
+        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+        rtvHeapDesc.NumDescriptors = 1;
+        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mSceneRTVHeap.ReleaseAndGetAddressOf())));
+        mSceneState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+        // create descriptor heap for depth stencil target (DSV)
+        D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+        dsvHeapDesc.NumDescriptors = 1;
+        dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mSceneDSVHeap.ReleaseAndGetAddressOf())));
+        mSceneDepthState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
         CreateNewDeviceDependentResources();
     }
 
     /// allocate all memory resources that change on a window SizeChanged event
     void EngineWindowsNT10::CreateWindowSizeDependentResources()
     {
+        RECT size;
         // TODO: initialize windows-size dependent objects here
-        auto size = mDeviceResources->GetOutputSize();
+#ifdef EDITOR
+        // Override size for Editor Mode
+        if (mSceneWidth > 0 || mSceneHeight > 0)
+        {
+            size.left = 0;
+            size.right = mSceneWidth;
+            size.top = 0;
+            size.bottom = mSceneHeight;
+        }
+        else
+        {
+            auto size = mDeviceResources->GetOutputSize();
+            size.left = 0;
+            size.right = size.right - size.left;
+            size.top = 0;
+            size.bottom = size.bottom - size.top;
+        }
+#else
+        size = mDeviceResources->GetOutputSize();
+#endif
 
         mView = Matrix::CreateLookAt(Vector3(0.f, 1.f, -2.f),
             Vector3::Zero, Vector3::UnitY);
         mProj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
             float(size.right) / float(size.bottom), 0.1f, 10.f);
+
+#ifdef EDITOR
+        // create/resize scene render target texture
+
+        // release previous resource
+        mSceneRenderTarget.Reset();
+        mSceneDepthStencil.Reset();
+
+        // Ensure SRV descriptor is allocated
+        if (mSceneSRVIndex == DynamicDescriptorHeap::InvalidIndex)
+        {
+            mSceneSRVIndex = mResourceDescriptors->Allocate();
+        }
+
+        // Ensure DSV descriptor is allocated
+        if (mSceneDSVIndex == DynamicDescriptorHeap::InvalidIndex)
+        {
+            mSceneDSVIndex = mResourceDescriptors->Allocate();
+        }
+
+        // define render target desc
+        D3D12_RESOURCE_DESC rtDesc = {};
+        rtDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        rtDesc.Alignment = 0;
+        rtDesc.Width = size.right;
+        rtDesc.Height = size.bottom;
+        rtDesc.DepthOrArraySize = 1;
+        rtDesc.MipLevels = 1;
+        rtDesc.Format = mDeviceResources->GetBackBufferFormat(); // Matches SwapChain
+        rtDesc.SampleDesc.Count = 1;
+        rtDesc.SampleDesc.Quality = 0;
+        rtDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        rtDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+        // define depth stencil desc
+        D3D12_RESOURCE_DESC dsDesc = {};
+        dsDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        dsDesc.Alignment = 0;
+        dsDesc.Width = size.right;
+        dsDesc.Height = size.bottom;
+        dsDesc.DepthOrArraySize = 1;
+        dsDesc.MipLevels = 1;
+        dsDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        dsDesc.SampleDesc.Count = 1;
+        dsDesc.SampleDesc.Quality = 0;
+        dsDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        dsDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+        // define optimized clear value
+        D3D12_CLEAR_VALUE rtClearValue = {};
+        rtClearValue.Format = mDeviceResources->GetBackBufferFormat();
+        memcpy(rtClearValue.Color, Colors::CornflowerBlue, sizeof(float) * 4);
+        D3D12_CLEAR_VALUE dsClearValue = {};
+        dsClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        dsClearValue.DepthStencil.Depth = 1.0f;
+        dsClearValue.DepthStencil.Stencil = 0;
+
+        // create committed resource
+        D3D12_HEAP_PROPERTIES heapProps = {};
+        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+        heapProps.CreationNodeMask = 1;
+        heapProps.VisibleNodeMask = 1;
+
+        auto device = mDeviceResources->GetD3DDevice();
+
+        // start in SRV state so it is ready for ImGui in first frame (or transitioned before draw)
+        ThrowIfFailed(device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &rtDesc,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            &rtClearValue,
+            IID_PPV_ARGS(mSceneRenderTarget.ReleaseAndGetAddressOf())
+        ));
+        mSceneRenderTarget->SetName(L"SceneRenderTarget");
+        mSceneState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        ThrowIfFailed(device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &dsDesc,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            &dsClearValue,
+            IID_PPV_ARGS(mSceneDepthStencil.ReleaseAndGetAddressOf())
+        ));
+        mSceneDepthStencil->SetName(L"SceneDepthStencil");
+        mSceneDepthState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+        // create RTV in our custom heap
+        device->CreateRenderTargetView(mSceneRenderTarget.Get(), nullptr, mSceneRTVHeap->GetCPUDescriptorHandleForHeapStart());
+
+        // create SRV in the main descriptor heap (for ImGui/Shaders)
+        device->CreateShaderResourceView(mSceneRenderTarget.Get(), nullptr, mResourceDescriptors->GetCpuHandle(mSceneSRVIndex));
+
+        // create DSV in our custom heap
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; // Cast to Depth
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        device->CreateDepthStencilView(mSceneDepthStencil.Get(), &dsvDesc, mSceneDSVHeap->GetCPUDescriptorHandleForHeapStart());
+
+        // create DSV in the main descriptor heap (for ImGui/Shaders)
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // Cast to Float for the shader
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        device->CreateShaderResourceView(mSceneDepthStencil.Get(), &srvDesc, mResourceDescriptors->GetCpuHandle(mSceneDSVIndex));
+#endif
 
         CreateNewWindowSizeDependentResources();
     }
@@ -987,6 +1365,21 @@ namespace Lumen::WindowsNT10
     void EngineWindowsNT10::OnDeviceLost()
     {
         // TODO: add Direct3D resource cleanup here
+        if (mSceneSRVIndex != DynamicDescriptorHeap::InvalidIndex)
+        {
+            mResourceDescriptors->Free(mSceneSRVIndex);
+            mSceneSRVIndex = DynamicDescriptorHeap::InvalidIndex;
+        }
+        if (mSceneDSVIndex != DynamicDescriptorHeap::InvalidIndex)
+        {
+            mResourceDescriptors->Free(mSceneDSVIndex);
+            mSceneDSVIndex = DynamicDescriptorHeap::InvalidIndex;
+        }
+        mSceneRenderTarget.Reset();
+        mSceneDepthStencil.Reset();
+        mSceneRTVHeap.Reset();
+        mSceneDSVHeap.Reset();
+
         mNewDeviceMeshMap.clear();
         mNewDeviceShaderMap.clear();
         mNewWindowShaderMap.clear();
@@ -1082,7 +1475,7 @@ namespace Lumen::Windows
             }
             if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
             {
-                return true;
+                return TRUE;
             }
         }
 #endif
@@ -1198,11 +1591,20 @@ namespace Lumen::Windows
             }
             break;
 
+#ifdef EDITOR
+        case WM_CLOSE:
+            if (engineImpl)
+            {
+                engineImpl->GetLayoutSettings();
+            }
+            break;
+#endif
+
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(EDITOR)
         case WM_SYSKEYDOWN:
             if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
             {
@@ -1212,13 +1614,14 @@ namespace Lumen::Windows
                     SetWindowLongPtr(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
                     SetWindowLongPtr(hWnd, GWL_EXSTYLE, 0);
 
-                    int width = 800;
-                    int height = 600;
-                    if (engineImpl)
-                        engineImpl->GetDefaultSize(width, height);
+                    int width = 1280 / 3;
+                    int height = 720 / 3;
+                    if (auto application = engine->GetApplication().lock())
+                    {
+                        application->GetWindowSize(width, height);
+                    }
 
                     ShowWindow(hWnd, SW_SHOWNORMAL);
-
                     SetWindowPos(hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
                 }
                 else
@@ -1227,7 +1630,6 @@ namespace Lumen::Windows
                     SetWindowLongPtr(hWnd, GWL_EXSTYLE, WS_EX_TOPMOST);
 
                     SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-
                     ShowWindow(hWnd, SW_SHOWMAXIMIZED);
                 }
 
@@ -1252,6 +1654,7 @@ namespace Lumen::Windows
 EnginePtr Engine::MakePtr(const ApplicationPtr &application)
 {
     auto ptr = EnginePtr(new Engine(application, new WindowsNT10::EngineWindowsNT10()));
+    application->SetEngine(ptr);
     ptr->mImpl->SetOwner(ptr);
     return ptr;
 }

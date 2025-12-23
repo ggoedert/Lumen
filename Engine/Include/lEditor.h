@@ -22,10 +22,7 @@ namespace Lumen
 
     public:
         /// creates a smart pointer version of the editor
-        static EditorPtr MakePtr();
-
-        /// set application
-        void SetApplication(const ApplicationWeakPtr &application);
+        static EditorPtr MakePtr(const ApplicationWeakPtr &application);
 
         /// initialize editor
         virtual void Initialize();
@@ -38,7 +35,7 @@ namespace Lumen
 
     //protected:
         /// constructs editor
-        explicit Editor();
+        explicit Editor(const ApplicationWeakPtr &application);
 
         /// virtual destructor
         virtual ~Editor();

@@ -42,8 +42,16 @@ namespace Lumen
         /// basic game loop
         virtual bool Run(std::function<bool()> update, std::function<void()> preRender) = 0;
 
-        /// properties
-        virtual void GetDefaultSize(int &width, int &height) const = 0;
+#ifdef EDITOR
+        /// get layout settings
+        virtual Engine::LayoutSettings GetLayoutSettings() = 0;
+
+        /// set layout settings
+        virtual void SetLayoutSettings(Engine::LayoutSettings &layoutSettings) = 0;
+#endif
+
+        /// get fullscreen size
+        virtual void GetFullscreenSize(int &width, int &height) const = 0;
 
         /// create a folder file system
         virtual IFileSystemPtr AssetsFileSystem() const = 0;
@@ -74,6 +82,12 @@ namespace Lumen
 
         /// release a mesh
         virtual void ReleaseMesh(Id::Type meshId) = 0;
+
+        /// set ImGui render texture size
+        virtual void SetImRenderTextureSize(Id::Type texId, ImVec2 size) = 0;
+
+        /// get ImGui render texture id
+        virtual ImTextureID GetImRenderTextureID(Id::Type texId) = 0;
 
         /// push a batch of asset changes (monitoring)
         void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch) { mAssetChangeBatches.PushBatch(std::move(batch)); }

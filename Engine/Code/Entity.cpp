@@ -49,7 +49,7 @@ public:
             L_ASSERT(componentPtr);
             Serialized::Type outComponent = {};
             componentPtr->Serialize(outComponent, packed);
-            Serialized::SerializeValue(outComponents, packed, std::string(componentPtr->Type().mName), componentPtr->Type(), outComponent);
+            Serialized::SerializeValue(outComponents, packed, std::string(componentPtr->Name()), componentPtr->Type(), outComponent);
         }
         if (!outComponents.empty())
         {

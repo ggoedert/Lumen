@@ -22,6 +22,12 @@ Engine::Impl *Engine::GetImpl() const
     return mImpl.get();
 }
 
+/// get application
+ApplicationWeakPtr Engine::GetApplication() const
+{
+    return mApplication;
+}
+
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
@@ -35,14 +41,12 @@ bool Engine::Initialize(const Object &config)
     if (!mApplication)
         return false;
 
-    mApplication->SetEngine(shared_from_this());
-
 #ifdef EDITOR
     DebugLog::Info("Engine initialized in editor mode");
 #endif
 
     // initialize application
-    mApplication->Initialize();
+    mApplication->Initialize(GetApplication());
     if (!mImpl->Initialize(config))
     {
         return false;
@@ -112,10 +116,24 @@ bool Engine::Run()
     return false;
 }
 
-/// properties
-void Engine::GetDefaultSize(int &width, int &height) const
+#ifdef EDITOR
+/// get layout settings
+Engine::LayoutSettings Engine::GetLayoutSettings() const
 {
-    return mImpl->GetDefaultSize(width, height);
+    return mImpl->GetLayoutSettings();
+}
+
+/// set layout settings
+void Engine::SetLayoutSettings(Engine::LayoutSettings &layoutSettings)
+{
+    mImpl->SetLayoutSettings(layoutSettings);
+}
+#endif
+
+/// get fullscreen size
+void Engine::GetFullscreenSize(int &width, int &height) const
+{
+    return mImpl->GetFullscreenSize(width, height);
 }
 
 /// create a file system for the assets
@@ -188,6 +206,18 @@ Id::Type Engine::CreateMesh(const MeshPtr &mesh)
 void Engine::ReleaseMesh(Id::Type meshId)
 {
     mImpl->ReleaseMesh(meshId);
+}
+
+/// set ImGui render texture size
+void Engine::SetImRenderTextureSize(Id::Type texId, ImVec2 size)
+{
+    mImpl->SetImRenderTextureSize(texId, size);
+}
+
+/// get ImGui render texture id
+ImTextureID Engine::GetImRenderTextureID(Id::Type texId)
+{
+    return mImpl->GetImRenderTextureID(texId);
 }
 
 //==============================================================================================================================================================================

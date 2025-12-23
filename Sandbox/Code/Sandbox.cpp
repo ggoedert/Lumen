@@ -12,9 +12,9 @@
 #include <fstream>
 
 /// initialize sandbox
-void Sandbox::Initialize()
+void Sandbox::Initialize(const Lumen::ApplicationWeakPtr &application)
 {
-    Lumen::Application::Initialize();
+    Lumen::Application::Initialize(application);
     if (auto engineLock = GetEngine().lock())
     {
         Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());
@@ -24,11 +24,24 @@ void Sandbox::Initialize()
 /// shutdown sandbox
 void Sandbox::Shutdown()
 {
-    /// TEMP DELME!
     if (auto engineLock = GetEngine().lock())
     {
         engineLock->New();
     }
+    Lumen::Application::Shutdown();
+}
+
+/// get winwdow size
+void Sandbox::GetWindowSize(int &width, int &height)
+{
+    width = 1280;
+    height = 720;
+    if (auto engineLock = GetEngine().lock())
+    {
+        engineLock->GetFullscreenSize(width, height);
+    }
+    width /= 3;
+    height /= 3;
 }
 
 /// TEMP DELME!

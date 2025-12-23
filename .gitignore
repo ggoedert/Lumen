@@ -1,11 +1,17 @@
-scratch/
+# Visual Studio 2026
 .vs/
 x64/
 Debug/
 Release/
-Bin/
-html/
-External/Windows/NT6_1/microsoft.xaudio2.redist
 *.aps
+
+# Code::Blocks
+Bin/
+External/Windows/NT6_1/microsoft.xaudio2.redist
 *.depend
 *.layout
+
+# Local data
+scratch/
+html/
+User.settings

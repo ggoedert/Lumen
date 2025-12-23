@@ -13,6 +13,7 @@ namespace Lumen
 {
     CLASS_PTR_DEF(Engine);
     CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_WEAK_PTR_DEF(Application);
 #ifdef EDITOR
     CLASS_PTR_DEF(Editor);
 #endif
@@ -31,10 +32,13 @@ namespace Lumen
         void SetEngine(const EngineWeakPtr &engine);
 
         /// initialize application
-        virtual void Initialize();
+        virtual void Initialize(const ApplicationWeakPtr &application);
 
         /// shutdown application
         virtual void Shutdown();
+
+        /// get winwdow size
+        virtual void GetWindowSize(int &width, int &height) = 0;
 
         /// TEMP DELME!
         virtual void New() = 0;
