@@ -1167,13 +1167,23 @@ namespace Lumen::WindowsNT10
 
     void EngineWindowsNT10::CreateNewWindowSizeDependentResources()
     {
-        for (auto &shaderDataIt : mNewWindowShaderMap)
+        // iterate over all shaders in the map
+        for (auto &pair : mShaderMap)
         {
-            BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderDataIt->second.mEffect.get());
-            basicEffect->SetView(mView);
-            basicEffect->SetProjection(mProj);
+            // get the ShaderData struct
+            auto &shaderData = pair.second;
+
+            if (shaderData.mEffect)
+            {
+                BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderData.mEffect.get());
+
+                // apply the new camera matrices to the effect
+                basicEffect->SetView(mView);
+                basicEffect->SetProjection(mProj);
+            }
         }
 
+        // clear the "New" list because we just updated everything anyway, @@REVIEW@@ we might need to rethink this logic later
         mNewWindowShaderMap.clear();
     }
 
@@ -1235,7 +1245,7 @@ namespace Lumen::WindowsNT10
         }
         else
         {
-            auto size = mDeviceResources->GetOutputSize();
+            size = mDeviceResources->GetOutputSize();
             size.left = 0;
             size.right = size.right - size.left;
             size.top = 0;
