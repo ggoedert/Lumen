@@ -39,10 +39,13 @@ public:
 private:
     /// application pointer
     ApplicationWeakPtr mApplication;
+
+    /// first run flag (for initial ImGui setup)
+    bool mFirstRun;
 };
 
 /// constructs editor
-Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application) {}
+Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mFirstRun(true) {}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -126,8 +129,9 @@ void Editor::Impl::Shutdown()
 /// run editor
 void Editor::Impl::Run()
 {
+    Lumen::ApplicationPtr application;
     Lumen::EnginePtr engine;
-    if (auto application = mApplication.lock())
+    if (application = mApplication.lock())
     {
         engine = application->GetEngine().lock();
     }
@@ -169,14 +173,47 @@ void Editor::Impl::Run()
     }
     ImGui::End();
 
-    if (ImGui::Begin("Game Viewport"))
+    if (mFirstRun)
     {
-        Id::Type texId = 0; // 0 - RenderTexture / 1 - DepthStencil
+        int windowWidth, windowHeight;
+        application->GetWindowSize(windowWidth, windowHeight);
+        ImGui::SetNextWindowSize(ImVec2((float)windowWidth, (float)windowHeight), ImGuiCond_FirstUseEver);
+    }
+    if (ImGui::Begin("Game Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse))
+    {
+        // draw a toolbar
+        if (ImGui::Button("Play")) { /* Start Game Logic */ }
+        ImGui::SameLine(); // Keep on same line
+        if (ImGui::Button("Stop")) { /* Stop Game Logic */ }
+        ImGui::SameLine();
+
+        // combo box to switch render targets
+        static int currentView = 0; // 0 - RenderTexture / 1 - DepthStencil
+        const char *views[] = { "RenderTexture", "DepthStencil" };
+
+        // calc the width required by the combo box
+        float maxWidth = 0;
+        for (int i = 0; i < IM_ARRAYSIZE(views); i++)
+        {
+            float width = ImGui::CalcTextSize(views[i]).x;
+            if (width > maxWidth) maxWidth = width;
+        }
+        float totalWidth = maxWidth + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetFrameHeight();
+
+        // draw the combo box
+        ImGui::SetNextItemWidth(totalWidth);
+        if (ImGui::Combo("##View", &currentView, views, IM_ARRAYSIZE(views))) {}
+        
+        // draw the render texture in the remaining space
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+
+        Id::Type texId = static_cast<Id::Type>(currentView);
         engine->SetImRenderTextureSize(texId, viewportPanelSize);
         ImGui::Image(engine->GetImRenderTextureID(texId), viewportPanelSize);
     }
     ImGui::End();
+
+    mFirstRun = false;
 }
 
 //==============================================================================================================================================================================
