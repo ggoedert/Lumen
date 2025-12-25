@@ -10,7 +10,7 @@
 #include "lFileSystem.h"
 #include "lAsset.h"
 #include "lApplication.h"
-#include "lImGuiLib.h"
+#include "lMath.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -43,6 +43,7 @@ namespace Lumen
             int height = 0;
             bool isMaximized = true;
             std::vector<std::string> imGuiIni;
+            std::string appData;
         };
 #endif
 
@@ -132,11 +133,11 @@ namespace Lumen
         /// release a mesh
         void ReleaseMesh(Id::Type meshId);
 
-        /// set ImGui render texture size
-        void SetImRenderTextureSize(Id::Type texId, ImVec2 size);
+        /// set render texture size
+        void SetRenderTextureSize(Id::Type texId, Math::Int2 size);
 
-        /// get ImGui render texture id
-        ImTextureID GetImRenderTextureID(Id::Type texId);
+        /// get render texture id
+        qword GetRenderTextureHandle(Id::Type texId);
 
     protected:
         /// protected constructor

@@ -83,11 +83,11 @@ namespace Lumen
         /// release a mesh
         virtual void ReleaseMesh(Id::Type meshId) = 0;
 
-        /// set ImGui render texture size
-        virtual void SetImRenderTextureSize(Id::Type texId, ImVec2 size) = 0;
+        /// set render texture size
+        virtual void SetRenderTextureSize(Id::Type texId, Math::Int2 size) = 0;
 
-        /// get ImGui render texture id
-        virtual ImTextureID GetImRenderTextureID(Id::Type texId) = 0;
+        /// get render texture id
+        virtual qword GetRenderTextureHandle(Id::Type texId) = 0;
 
         /// push a batch of asset changes (monitoring)
         void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch) { mAssetChangeBatches.PushBatch(std::move(batch)); }

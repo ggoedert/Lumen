@@ -65,7 +65,6 @@ void Sandbox::Open()
     else
     {
         Lumen::Serialized::Type out;
-        //out["data"] = Serialized::Type::binary({ 0x01, 0x02, 0x03, 99, 100, 101, 127, 128, 129, 254, 255 });
         mMainScene->Serialize(out, false);
         std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
     }

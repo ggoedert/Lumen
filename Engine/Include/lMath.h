@@ -26,6 +26,9 @@
 /// Lumen Math namespace
 namespace Lumen::Math
 {
+    struct Int2;
+    struct Int3;
+    struct Int4;
     struct Float2;
     struct Float3;
     struct Float4;
@@ -68,6 +71,63 @@ namespace Lumen::Math
             float mF[4];
             SIMDVECTOR mV;
         };
+    };
+
+    /// 2D vector with int components
+    struct Int2
+    {
+        Int2() = default;
+
+        Int2(const Int2 &) = default;
+        Int2 &operator=(const Int2 &) = default;
+
+        Int2(Int2 &&) = default;
+        Int2 &operator=(Int2 &&) = default;
+
+        constexpr Int2(int _x, int _y) noexcept : x(_x), y(_y) {}
+        explicit Int2(_In_reads_(2) const int *pArray) noexcept : x(pArray[0]), y(pArray[1]) {}
+
+        bool operator==(const Int2 &o) const { return x == o.x && y == o.y; }
+
+        int x, y;
+    };
+
+    /// 3D vector with int components
+    struct Int3
+    {
+        Int3() = default;
+
+        Int3(const Int3 &) = default;
+        Int3 &operator=(const Int3 &) = default;
+
+        Int3(Int3 &&) = default;
+        Int3 &operator=(Int3 &&) = default;
+
+        constexpr Int3(int _x, int _y, int _z) noexcept : x(_x), y(_y), z(_z) {}
+        explicit Int3(_In_reads_(3) const int *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]) {}
+
+        bool operator==(const Int3 &o) const { return x == o.x && y == o.y && z == o.z; }
+
+        int x, y, z;
+    };
+
+    /// 4D vector with int components
+    struct Int4
+    {
+        Int4() = default;
+
+        Int4(const Int4 &) = default;
+        Int4 &operator=(const Int4 &) = default;
+
+        Int4(Int4 &&) = default;
+        Int4 &operator=(Int4 &&) = default;
+
+        constexpr Int4(int _x, int _y, int _z, int _w) noexcept : x(_x), y(_y), z(_z), w(_w) {}
+        explicit Int4(_In_reads_(4) const int *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
+
+        bool operator==(const Int4 &o) const { return x == o.x && y == o.y && z == o.z && w == o.w; }
+
+        int x, y, z, w;
     };
 
     /// 2D vector with float components

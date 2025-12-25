@@ -230,11 +230,11 @@ namespace Lumen::WindowsNT10
         /// release a mesh
         void ReleaseMesh(Id::Type meshId) override;
 
-        /// set ImGui render texture size
-        void SetImRenderTextureSize(Id::Type texId, ImVec2 size) override;
+        /// set render texture size
+        void SetRenderTextureSize(Id::Type texId, Math::Int2 size) override;
 
-        /// get ImGui render texture id
-        ImTextureID GetImRenderTextureID(Id::Type texId) override;
+        /// get render texture id
+        qword GetRenderTextureHandle(Id::Type texId) override;
 
 #ifdef EDITOR
         /// check if ImGui is initialized
@@ -251,14 +251,14 @@ namespace Lumen::WindowsNT10
         void CreateWindowSizeDependentResources();
 
         /// main window handle
-        HWND mWindow;
+        HWND mWindow = nullptr;
 
 #ifdef EDITOR
         /// ImGui initialized
         bool mImGuiInitialized = false;
 
         /// ImGui monitor scale information
-        float mMainScale;
+        float mMainScale = 1.f;
 #endif
 
         // device resources
@@ -276,8 +276,9 @@ namespace Lumen::WindowsNT10
         std::unique_ptr<DynamicDescriptorHeap> mResourceDescriptors;
 
         /// render target resources (Scene -> Texture)
-        int mSceneWidth, mSceneHeight;
-        bool mSceneNeedsResize;
+        int mSceneWidth = 0;
+        int mSceneHeight = 0;
+        bool mSceneNeedsResize = false;
         Microsoft::WRL::ComPtr<ID3D12Resource> mSceneRenderTarget;
         Microsoft::WRL::ComPtr<ID3D12Resource> mSceneDepthStencil;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSceneRTVHeap;
@@ -321,10 +322,10 @@ namespace Lumen::WindowsNT10
         struct TextureData
         {
             TexturePtr mTexture;
-            DynamicDescriptorHeap::IndexType mIndex;
+            DynamicDescriptorHeap::IndexType mIndex = DynamicDescriptorHeap::InvalidIndex;
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
-            int mWidth;
-            int mHeight;
+            int mWidth = 0;
+            int mHeight = 0;
         };
         using TextureMapType = std::unordered_map<Id::Type, TextureData>;
         TextureMapType mTextureMap;
@@ -1035,34 +1036,34 @@ namespace Lumen::WindowsNT10
         }
     }
 
-    /// set ImGui render texture size
-    void EngineWindowsNT10::SetImRenderTextureSize(Id::Type texId, ImVec2 size)
+    /// set render texture size
+    void EngineWindowsNT10::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
     {
         //FIXME TESTING ONLY
         // prevent zero sized textures when window is collapsed
-        if (size.x > 0 && size.y > 0 &&  (mSceneWidth != (int)size.x || mSceneHeight != (int)size.y))
+        if (size.x > 0 && size.y > 0 &&  (mSceneWidth != size.x || mSceneHeight != size.y))
         {
-            mSceneWidth = (int)size.x;
-            mSceneHeight = (int)size.y;
+            mSceneWidth = size.x;
+            mSceneHeight = size.y;
             mSceneNeedsResize = true;
         }
         //FIXME TESTING ONLY
     }
 
-    /// get ImGui render texture id
-    ImTextureID EngineWindowsNT10::GetImRenderTextureID(Id::Type texId)
+    /// get render texture id
+    qword EngineWindowsNT10::GetRenderTextureHandle(Id::Type texId)
     {
         //FIXME TESTING ONLY
         if (texId == 0)
         {
-            return (ImTextureID)mResourceDescriptors->GetGpuHandle(mSceneSRVIndex).ptr;
+            return (qword)mResourceDescriptors->GetGpuHandle(mSceneSRVIndex).ptr;
         }
         else
         {
-            return (ImTextureID)mResourceDescriptors->GetGpuHandle(mSceneDSVIndex).ptr;
+            return (qword)mResourceDescriptors->GetGpuHandle(mSceneDSVIndex).ptr;
         }
         //FIXME TESTING ONLY
-        return (UINT64)nullptr;
+        return (qword)nullptr;
     }
 
 #pragma region Direct3D Resources

@@ -11,6 +11,7 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <array>
 #include <vector>
 #include <map>
 #include <list>
@@ -116,8 +117,16 @@ namespace Lumen
     }
 #endif
 
+    /// return the shared Base64 table for encoding function, hopefully optimized away by the compiler if not used
+    inline const char *GetBase64Table()
+    {
+        static const char table[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        return table;
+    }
+
     /// encode the 4 byte Hash into an 6 character Base64 string
-    constexpr std::string Base64Encode(const Hash hash)
+    constexpr std::string Base64EncodeHash(const Hash hash)
     {
         char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         char token[6];
@@ -130,7 +139,7 @@ namespace Lumen
         token[3] = table[val24 & 0x3F];
 
         // encode last byte -> 2 chars
-        val24 = ((hash&0xff) << 4);
+        val24 = (hash & 0xff) << 4;
         token[4] = table[(val24 >> 6) & 0x3F];
         token[5] = table[val24 & 0x3F];
 
@@ -139,15 +148,17 @@ namespace Lumen
     }
 
     /// decode the 8 character Base64 string into a 4 byte Hash
-    constexpr Hash Base64Decode(const std::string &token)
+    constexpr Hash Base64DecodeHash(const std::string &token)
     {
-        if (token.size() != 6)
-        {
-            return HASH_INVALID;
-        }
+        if (token.size() != 6) return HASH_INVALID;
+
         auto val = [](char c) constexpr -> byte
         {
-            return (c >= 'A' && c <= 'Z') ? c - 'A' : (c >= 'a' && c <= 'z') ? c - 'a' + 26 : (c >= '0' && c <= '9') ? c - '0' + 52 : (c == '+') ? 62 : 63;
+            return (c >= 'A' && c <= 'Z') ? c - 'A' :
+                   (c >= 'a' && c <= 'z') ? c - 'a' + 26 :
+                   (c >= '0' && c <= '9') ? c - '0' + 52 :
+                   (c == '+') ? 62 :
+                   63;
         };
         byte bytes[4];
 
@@ -158,10 +169,82 @@ namespace Lumen
         bytes[2] = val24 & 0xff;
 
         // decode last 4 chars -> last byte
-        val24 = (val(token[4]) << 18) | (val(token[5]) << 12);
-        bytes[3] = (val24 >> 16) & 0xFF;
+        val24 = (val(token[4]) << 6) | val(token[5]);
+        bytes[3] = (val24 >> 4) & 0xFF;
 
         return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+    }
+
+    /// encode bytes into a Base64 string
+    inline std::string Base64EncodeBytes(const std::vector<byte> &bytes)
+    {
+        if (bytes.empty()) return "";
+
+        const byte *data = bytes.data();
+        const size_t len = bytes.size();
+        const char *table = GetBase64Table();
+        std::string out;
+        out.reserve((len + 2) / 3 * 4);
+
+        for (size_t i = 0; i < len; i += 3)
+        {
+            // pack 3 bytes into a 24-bit integer
+            dword val24 = data[i];
+            val24 = (val24 << 8) | ((i + 1 < len) ? data[i + 1] : 0);
+            val24 = (val24 << 8) | ((i + 2 < len) ? data[i + 2] : 0);
+
+            // extract 4 sets of 6-bits and map to Base64
+            out.push_back(table[(val24 >> 18) & 0x3F]);
+            out.push_back(table[(val24 >> 12) & 0x3F]);
+            if (i + 1 < len) out.push_back(table[(val24 >> 6) & 0x3F]);
+            if (i + 2 < len) out.push_back(table[val24 & 0x3F]);
+        }
+
+        // return encoded string
+        return out;
+    }
+
+    /// decode Base64 string into bytes
+    inline std::vector<byte> Base64DecodeBytes(const std::string &input)
+    {
+        if (input.empty()) return {};
+
+        dword val = 0;
+        int bits = 0;
+        std::vector<byte> out;
+        out.reserve(input.length() * 3 / 4);
+
+        // initialize reversed table once
+        static const std::array<byte, 256> reversedTable = []()
+        {
+            const char *table = GetBase64Table();
+            std::array<byte, 256> returnTable;
+            returnTable.fill(0xFF); // 0xFF marks invalid chars
+            for (int i = 0; i < 64; ++i)
+            {
+                returnTable[static_cast<unsigned char>(table[i])] = i;
+            }
+            return returnTable;
+        }();
+
+        // decode input characters
+        for (char c : input)
+        {
+            byte decoded = reversedTable[static_cast<unsigned char>(c)];
+            if (decoded == 0xFF) continue;
+
+            val = (val << 6) | decoded;
+            bits += 6;
+
+            if (bits >= 8)
+            {
+                bits -= 8;
+                out.push_back((val >> bits) & 0xFF);
+            }
+        }
+
+        // return decoded bytes
+        return out;
     }
 
     /// class name from current function name evaluated at compile time

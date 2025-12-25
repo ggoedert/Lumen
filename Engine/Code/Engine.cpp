@@ -208,16 +208,16 @@ void Engine::ReleaseMesh(Id::Type meshId)
     mImpl->ReleaseMesh(meshId);
 }
 
-/// set ImGui render texture size
-void Engine::SetImRenderTextureSize(Id::Type texId, ImVec2 size)
+/// set render texture size
+void Engine::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
 {
-    mImpl->SetImRenderTextureSize(texId, size);
+    mImpl->SetRenderTextureSize(texId, size);
 }
 
-/// get ImGui render texture id
-ImTextureID Engine::GetImRenderTextureID(Id::Type texId)
+/// get render texture id
+qword Engine::GetRenderTextureHandle(Id::Type texId)
 {
-    return mImpl->GetImRenderTextureID(texId);
+    return mImpl->GetRenderTextureHandle(texId);
 }
 
 //==============================================================================================================================================================================

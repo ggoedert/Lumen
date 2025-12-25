@@ -8,6 +8,7 @@
 #ifdef EDITOR
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx12.h"
 #endif

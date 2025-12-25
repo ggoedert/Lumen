@@ -40,12 +40,12 @@ private:
     /// application pointer
     ApplicationWeakPtr mApplication;
 
-    /// first run flag (for initial ImGui setup)
-    bool mFirstRun;
+    /// current layout version
+    const dword mLayoutVersion;
 };
 
 /// constructs editor
-Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mFirstRun(true) {}
+Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mLayoutVersion(0x0001) {}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -65,26 +65,44 @@ void Editor::Impl::Initialize()
 
     try
     {
-        std::ifstream file(inFile);
-        Serialized::Type in;
-        file >> in;
-
         if (auto application = mApplication.lock())
         {
             if (auto engine = application->GetEngine().lock())
             {
+                Engine::LayoutSettings layoutSettings = engine->GetLayoutSettings();
+                dword currentVersion = 0x0;
+                std::ifstream file(inFile);
+                Serialized::Type in;
+                file >> in;
                 if (in.contains("LayoutSettings") && in["LayoutSettings"].is_object())
                 {
                     Serialized::Type inLayoutSettings = in["LayoutSettings"];
-                    Engine::LayoutSettings layoutSettings;
-                    layoutSettings.posX = inLayoutSettings.value("PosX", 0);
-                    layoutSettings.posY = inLayoutSettings.value("PosY", 0);
-                    layoutSettings.width = inLayoutSettings.value("Width", 0);
-                    layoutSettings.height = inLayoutSettings.value("Height", 0);
-                    layoutSettings.isMaximized = inLayoutSettings.value("Maximized", false);
-                    layoutSettings.imGuiIni = inLayoutSettings.value("ImGuiIni", std::vector<std::string>());
-                    engine->SetLayoutSettings(layoutSettings);
+                    layoutSettings.posX = inLayoutSettings.value("PosX", layoutSettings.posX);
+                    layoutSettings.posY = inLayoutSettings.value("PosY", layoutSettings.posY);
+                    layoutSettings.width = inLayoutSettings.value("Width", layoutSettings.width);
+                    layoutSettings.height = inLayoutSettings.value("Height", layoutSettings.height);
+                    layoutSettings.isMaximized = inLayoutSettings.value("Maximized", layoutSettings.isMaximized);
+                    layoutSettings.imGuiIni = inLayoutSettings.value("ImGuiIni", layoutSettings.imGuiIni);
+                    layoutSettings.appData = inLayoutSettings.value("AppData", layoutSettings.appData);
+                    std::vector<byte> decoded = Base64DecodeBytes(layoutSettings.appData);
+                    if (decoded.size() >= sizeof(mLayoutVersion))
+                    {
+                        std::memcpy(&currentVersion, decoded.data(), sizeof(mLayoutVersion));
+                    }
                 }
+                // ?? any versioning conversion ??
+                if (currentVersion != mLayoutVersion)
+                {
+                    Lumen::DebugLog::Warning("Editor::Impl::Initialize LayoutSettings needs conversion: 0x{:08X} to 0x{:08X}", currentVersion, mLayoutVersion);
+                    layoutSettings.appData = Base64EncodeBytes(
+                        std::vector<byte>(
+                            reinterpret_cast<const byte *>(&mLayoutVersion),
+                            reinterpret_cast<const byte *>(&mLayoutVersion) + sizeof(mLayoutVersion)
+                        )
+                    );
+                }
+                // ?? any versioning conversion ??
+                engine->SetLayoutSettings(layoutSettings);
             }
         }
     }
@@ -113,6 +131,12 @@ void Editor::Impl::Shutdown()
             outLayoutSettings["Height"] = layoutSettings.height;
             outLayoutSettings["Maximized"] = layoutSettings.isMaximized;
             outLayoutSettings["ImGuiIni"] = layoutSettings.imGuiIni;
+            outLayoutSettings["AppData"] = Base64EncodeBytes(
+                std::vector<byte>(
+                    reinterpret_cast<const byte *>(&mLayoutVersion),
+                    reinterpret_cast<const byte *>(&mLayoutVersion) + sizeof(mLayoutVersion)
+                )
+            );
             out["LayoutSettings"] = outLayoutSettings;
         }
     }
@@ -126,60 +150,23 @@ void Editor::Impl::Shutdown()
     file.close();
 }
 
-/// run editor
-void Editor::Impl::Run()
+static void ShowMainMenuBar()
 {
-    Lumen::ApplicationPtr application;
-    Lumen::EnginePtr engine;
-    if (application = mApplication.lock())
+    if (ImGui::BeginMainMenuBar())
     {
-        engine = application->GetEngine().lock();
+        if (ImGui::BeginMenu("Project"))
+        {
+            if (ImGui::MenuItem("Revert")) {}
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
     }
-    if (!engine)
-    {
-        return;
-    }
-
-    ImGui::DockSpaceOverViewport();
-
-#define SHOW_DEMO_WINDOW
-#ifdef SHOW_DEMO_WINDOW
-    ImGui::ShowDemoWindow();
-#endif
-
-    if (ImGui::Begin("Hello, world!"))                           // Create a window called "Hello, world!" and append into it.
-    {
-        static bool show_demo_window = true;
-        static bool show_another_window = false;
-        static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-        static float f = 0.0f;
-        static int counter = 0;
-
-        ImGui::Text("This is some useful text.");                // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);       // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);             // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                             // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        ImGuiIO &io = ImGui::GetIO();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-    }
-    ImGui::End();
-
-    if (mFirstRun)
-    {
-        int windowWidth, windowHeight;
-        application->GetWindowSize(windowWidth, windowHeight);
-        ImGui::SetNextWindowSize(ImVec2((float)windowWidth, (float)windowHeight), ImGuiCond_FirstUseEver);
-    }
-    if (ImGui::Begin("Game Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse))
+}
+static void ShowCamera(Lumen::EnginePtr engine)
+{
+    if (ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing))
     {
         // draw a toolbar
         if (ImGui::Button("Play")) { /* Start Game Logic */ }
@@ -203,17 +190,81 @@ void Editor::Impl::Run()
         // draw the combo box
         ImGui::SetNextItemWidth(totalWidth);
         if (ImGui::Combo("##View", &currentView, views, IM_ARRAYSIZE(views))) {}
-        
-        // draw the render texture in the remaining space
-        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
+        // draw the render texture in the remaining space
         Id::Type texId = static_cast<Id::Type>(currentView);
-        engine->SetImRenderTextureSize(texId, viewportPanelSize);
-        ImGui::Image(engine->GetImRenderTextureID(texId), viewportPanelSize);
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        engine->SetRenderTextureSize(texId, { static_cast<int>(viewportPanelSize.x), static_cast<int>(viewportPanelSize.y) });
+        ImGui::Image(engine->GetRenderTextureHandle(texId), viewportPanelSize);
     }
     ImGui::End();
+}
 
-    mFirstRun = false;
+static void ShowLog()
+{
+    ImGui::Begin("Log", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::Text("Current Log");
+    ImGui::End();
+}
+
+static void ShowStatusBar(ImGuiViewport *viewport, ImVec4 color, const char *text)
+{
+    if (ImGui::BeginViewportSideBar("StatusBar", viewport, ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar))
+    {
+        if (ImGui::BeginMenuBar())
+        {
+            ImGui::TextColored(color, text);
+            ImGui::EndMenuBar();
+        }
+        ImGui::End();
+    }
+}
+
+/// run editor
+void Editor::Impl::Run()
+{
+    Lumen::ApplicationPtr application;
+    Lumen::EnginePtr engine;
+    if (application = mApplication.lock())
+    {
+        engine = application->GetEngine().lock();
+    }
+    if (!engine)
+    {
+        return;
+    }
+    static bool sNeedLayoutSetup = engine->GetLayoutSettings().appData.empty();
+
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetCurrentViewport(nullptr, (ImGuiViewportP *)viewport); // Set viewport explicitly so GetFrameHeight reacts to DPI changes
+    ImGuiID dockMainId = ImGui::DockSpaceOverViewport();
+
+    ShowMainMenuBar();
+    ShowCamera(engine);
+    ShowLog();
+    ShowStatusBar(viewport, { 1.f, 1.f, 1.f, 1.f }, "status bar");
+
+    if (sNeedLayoutSetup)
+    {
+        sNeedLayoutSetup = false;
+        ImGuiID dockDownId;
+
+        // clear existing layout
+        ImGui::DockBuilderRemoveNode(dockMainId);
+
+        // add the main node with DockSpace and PassthruCentralNode flags, allows to see your background behind the docking system if no window is docked there
+        ImGui::DockBuilderAddNode(dockMainId, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode);
+        ImGui::DockBuilderSetNodeSize(dockMainId, viewport->Size);
+
+        // split the dockspace into 2 nodes: upper and lower, dockMainId itself gets updated to represent the remaining (Central) area
+        ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Down, 0.2f, &dockDownId, &dockMainId);
+
+        // dock the windows
+        ImGui::DockBuilderDockWindow("Camera", dockMainId);
+        ImGui::DockBuilderDockWindow("Log", dockDownId);
+
+        ImGui::DockBuilderFinish(dockMainId);
+    }
 }
 
 //==============================================================================================================================================================================
