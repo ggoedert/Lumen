@@ -5,13 +5,20 @@
 //==============================================================================================================================================================================
 #pragma once
 
+#include <functional>
 #include <format>
 
 /// Lumen DebugLog namespace
 namespace Lumen::DebugLog
 {
-    /// log implementation
+    /// log types
     enum class LogLevel { Detail, Info, Warning, Error };
+    using LogCallback = std::function<void(LogLevel level, std::string_view message)>;
+
+    /// set log callback
+    void SetCallback(LogCallback callback);
+
+    /// log implementation
     void LogImpl(LogLevel level, std::string_view format, std::format_args args);
 
     /// log error

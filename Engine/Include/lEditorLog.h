@@ -11,33 +11,29 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(Editor);
-    CLASS_WEAK_PTR_DEF(Application);
+    CLASS_PTR_DEF(EditorLog);
 
-    /// Editor class
-    class Editor : public std::enable_shared_from_this<Editor>
+    /// EditorLog class
+    class EditorLog
     {
-        CLASS_NO_COPY_MOVE(Editor);
+        CLASS_NO_COPY_MOVE(EditorLog);
 
     public:
-        /// virtual destructor
-        virtual ~Editor();
+        /// destructor
+        ~EditorLog();
 
-        /// creates a smart pointer version of the editor
-        static EditorPtr MakePtr(const ApplicationWeakPtr &application);
+        /// creates a smart pointer version of the editor log   
+        static EditorLogPtr MakePtr();
 
-        /// initialize editor
-        virtual void Initialize();
+        /// add message to editor log
+        void AddMessage(DebugLog::LogLevel level, std::string_view message);
 
-        /// shutdown editor
-        virtual void Shutdown();
-
-        /// run editor
-        void Run();
+        /// run editor log
+        void Run(const char *title);
 
     protected:
-        /// constructs editor
-        explicit Editor(const ApplicationWeakPtr &application);
+        /// constructs editor log
+        explicit EditorLog();
 
     private:
         /// private implementation

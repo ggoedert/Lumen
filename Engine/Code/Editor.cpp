@@ -6,6 +6,7 @@
 #ifdef EDITOR
 
 #include "lEditor.h"
+#include "lEditorLog.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
 
@@ -33,6 +34,9 @@ public:
     /// shutdown aplication
     void Shutdown();
 
+    /// log callback
+    void LogCallback(DebugLog::LogLevel level, std::string_view message);
+
     /// run editor
     void Run();
 
@@ -40,12 +44,15 @@ private:
     /// application pointer
     ApplicationWeakPtr mApplication;
 
+    /// app log data
+    EditorLogPtr mEditorLog;
+
     /// current layout version
     const dword mLayoutVersion;
 };
 
 /// constructs editor
-Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mLayoutVersion(0x0001) {}
+Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mEditorLog(EditorLog::MakePtr()), mLayoutVersion(0x0001) {}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -53,7 +60,10 @@ Editor::Impl::~Impl() {}
 /// initialize editor
 void Editor::Impl::Initialize()
 {
-    // load user settings
+    // use lambda to forward log messages to our callback
+    Lumen::DebugLog::SetCallback([this](DebugLog::LogLevel level, std::string_view msg) { this->LogCallback(level, msg); });
+
+    // setup settings path
     std::filesystem::path inFile = "Settings/User.settings";
     Lumen::DebugLog::Info("Editor::Impl::Initialize loading {}", inFile.string());
 
@@ -150,7 +160,13 @@ void Editor::Impl::Shutdown()
     file.close();
 }
 
-static void ShowMainMenuBar()
+/// log callback
+void Editor::Impl::LogCallback(DebugLog::LogLevel level, std::string_view message)
+{
+    mEditorLog->AddMessage(level, message);
+}
+
+static void MainMenuBar_Run()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -164,10 +180,14 @@ static void ShowMainMenuBar()
         ImGui::EndMainMenuBar();
     }
 }
-static void ShowCamera(Lumen::EnginePtr engine)
+
+static void Camera_Run(Lumen::EnginePtr engine)
 {
-    if (ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing))
+    static bool sCameraWindowOpen = true;
+    if (sCameraWindowOpen)
     {
+        ImGui::Begin("Camera", &sCameraWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
+
         // draw a toolbar
         if (ImGui::Button("Play")) { /* Start Game Logic */ }
         ImGui::SameLine(); // Keep on same line
@@ -196,28 +216,18 @@ static void ShowCamera(Lumen::EnginePtr engine)
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         engine->SetRenderTextureSize(texId, { static_cast<int>(viewportPanelSize.x), static_cast<int>(viewportPanelSize.y) });
         ImGui::Image(engine->GetRenderTextureHandle(texId), viewportPanelSize);
-    }
-    ImGui::End();
-}
 
-static void ShowLog()
-{
-    ImGui::Begin("Log", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("Current Log");
-    ImGui::End();
-}
-
-static void ShowStatusBar(ImGuiViewport *viewport, ImVec4 color, const char *text)
-{
-    if (ImGui::BeginViewportSideBar("StatusBar", viewport, ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar))
-    {
-        if (ImGui::BeginMenuBar())
-        {
-            ImGui::TextColored(color, text);
-            ImGui::EndMenuBar();
-        }
         ImGui::End();
     }
+}
+
+static void StatusBar_Run(ImGuiViewport *viewport, ImVec4 color, const char *text)
+{
+    ImGui::BeginViewportSideBar("StatusBar", viewport, ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
+    ImGui::BeginMenuBar();
+    ImGui::TextColored(color, text);
+    ImGui::EndMenuBar();
+    ImGui::End();
 }
 
 /// run editor
@@ -239,10 +249,10 @@ void Editor::Impl::Run()
     ImGui::SetCurrentViewport(nullptr, (ImGuiViewportP *)viewport); // Set viewport explicitly so GetFrameHeight reacts to DPI changes
     ImGuiID dockMainId = ImGui::DockSpaceOverViewport();
 
-    ShowMainMenuBar();
-    ShowCamera(engine);
-    ShowLog();
-    ShowStatusBar(viewport, { 1.f, 1.f, 1.f, 1.f }, "status bar");
+    MainMenuBar_Run();
+    Camera_Run(engine);
+    mEditorLog->Run("Log");
+    StatusBar_Run(viewport, { 1.f, 1.f, 1.f, 1.f }, "status bar");
 
     if (sNeedLayoutSetup)
     {
@@ -278,7 +288,7 @@ Editor::~Editor() {}
 /// creates a smart pointer version of the editor
 EditorPtr Editor::MakePtr(const ApplicationWeakPtr &application)
 {
-    return std::make_shared<Editor>(application);
+    return EditorPtr(new Editor(application));
 }
 
 /// initialize editor

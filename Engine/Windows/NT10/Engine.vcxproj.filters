@@ -63,6 +63,12 @@
     <Filter Include="Header Files\System\Windows\NT10">
       <UniqueIdentifier>{843f344b-4857-4229-bb57-5ba2ccd968e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Editor">
+      <UniqueIdentifier>{bb2900da-d4a7-458f-b49b-e1c7b7732664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Editor">
+      <UniqueIdentifier>{8e596d87-275a-4a80-a399-7e518f7a7ade}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h">
@@ -198,7 +204,10 @@
       <Filter>Header Files\System\Windows\NT10</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lEditor.h">
-      <Filter>Header Files\System</Filter>
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lEditorLog.h">
+      <Filter>Header Files\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -299,7 +308,10 @@
       <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Editor.cpp">
-      <Filter>Source Files\Systems</Filter>
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\EditorLog.cpp">
+      <Filter>Source Files\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
