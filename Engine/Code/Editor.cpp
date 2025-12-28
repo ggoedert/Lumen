@@ -22,8 +22,8 @@ class Editor::Impl
     friend class Editor;
 
 public:
-    /// latest settings version
-    inline static constexpr uint32_t sSettinsLatestVersion = 0x0001;
+    /// settings version
+    inline static constexpr dword sSettingsVersion = 0x0001;
 
     /// editor settings
     struct Settings
@@ -88,6 +88,7 @@ void Editor::Impl::Initialize()
         {
             if (auto engine = application->GetEngine().lock())
             {
+                // set engine settings
                 Engine::Settings engineSettings = engine->GetSettings();
                 std::ifstream file(inFile);
                 Serialized::Type in;
@@ -102,19 +103,21 @@ void Editor::Impl::Initialize()
                     engineSettings.isMaximized = inEngineSettings.value("Maximized", engineSettings.isMaximized);
                     engineSettings.imGuiIni = inEngineSettings.value("ImGuiIni", engineSettings.imGuiIni);
                 }
+                engine->SetSettings(engineSettings);
+
+                // set editor settings
                 if (in.contains("Editor") && in["Editor"].is_object())
                 {
                     Serialized::Type inEditorSettings = in["Editor"];
                     mSettings.version = inEditorSettings.value("Version", mSettings.version);
                 }
-                // ?? any versioning conversion ??
-                if (mSettings.version != sSettinsLatestVersion)
+
+                // versioning conversion
+                if (mSettings.version != sSettingsVersion)
                 {
-                    Lumen::DebugLog::Warning("Editor::Impl::Initialize Settings needs conversion: 0x{:08X} to 0x{:08X}", mSettings.version, sSettinsLatestVersion);
-                    mSettings.version = sSettinsLatestVersion;
+                    Lumen::DebugLog::Warning("Editor::Impl::Initialize Settings needs conversion: 0x{:08X} to 0x{:08X}", mSettings.version, sSettingsVersion);
+                    mSettings.version = sSettingsVersion;
                 }
-                // ?? any versioning conversion ??
-                engine->SetSettings(engineSettings);
             }
         }
     }
