@@ -58,6 +58,14 @@ namespace Lumen
         /// quit application
         void Quit();
 
+#ifdef EDITOR
+        /// set application pause
+        void Pause(bool pause);
+
+        /// return if paused
+        bool Paused();
+#endif
+
     protected:
         /// constructs application
         explicit Application();

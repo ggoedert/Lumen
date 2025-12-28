@@ -58,6 +58,14 @@ protected:
     /// run application
     bool Run(float deltaTime);
 
+#ifdef EDITOR
+    /// set application pause
+    void Pause(bool pause);
+
+    /// return if paused
+    bool Paused();
+#endif
+
     /// quit application
     void Quit();
 
@@ -67,6 +75,11 @@ private:
 
     /// application running
     bool mRunning { true };
+
+#ifdef EDITOR
+    /// application paused
+    bool mPaused { false };
+#endif
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -125,6 +138,12 @@ bool Application::Impl::Run(float deltaTime)
 {
     if (mRunning)
     {
+#ifdef EDITOR
+        if (mPaused)
+        {
+            deltaTime = 0.f;
+        }
+#endif
         mDeltaTime = deltaTime;
         mTime += mDeltaTime;
         SceneManager::Run();
@@ -132,6 +151,20 @@ bool Application::Impl::Run(float deltaTime)
     }
     return false;
 }
+
+#ifdef EDITOR
+/// set application pause
+void Application::Impl::Pause(bool pause)
+{
+    mPaused = pause;
+}
+
+/// return if paused
+bool Application::Impl::Paused()
+{
+    return mPaused;
+}
+#endif
 
 /// quit application
 void Application::Impl::Quit()
@@ -210,6 +243,18 @@ void Application::Quit()
 }
 
 #ifdef EDITOR
+/// set application pause
+void Application::Pause(bool pause)
+{
+    mImpl->Pause(pause);
+}
+
+/// return if paused
+bool Application::Paused()
+{
+    return mImpl->Paused();
+}
+
 /// run editor
 void Application::Editor()
 {
