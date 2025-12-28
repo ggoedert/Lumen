@@ -203,6 +203,12 @@ const Math::Vector4 &Application::BackgroundColor() const
     return mImpl->BackgroundColor();
 }
 
+/// quit application
+void Application::Quit()
+{
+    return mImpl->Quit();
+}
+
 #ifdef EDITOR
 /// run editor
 void Application::Editor()
@@ -215,10 +221,4 @@ void Application::Editor()
 bool Application::Run(float deltaTime)
 {
     return mImpl->Run(deltaTime);
-}
-
-/// quit application
-void Application::Quit()
-{
-    return mImpl->Quit();
 }

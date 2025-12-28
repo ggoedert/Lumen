@@ -18,37 +18,6 @@ public:
     /// destructor
     ~Impl() {}
 
-    /// add message to editor log
-    void AddMessage(DebugLog::LogLevel level, std::string_view message)
-    {
-        // create app log message
-        std::string messageLower;
-        switch (level)
-        {
-        case DebugLog::LogLevel::Error:
-            messageLower = "[error] ";
-            break;
-        case DebugLog::LogLevel::Warning:
-            messageLower = "[warning] ";
-            break;
-        case DebugLog::LogLevel::Info:
-            messageLower = "[info] ";
-            break;
-        case DebugLog::LogLevel::Detail:
-            messageLower = "[detail] ";
-            break;
-        default:
-            messageLower = "[log] ";
-            break;
-        }
-        std::transform(message.begin(), message.end(), std::back_inserter(messageLower), [](char c) { return std::tolower(c); });
-
-        // append to app log
-        AppLogMessage appLogMessage = { level, std::string(message), messageLower };
-        mAppLog.push_back(appLogMessage);
-        AddMessageFiltered(appLogMessage);
-    }
-
     /// run editor log
     void Run(const char *title)
     {
@@ -111,26 +80,7 @@ public:
                 {
                     for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
                     {
-                        switch ((*appLog)[line_no].level)
-                        {
-                        case DebugLog::LogLevel::Error:
-                            ImGui::TextColored({ 1.f, 0.333f, 0.333f, 1.f }, "[Error] ");
-                            break;
-                        case DebugLog::LogLevel::Warning:
-                            ImGui::TextColored({ 1.f, 1.f, 0.333f, 1.f }, "[Warning] ");
-                            break;
-                        case DebugLog::LogLevel::Info:
-                            ImGui::TextColored({ 0.667f, 0.667f, 0.667f, 1.0f }, "[Info] ");
-                            break;
-                        case DebugLog::LogLevel::Detail:
-                            ImGui::TextColored({ 0.5f, 0.5f, 0.5f, 1.0f }, "[Detail] ");
-                            break;
-                        default:
-                            ImGui::TextUnformatted("[Log] ");
-                            break;
-                        }
-                        ImGui::SameLine();
-                        ImGui::TextUnformatted((*appLog)[line_no].message.c_str());
+                        PrintLog((*appLog)[line_no]);
                     }
                 }
                 clipper.End();
@@ -141,8 +91,66 @@ public:
                     ImGui::SetScrollHereY(1.0f);
             }
             ImGui::EndChild();
+
             ImGui::End();
         }
+    }
+
+    /// add message to editor log
+    void AddMessage(DebugLog::LogLevel level, std::string_view message)
+    {
+        if (level == DebugLog::LogLevel::None)
+        {
+            return;
+        }
+
+        // create app log message
+        std::string messageLower;
+        switch (level)
+        {
+        case DebugLog::LogLevel::Error:
+            messageLower = "[error] ";
+            break;
+        case DebugLog::LogLevel::Warning:
+            messageLower = "[warning] ";
+            break;
+        case DebugLog::LogLevel::Info:
+            messageLower = "[info] ";
+            break;
+        case DebugLog::LogLevel::Detail:
+            messageLower = "[detail] ";
+            break;
+        default:
+            messageLower = "[log] ";
+            break;
+        }
+        std::transform(message.begin(), message.end(), std::back_inserter(messageLower), [](char c) { return std::tolower(c); });
+
+        // append to app log
+        AppLogMessage appLogMessage = { level, std::string(message), messageLower };
+        mAppLog.push_back(appLogMessage);
+        AddMessageFiltered(appLogMessage);
+        if (appLogMessage.level != DebugLog::LogLevel::Detail)
+        {
+            mStatus = appLogMessage;
+        }
+    }
+
+    /// print status
+    void PrintStatus()
+    {
+        PrintLog(mStatus);
+    }
+
+    /// return editor log visibility
+    bool Visible()
+    {
+        return mWindowOpen;
+    }
+    /// set editor log visibility
+    void Show(bool visible)
+    {
+        mWindowOpen = visible;
     }
 
 private:
@@ -158,6 +166,34 @@ private:
         /// lowercase version of the message
         std::string messageLower;
     };
+
+    /// print log
+    void PrintLog(AppLogMessage &appLogMessage)
+    {
+        if (appLogMessage.level != DebugLog::LogLevel::None)
+        {
+            switch (appLogMessage.level)
+            {
+            case DebugLog::LogLevel::Error:
+                ImGui::TextColored({ 1.f, 0.333f, 0.333f, 1.f }, "[Error] ");
+                break;
+            case DebugLog::LogLevel::Warning:
+                ImGui::TextColored({ 1.f, 1.f, 0.333f, 1.f }, "[Warning] ");
+                break;
+            case DebugLog::LogLevel::Info:
+                ImGui::TextColored({ 0.667f, 0.667f, 0.667f, 1.0f }, "[Info] ");
+                break;
+            case DebugLog::LogLevel::Detail:
+                ImGui::TextColored({ 0.5f, 0.5f, 0.5f, 1.0f }, "[Detail] ");
+                break;
+            default:
+                ImGui::TextUnformatted("[Log] ");
+                break;
+            }
+            ImGui::SameLine();
+            ImGui::TextUnformatted(appLogMessage.message.c_str());
+        }
+    }
 
     /// add message to filtered log if it passes the filter
     void AddMessageFiltered(const AppLogMessage &message)
@@ -211,6 +247,9 @@ private:
 
     /// filtered app log messages
     std::vector<AppLogMessage> mFilteredAppLog;
+
+    /// last status message
+    AppLogMessage mStatus = { DebugLog::LogLevel::None, std::string(), std::string() };
 };
 
 //==============================================================================================================================================================================
@@ -227,15 +266,33 @@ EditorLogPtr EditorLog::MakePtr()
     return EditorLogPtr(new EditorLog());
 }
 
+/// run editor log
+void EditorLog::Run(const char *title)
+{
+    mImpl->Run(title);
+}
+
 /// add message to editor log
 void EditorLog::AddMessage(DebugLog::LogLevel level, std::string_view message)
 {
     mImpl->AddMessage(level, message);
 }
 
-/// run editor log
-void EditorLog::Run(const char *title)
+/// print status
+void EditorLog::PrintStatus()
 {
-    mImpl->Run(title);
+    mImpl->PrintStatus();
+}
+
+/// return editor log visibility
+bool EditorLog::Visible()
+{
+    return mImpl->Visible();
+}
+
+/// set editor log visibility
+void EditorLog::Show(bool visible)
+{
+    mImpl->Show(visible);
 }
 #endif

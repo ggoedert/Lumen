@@ -55,6 +55,9 @@ namespace Lumen
         /// get application's background color
         [[nodiscard]] const Math::Vector4 &BackgroundColor() const;
 
+        /// quit application
+        void Quit();
+
     protected:
         /// constructs application
         explicit Application();
@@ -69,9 +72,6 @@ namespace Lumen
 
         /// run application
         bool Run(float deltaTime);
-
-        /// quit application
-        void Quit();
 
     private:
         /// private implementation

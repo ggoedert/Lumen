@@ -21,6 +21,7 @@
 #define SIMDSCALAR
 #endif
 
+#include <type_traits>
 #include <cstring>
 
 /// Lumen Math namespace
@@ -89,6 +90,13 @@ namespace Lumen::Math
 
         bool operator==(const Int2 &o) const { return x == o.x && y == o.y; }
 
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, int, int>);
+            return T { x, y };
+        }
+
         int x, y;
     };
 
@@ -107,6 +115,13 @@ namespace Lumen::Math
         explicit Int3(_In_reads_(3) const int *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]) {}
 
         bool operator==(const Int3 &o) const { return x == o.x && y == o.y && z == o.z; }
+
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, int, int, int>);
+            return T { x, y, z };
+        }
 
         int x, y, z;
     };
@@ -127,6 +142,13 @@ namespace Lumen::Math
 
         bool operator==(const Int4 &o) const { return x == o.x && y == o.y && z == o.z && w == o.w; }
 
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, int, int, int, int>);
+            return T { x, y, z, w };
+        }
+
         int x, y, z, w;
     };
 
@@ -145,6 +167,13 @@ namespace Lumen::Math
         explicit Float2(_In_reads_(2) const float *pArray) noexcept : x(pArray[0]), y(pArray[1]) {}
 
         bool operator==(const Float2 &o) const { return x == o.x && y == o.y; }
+
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, float, float>);
+            return T { x, y };
+        }
 
         float x, y;
     };
@@ -165,6 +194,13 @@ namespace Lumen::Math
 
         bool operator==(const Float3 &o) const { return x == o.x && y == o.y && z == o.z; }
 
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, float, float, float>);
+            return T { x, y, z };
+        }
+
         float x, y, z;
     };
 
@@ -183,6 +219,13 @@ namespace Lumen::Math
         explicit Float4(_In_reads_(4) const float *pArray) noexcept : x(pArray[0]), y(pArray[1]), z(pArray[2]), w(pArray[3]) {}
 
         bool operator==(const Float4 &o) const { return x == o.x && y == o.y && z == o.z && w == o.w; }
+
+        template<typename T>
+        operator T() const
+        {
+            static_assert(std::is_aggregate_v<T> || std::is_constructible_v<T, float, float, float, float>);
+            return T { x, y, z, w };
+        }
 
         float x, y, z, w;
     };

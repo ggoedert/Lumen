@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Editor Log interface
+/// \brief     Editor View interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -11,38 +11,33 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(EditorLog);
+    CLASS_PTR_DEF(Engine);
+    CLASS_PTR_DEF(EditorView);
 
-    /// EditorLog class
-    class EditorLog
+    /// EditorView class
+    class EditorView
     {
-        CLASS_NO_COPY_MOVE(EditorLog);
+        CLASS_NO_COPY_MOVE(EditorView);
 
     public:
         /// destructor
-        ~EditorLog();
+        ~EditorView();
 
-        /// creates a smart pointer version of the editor log
-        static EditorLogPtr MakePtr();
+        /// creates a smart pointer version of the editor view
+        static EditorViewPtr MakePtr();
 
-        /// run editor log
-        void Run(const char *title);
+        /// run editor view
+        void Run(const char *title, Lumen::EnginePtr engine);
 
-        /// add message to editor log
-        void AddMessage(DebugLog::LogLevel level, std::string_view message);
-
-        /// print status
-        void PrintStatus();
-
-        /// return editor log visibility
+        /// return editor view visibility
         bool Visible();
 
-        /// set editor log visibility
+        /// set editor view visibility
         void Show(bool visible);
 
     protected:
-        /// constructs editor log
-        explicit EditorLog();
+        /// constructs editor view
+        explicit EditorView();
 
     private:
         /// private implementation

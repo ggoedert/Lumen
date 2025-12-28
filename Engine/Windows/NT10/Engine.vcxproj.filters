@@ -209,6 +209,9 @@
     <ClInclude Include="..\..\Include\lEditorLog.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lEditorView.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -311,6 +314,9 @@
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\EditorLog.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\EditorView.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
   </ItemGroup>

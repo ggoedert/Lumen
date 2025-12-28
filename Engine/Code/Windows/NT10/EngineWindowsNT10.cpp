@@ -564,6 +564,8 @@ namespace Lumen::WindowsNT10
     /// shutdown
     void EngineWindowsNT10::Shutdown()
     {
+        mDeviceResources->WaitForGpu();
+
 #ifdef EDITOR
         // Shutdown ImGui first
         ImGui_ImplDX12_Shutdown();

@@ -6,6 +6,7 @@
 #ifdef EDITOR
 
 #include "lEditor.h"
+#include "lEditorView.h"
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
@@ -28,7 +29,14 @@ public:
     /// editor settings
     struct Settings
     {
+        /// settings version
         dword version = 0;
+
+        /// view visibility
+        bool view = true;
+
+        /// log visibility
+        bool log = true;
     };
 
     /// constructs editor
@@ -49,19 +57,38 @@ public:
     /// run editor
     void Run();
 
+    /// reset layout
+    void ResetLayout();
 private:
+
+    /// run main menu bar
+    void RunMainMenuBar();
+
+    /// run Status Bar
+    void RunStatusBar();
+
+    /// current viewport
+    ImGuiViewport *mViewport;
+
+    /// main dockspace id
+    ImGuiID mDockMainId;
+
     /// cached settings
     Settings mSettings;
 
     /// application pointer
     ApplicationWeakPtr mApplication;
 
-    /// app log data
+    /// app view
+    EditorViewPtr mEditorView;
+
+    /// app log
     EditorLogPtr mEditorLog;
 };
 
 /// constructs editor
-Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mEditorLog(EditorLog::MakePtr()) {}
+Editor::Impl::Impl(const ApplicationWeakPtr &application) :
+    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorView(EditorView::MakePtr()), mEditorLog(EditorLog::MakePtr()) {}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -110,6 +137,8 @@ void Editor::Impl::Initialize()
                 {
                     Serialized::Type inEditorSettings = in["Editor"];
                     mSettings.version = inEditorSettings.value("Version", mSettings.version);
+                    mSettings.view = inEditorSettings.value("View", mSettings.view);
+                    mSettings.log = inEditorSettings.value("Log", mSettings.log);
                 }
 
                 // versioning conversion
@@ -125,6 +154,9 @@ void Editor::Impl::Initialize()
     {
         Lumen::DebugLog::Error("Unable to open user settings file for reading, {}", e.what());
     }
+
+    mEditorView->Show(mSettings.view);
+    mEditorLog->Show(mSettings.log);
 }
 
 /// shutdown aplication
@@ -150,6 +182,8 @@ void Editor::Impl::Shutdown()
 
             Serialized::Type outEditorSettings = {};
             outEditorSettings["Version"] = mSettings.version;
+            outEditorSettings["View"] = mEditorView->Visible();
+            outEditorSettings["Log"] = mEditorLog->Visible();
             out["Editor"] = outEditorSettings;
         }
     }
@@ -169,70 +203,6 @@ void Editor::Impl::LogCallback(DebugLog::LogLevel level, std::string_view messag
     mEditorLog->AddMessage(level, message);
 }
 
-static void MainMenuBar_Run()
-{
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("Project"))
-        {
-            if (ImGui::MenuItem("Revert")) {}
-            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
-            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-}
-
-static void Camera_Run(Lumen::EnginePtr engine)
-{
-    static bool sCameraWindowOpen = true;
-    if (sCameraWindowOpen)
-    {
-        ImGui::Begin("Camera", &sCameraWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing);
-
-        // draw a toolbar
-        if (ImGui::Button("Play")) { /* Start Game Logic */ }
-        ImGui::SameLine(); // Keep on same line
-        if (ImGui::Button("Stop")) { /* Stop Game Logic */ }
-        ImGui::SameLine();
-
-        // combo box to switch render targets
-        static int currentView = 0; // 0 - RenderTexture / 1 - DepthStencil
-        const char *views[] = { "RenderTexture", "DepthStencil" };
-
-        // calc the width required by the combo box
-        float maxWidth = 0;
-        for (int i = 0; i < IM_ARRAYSIZE(views); i++)
-        {
-            float width = ImGui::CalcTextSize(views[i]).x;
-            if (width > maxWidth) maxWidth = width;
-        }
-        float totalWidth = maxWidth + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetFrameHeight();
-
-        // draw the combo box
-        ImGui::SetNextItemWidth(totalWidth);
-        if (ImGui::Combo("##View", &currentView, views, IM_ARRAYSIZE(views))) {}
-
-        // draw the render texture in the remaining space
-        Id::Type texId = static_cast<Id::Type>(currentView);
-        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        engine->SetRenderTextureSize(texId, { static_cast<int>(viewportPanelSize.x), static_cast<int>(viewportPanelSize.y) });
-        ImGui::Image(engine->GetRenderTextureHandle(texId), viewportPanelSize);
-
-        ImGui::End();
-    }
-}
-
-static void StatusBar_Run(ImGuiViewport *viewport, ImVec4 color, const char *text)
-{
-    ImGui::BeginViewportSideBar("StatusBar", viewport, ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
-    ImGui::BeginMenuBar();
-    ImGui::TextColored(color, text);
-    ImGui::EndMenuBar();
-    ImGui::End();
-}
-
 /// run editor
 void Editor::Impl::Run()
 {
@@ -248,36 +218,99 @@ void Editor::Impl::Run()
     }
     static bool sNeedLayoutSetup = (!mSettings.version);
 
-    ImGuiViewport *viewport = ImGui::GetMainViewport();
-    ImGui::SetCurrentViewport(nullptr, (ImGuiViewportP *)viewport); // Set viewport explicitly so GetFrameHeight reacts to DPI changes
-    ImGuiID dockMainId = ImGui::DockSpaceOverViewport();
-
-    MainMenuBar_Run();
-    Camera_Run(engine);
-    mEditorLog->Run("Log");
-    StatusBar_Run(viewport, { 1.f, 1.f, 1.f, 1.f }, "status bar");
+    mViewport = ImGui::GetMainViewport();
+    ImGui::SetCurrentViewport(nullptr, (ImGuiViewportP *)mViewport); // Set viewport explicitly so GetFrameHeight reacts to DPI changes
+    mDockMainId = ImGui::DockSpaceOverViewport();
 
     if (sNeedLayoutSetup)
     {
         sNeedLayoutSetup = false;
-        ImGuiID dockDownId;
-
-        // clear existing layout
-        ImGui::DockBuilderRemoveNode(dockMainId);
-
-        // add the main node with DockSpace and PassthruCentralNode flags, allows to see your background behind the docking system if no window is docked there
-        ImGui::DockBuilderAddNode(dockMainId, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode);
-        ImGui::DockBuilderSetNodeSize(dockMainId, viewport->Size);
-
-        // split the dockspace into 2 nodes: upper and lower, dockMainId itself gets updated to represent the remaining (Central) area
-        ImGui::DockBuilderSplitNode(dockMainId, ImGuiDir_Down, 0.2f, &dockDownId, &dockMainId);
-
-        // dock the windows
-        ImGui::DockBuilderDockWindow("Camera", dockMainId);
-        ImGui::DockBuilderDockWindow("Log", dockDownId);
-
-        ImGui::DockBuilderFinish(dockMainId);
+        ResetLayout();
     }
+
+    RunMainMenuBar();
+    mEditorView->Run("View", engine);
+    mEditorLog->Run("Log");
+    RunStatusBar();
+}
+
+/// reset layout
+void Editor::Impl::ResetLayout()
+{
+    ImGuiID dockDownId;
+
+    // clear existing layout
+    ImGui::DockBuilderRemoveNode(mDockMainId);
+
+    // add the main node with DockSpace and PassthruCentralNode flags, allows to see your background behind the docking system if no window is docked there
+    ImGui::DockBuilderAddNode(mDockMainId, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::DockBuilderSetNodeSize(mDockMainId, mViewport->Size);
+
+    // split the dockspace into 2 nodes: upper and lower, mDockMainId itself gets updated to represent the remaining (Central) area
+    ImGui::DockBuilderSplitNode(mDockMainId, ImGuiDir_Down, 0.2f, &dockDownId, &mDockMainId);
+
+    // dock the windows
+    ImGui::DockBuilderDockWindow("View", mDockMainId);
+    ImGui::DockBuilderDockWindow("Log", dockDownId);
+
+    ImGui::DockBuilderFinish(mDockMainId);
+
+    mEditorView->Show(true);
+    mEditorLog->Show(true);
+
+    ImGui::SetWindowFocus("View");
+}
+
+/// run main menu bar
+void Editor::Impl::RunMainMenuBar()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Project"))
+        {
+            if (ImGui::MenuItem("Revert")) {}
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "Alt+F4"))
+            {
+                if (auto application = mApplication.lock())
+                {
+                    application->Quit();
+                }
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Window"))
+        {
+            if (ImGui::MenuItem("Reset Layout"))
+            {
+                ResetLayout();
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("View"))
+            {
+                mEditorView->Show(true);
+                ImGui::SetWindowFocus("View");
+            }
+            if (ImGui::MenuItem("Log"))
+            {
+                mEditorLog->Show(true);
+                ImGui::SetWindowFocus("Log");
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+}
+
+/// run status bar
+void Editor::Impl::RunStatusBar()
+{
+    ImGui::BeginViewportSideBar("StatusBar", mViewport, ImGuiDir_Down, ImGui::GetFrameHeight(), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar);
+    ImGui::BeginMenuBar();
+    mEditorLog->PrintStatus();
+    ImGui::EndMenuBar();
+    ImGui::End();
 }
 
 //==============================================================================================================================================================================
