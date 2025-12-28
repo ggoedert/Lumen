@@ -13,7 +13,7 @@ class EditorLog::Impl
 
 public:
     /// constructs editor
-    explicit Impl() : mWindowOpen(true), mAutoScroll(true) {}
+    explicit Impl() : mWindowOpen(true), mAutoScroll(true), mCurrentLogLevel(2) {}
 
     /// destructor
     ~Impl() {}
@@ -36,6 +36,25 @@ public:
                 ImGui::EndPopup();
             }
 
+            // combo box to switch log level
+            const char *logLevelArray[] = { "Detail", "Info", "Warning", "Error" };
+
+            // calc the width required by the combo box
+            float maxWidth = 0;
+            for (int i = 0; i < IM_ARRAYSIZE(logLevelArray); i++)
+            {
+                float width = ImGui::CalcTextSize(logLevelArray[i]).x;
+                if (width > maxWidth) maxWidth = width;
+            }
+            float totalWidth = maxWidth + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetFrameHeight();
+
+            // draw the combo box
+            ImGui::SetNextItemWidth(totalWidth);
+            int logLevel = mCurrentLogLevel - 1;
+            if (ImGui::Combo("##LogLevel", &logLevel, logLevelArray, IM_ARRAYSIZE(logLevelArray))) {}
+            logLevel++;
+            ImGui::SameLine();
+
             // main window
             if (ImGui::Button("Options"))
             {
@@ -47,8 +66,8 @@ public:
             bool copy = ImGui::Button("Copy");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(-1);
-            static char filterInput[256] = "";
-            ImGui::InputTextWithHint("##filter", "Filter...", filterInput, sizeof(filterInput));
+            static char inputFilter[256] = "";
+            ImGui::InputTextWithHint("##filter", "Filter...", inputFilter, sizeof(inputFilter));
 
             ImGui::Separator();
 
@@ -65,11 +84,11 @@ public:
                     ImGui::LogToClipboard();
                 }
 
-                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 0));
 
                 std::vector<AppLogMessage> *appLog = &mAppLog;
-                bool filterchanged = SetInputFilter(filterInput);
-                if (!mCurrentFilter.empty())
+                bool filterChanged = SetFilter(logLevel, inputFilter);
+                if (!mCurrentFilter.empty() || mCurrentLogLevel > 0)
                 {
                     appLog = &mFilteredAppLog;
                 }
@@ -87,7 +106,7 @@ public:
 
                 ImGui::PopStyleVar();
 
-                if (filterchanged || (mAutoScroll && wasAtBottom))
+                if (filterChanged || (mAutoScroll && wasAtBottom))
                     ImGui::SetScrollHereY(1.0f);
             }
             ImGui::EndChild();
@@ -175,19 +194,19 @@ private:
             switch (appLogMessage.level)
             {
             case DebugLog::LogLevel::Error:
-                ImGui::TextColored({ 1.f, 0.333f, 0.333f, 1.f }, "[Error] ");
+                ImGui::TextColored({ 1.f, 0.333f, 0.333f, 1.f }, "[Error]");
                 break;
             case DebugLog::LogLevel::Warning:
-                ImGui::TextColored({ 1.f, 1.f, 0.333f, 1.f }, "[Warning] ");
+                ImGui::TextColored({ 1.f, 1.f, 0.333f, 1.f }, "[Warning]");
                 break;
             case DebugLog::LogLevel::Info:
-                ImGui::TextColored({ 0.667f, 0.667f, 0.667f, 1.0f }, "[Info] ");
+                ImGui::TextColored({ 0.667f, 0.667f, 0.667f, 1.0f }, "[Info]");
                 break;
             case DebugLog::LogLevel::Detail:
-                ImGui::TextColored({ 0.5f, 0.5f, 0.5f, 1.0f }, "[Detail] ");
+                ImGui::TextColored({ 0.5f, 0.5f, 0.5f, 1.0f }, "[Detail]");
                 break;
             default:
-                ImGui::TextUnformatted("[Log] ");
+                ImGui::TextUnformatted("[Log]");
                 break;
             }
             ImGui::SameLine();
@@ -198,7 +217,9 @@ private:
     /// add message to filtered log if it passes the filter
     void AddMessageFiltered(const AppLogMessage &message)
     {
-        if (mCurrentFilter.empty() || (message.messageLower.find(mFilterLower) != std::string::npos))
+        bool logLevel = (static_cast<int>(message.level) >= mCurrentLogLevel);
+        bool filter = mCurrentFilter.empty() || (message.messageLower.find(mFilterLower) != std::string::npos);
+        if (logLevel && filter)
         {
             mFilteredAppLog.push_back(message);
         }
@@ -212,12 +233,13 @@ private:
         mCurrentFilter.clear();
     }
 
-    /// set input filter
-    bool SetInputFilter(const char *filterInput)
+    /// set filter
+    bool SetFilter(int currentLogLevel, const char *inputFilter)
     {
-        if (mCurrentFilter != filterInput)
+        if ((mCurrentLogLevel != currentLogLevel) || (mCurrentFilter != inputFilter))
         {
-            mCurrentFilter = filterInput;
+            mCurrentLogLevel = currentLogLevel;
+            mCurrentFilter = inputFilter;
             mFilterLower.resize(mCurrentFilter.size());
             std::transform(mCurrentFilter.begin(), mCurrentFilter.end(), mFilterLower.begin(), [](char c) { return std::tolower(c); });
             mFilteredAppLog.clear();
@@ -235,6 +257,9 @@ private:
 
     /// auto scroll, keep scrolling if already at the bottom.
     bool mAutoScroll;
+
+    /// current log level
+    int mCurrentLogLevel;
 
     /// current filter
     std::string mCurrentFilter;

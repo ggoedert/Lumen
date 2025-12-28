@@ -48,4 +48,32 @@ void SphereScript::Update()
             transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
         }
     }
+
+    /* temp delme - log messages at random intervals
+    using clock = std::chrono::steady_clock;
+    static auto lastLogTime = clock::now() - std::chrono::seconds(1);
+    auto now = clock::now();
+    if (now - lastLogTime >= std::chrono::milliseconds(334))
+    {
+        lastLogTime = now;
+
+        float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        if (r < 0.65)
+        {
+            Lumen::DebugLog::Detail("SphereScript: Detail log message.");
+        }
+        else if (r < 0.85f)
+        {
+            Lumen::DebugLog::Info("SphereScript: Info log message.");
+        }
+        else if (r < 0.95f)
+        {
+            Lumen::DebugLog::Warning("SphereScript: Warning log message.");
+        }
+        else
+        {
+            Lumen::DebugLog::Error("SphereScript: Error log message.");
+        }
+    }
+    */
 }

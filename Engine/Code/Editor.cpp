@@ -155,6 +155,7 @@ void Editor::Impl::Initialize()
         Lumen::DebugLog::Error("Unable to open user settings file for reading, {}", e.what());
     }
 
+    // apply settings
     mEditorView->Show(mSettings.view);
     mEditorLog->Show(mSettings.log);
 }
