@@ -22,6 +22,15 @@ class Editor::Impl
     friend class Editor;
 
 public:
+    /// latest settings version
+    inline static constexpr uint32_t sSettinsLatestVersion = 0x0001;
+
+    /// editor settings
+    struct Settings
+    {
+        dword version = 0;
+    };
+
     /// constructs editor
     explicit Impl(const ApplicationWeakPtr &application);
 
@@ -41,18 +50,18 @@ public:
     void Run();
 
 private:
+    /// cached settings
+    Settings mSettings;
+
     /// application pointer
     ApplicationWeakPtr mApplication;
 
     /// app log data
     EditorLogPtr mEditorLog;
-
-    /// current layout version
-    const dword mLayoutVersion;
 };
 
 /// constructs editor
-Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mEditorLog(EditorLog::MakePtr()), mLayoutVersion(0x0001) {}
+Editor::Impl::Impl(const ApplicationWeakPtr &application) : mApplication(application), mEditorLog(EditorLog::MakePtr()) {}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -79,40 +88,33 @@ void Editor::Impl::Initialize()
         {
             if (auto engine = application->GetEngine().lock())
             {
-                Engine::LayoutSettings layoutSettings = engine->GetLayoutSettings();
-                dword currentVersion = 0x0;
+                Engine::Settings engineSettings = engine->GetSettings();
                 std::ifstream file(inFile);
                 Serialized::Type in;
                 file >> in;
-                if (in.contains("LayoutSettings") && in["LayoutSettings"].is_object())
+                if (in.contains("Engine") && in["Engine"].is_object())
                 {
-                    Serialized::Type inLayoutSettings = in["LayoutSettings"];
-                    layoutSettings.posX = inLayoutSettings.value("PosX", layoutSettings.posX);
-                    layoutSettings.posY = inLayoutSettings.value("PosY", layoutSettings.posY);
-                    layoutSettings.width = inLayoutSettings.value("Width", layoutSettings.width);
-                    layoutSettings.height = inLayoutSettings.value("Height", layoutSettings.height);
-                    layoutSettings.isMaximized = inLayoutSettings.value("Maximized", layoutSettings.isMaximized);
-                    layoutSettings.imGuiIni = inLayoutSettings.value("ImGuiIni", layoutSettings.imGuiIni);
-                    layoutSettings.appData = inLayoutSettings.value("AppData", layoutSettings.appData);
-                    std::vector<byte> decoded = Base64DecodeBytes(layoutSettings.appData);
-                    if (decoded.size() >= sizeof(mLayoutVersion))
-                    {
-                        std::memcpy(&currentVersion, decoded.data(), sizeof(mLayoutVersion));
-                    }
+                    Serialized::Type inEngineSettings = in["Engine"];
+                    engineSettings.posX = inEngineSettings.value("PosX", engineSettings.posX);
+                    engineSettings.posY = inEngineSettings.value("PosY", engineSettings.posY);
+                    engineSettings.width = inEngineSettings.value("Width", engineSettings.width);
+                    engineSettings.height = inEngineSettings.value("Height", engineSettings.height);
+                    engineSettings.isMaximized = inEngineSettings.value("Maximized", engineSettings.isMaximized);
+                    engineSettings.imGuiIni = inEngineSettings.value("ImGuiIni", engineSettings.imGuiIni);
+                }
+                if (in.contains("Editor") && in["Editor"].is_object())
+                {
+                    Serialized::Type inEditorSettings = in["Editor"];
+                    mSettings.version = inEditorSettings.value("Version", mSettings.version);
                 }
                 // ?? any versioning conversion ??
-                if (currentVersion != mLayoutVersion)
+                if (mSettings.version != sSettinsLatestVersion)
                 {
-                    Lumen::DebugLog::Warning("Editor::Impl::Initialize LayoutSettings needs conversion: 0x{:08X} to 0x{:08X}", currentVersion, mLayoutVersion);
-                    layoutSettings.appData = Base64EncodeBytes(
-                        std::vector<byte>(
-                            reinterpret_cast<const byte *>(&mLayoutVersion),
-                            reinterpret_cast<const byte *>(&mLayoutVersion) + sizeof(mLayoutVersion)
-                        )
-                    );
+                    Lumen::DebugLog::Warning("Editor::Impl::Initialize Settings needs conversion: 0x{:08X} to 0x{:08X}", mSettings.version, sSettinsLatestVersion);
+                    mSettings.version = sSettinsLatestVersion;
                 }
                 // ?? any versioning conversion ??
-                engine->SetLayoutSettings(layoutSettings);
+                engine->SetSettings(engineSettings);
             }
         }
     }
@@ -133,21 +135,19 @@ void Editor::Impl::Shutdown()
     {
         if (auto engine = application->GetEngine().lock())
         {
-            Engine::LayoutSettings layoutSettings = engine->GetLayoutSettings();
-            Serialized::Type outLayoutSettings = {};
-            outLayoutSettings["PosX"] = layoutSettings.posX;
-            outLayoutSettings["PosY"] = layoutSettings.posY;
-            outLayoutSettings["Width"] = layoutSettings.width;
-            outLayoutSettings["Height"] = layoutSettings.height;
-            outLayoutSettings["Maximized"] = layoutSettings.isMaximized;
-            outLayoutSettings["ImGuiIni"] = layoutSettings.imGuiIni;
-            outLayoutSettings["AppData"] = Base64EncodeBytes(
-                std::vector<byte>(
-                    reinterpret_cast<const byte *>(&mLayoutVersion),
-                    reinterpret_cast<const byte *>(&mLayoutVersion) + sizeof(mLayoutVersion)
-                )
-            );
-            out["LayoutSettings"] = outLayoutSettings;
+            Engine::Settings engineSettings = engine->GetSettings();
+            Serialized::Type outEngineSettings = {};
+            outEngineSettings["PosX"] = engineSettings.posX;
+            outEngineSettings["PosY"] = engineSettings.posY;
+            outEngineSettings["Width"] = engineSettings.width;
+            outEngineSettings["Height"] = engineSettings.height;
+            outEngineSettings["Maximized"] = engineSettings.isMaximized;
+            outEngineSettings["ImGuiIni"] = engineSettings.imGuiIni;
+            out["Engine"] = outEngineSettings;
+
+            Serialized::Type outEditorSettings = {};
+            outEditorSettings["Version"] = mSettings.version;
+            out["Editor"] = outEditorSettings;
         }
     }
     std::ofstream file(outFile);
@@ -243,7 +243,7 @@ void Editor::Impl::Run()
     {
         return;
     }
-    static bool sNeedLayoutSetup = engine->GetLayoutSettings().appData.empty();
+    static bool sNeedLayoutSetup = (!mSettings.version);
 
     ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImGui::SetCurrentViewport(nullptr, (ImGuiViewportP *)viewport); // Set viewport explicitly so GetFrameHeight reacts to DPI changes

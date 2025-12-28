@@ -117,16 +117,16 @@ bool Engine::Run()
 }
 
 #ifdef EDITOR
-/// get layout settings
-Engine::LayoutSettings Engine::GetLayoutSettings() const
+/// get settings
+Engine::Settings Engine::GetSettings() const
 {
-    return mImpl->GetLayoutSettings();
+    return mImpl->GetSettings();
 }
 
-/// set layout settings
-void Engine::SetLayoutSettings(Engine::LayoutSettings &layoutSettings)
+/// set settings
+void Engine::SetSettings(Engine::Settings &settings)
 {
-    mImpl->SetLayoutSettings(layoutSettings);
+    mImpl->SetSettings(settings);
 }
 #endif
 

@@ -35,7 +35,7 @@ namespace Lumen
 
     public:
 #ifdef EDITOR
-        struct LayoutSettings
+        struct Settings
         {
             int posX = 0;
             int posY = 0;
@@ -43,7 +43,6 @@ namespace Lumen
             int height = 0;
             bool isMaximized = true;
             std::vector<std::string> imGuiIni;
-            std::string appData;
         };
 #endif
 
@@ -88,10 +87,10 @@ namespace Lumen
 
 #ifdef EDITOR
         /// get windows settings
-        LayoutSettings GetLayoutSettings() const;
+        Settings GetSettings() const;
 
         /// set windows settings
-        void SetLayoutSettings(LayoutSettings &layoutSettings);
+        void SetSettings(Settings &settings);
 #endif
 
         /// get fullscreen size

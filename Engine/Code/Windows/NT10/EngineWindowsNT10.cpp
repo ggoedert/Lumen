@@ -79,11 +79,11 @@ namespace Lumen::WindowsNT10
         void OnWindowSizeChanged(int width, int height);
 
 #ifdef EDITOR
-        /// get layout settings
-        Engine::LayoutSettings GetLayoutSettings() noexcept override;
+        /// get settings
+        Engine::Settings GetSettings() noexcept override;
 
-        /// set layout settings
-        void SetLayoutSettings(Engine::LayoutSettings &layoutSettings) noexcept override;
+        /// set settings
+        void SetSettings(Engine::Settings &settings) noexcept override;
 #endif
 
         // get fullscreen size
@@ -334,8 +334,8 @@ namespace Lumen::WindowsNT10
         std::vector<Engine::RenderCommand> mRenderCommands;
 
 #ifdef EDITOR
-        /// cached layout settings
-        Engine::LayoutSettings mLayoutSettings;
+        /// cached settings
+        Engine::Settings mSettings;
 #endif
 
         /// owner
@@ -381,10 +381,10 @@ namespace Lumen::WindowsNT10
         const auto &initializeConfig = static_cast<const Windows::Config &>(config);
         mWindow = initializeConfig.mWindow;
 #ifdef EDITOR
-        /// get cached layout settings
-        mLayoutSettings = GetLayoutSettings();
-        mSceneWidth = mLayoutSettings.width;
-        mSceneHeight = mLayoutSettings.height;
+        /// get cached settings
+        mSettings = GetSettings();
+        mSceneWidth = mSettings.width;
+        mSceneHeight = mSettings.height;
 #else
         RECT rc;
         GetClientRect(mWindow, &rc);
@@ -420,7 +420,7 @@ namespace Lumen::WindowsNT10
 
         // load ImGui settings
         std::string combinedImGuiIni;
-        for (const auto &line : mLayoutSettings.imGuiIni)
+        for (const auto &line : mSettings.imGuiIni)
         {
             combinedImGuiIni += line;
             combinedImGuiIni += '\n';
@@ -890,19 +890,19 @@ namespace Lumen::WindowsNT10
     }
 
 #ifdef EDITOR
-    /// get layout settings
-    Engine::LayoutSettings EngineWindowsNT10::GetLayoutSettings() noexcept
+    /// get settings
+    Engine::Settings EngineWindowsNT10::GetSettings() noexcept
     {
         // update cached layout window settings
         WINDOWPLACEMENT wp;
         wp.length = sizeof(WINDOWPLACEMENT);
         if (GetWindowPlacement(mWindow, &wp))
         {
-            mLayoutSettings.posX = wp.rcNormalPosition.left;
-            mLayoutSettings.posY = wp.rcNormalPosition.top;
-            mLayoutSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-            mLayoutSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-            mLayoutSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+            mSettings.posX = wp.rcNormalPosition.left;
+            mSettings.posY = wp.rcNormalPosition.top;
+            mSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+            mSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+            mSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
         }
 
         // update cached layout ImGui settings
@@ -917,15 +917,15 @@ namespace Lumen::WindowsNT10
             }
             if (!imGuiIniSettings.empty())
             {
-                mLayoutSettings.imGuiIni = imGuiIniSettings;
+                mSettings.imGuiIni = imGuiIniSettings;
             }
         }
 
-        return mLayoutSettings;
+        return mSettings;
     }
 
-    /// set layout settings
-    void EngineWindowsNT10::SetLayoutSettings(Engine::LayoutSettings &layoutSettings) noexcept
+    /// set settings
+    void EngineWindowsNT10::SetSettings(Engine::Settings &settings) noexcept
     {
         WINDOWPLACEMENT wp;
         wp.length = sizeof(WINDOWPLACEMENT);
@@ -934,15 +934,15 @@ namespace Lumen::WindowsNT10
         GetWindowPlacement(GetActiveWindow(), &wp);
 
         // set cached layout window settings
-        wp.rcNormalPosition.left = layoutSettings.posX;
-        wp.rcNormalPosition.top = layoutSettings.posY;
-        wp.rcNormalPosition.right = layoutSettings.posX + layoutSettings.width;
-        wp.rcNormalPosition.bottom = layoutSettings.posY + layoutSettings.height;
-        wp.showCmd = layoutSettings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+        wp.rcNormalPosition.left = settings.posX;
+        wp.rcNormalPosition.top = settings.posY;
+        wp.rcNormalPosition.right = settings.posX + settings.width;
+        wp.rcNormalPosition.bottom = settings.posY + settings.height;
+        wp.showCmd = settings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
         SetWindowPlacement(GetActiveWindow(), &wp);
 
         // update the layout cache
-        mLayoutSettings = layoutSettings;
+        mSettings = settings;
     }
 #endif
 
@@ -1606,7 +1606,7 @@ namespace Lumen::Windows
         case WM_CLOSE:
             if (engineImpl)
             {
-                engineImpl->GetLayoutSettings();
+                engineImpl->GetSettings();
             }
             break;
 #endif

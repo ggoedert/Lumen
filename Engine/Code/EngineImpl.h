@@ -43,11 +43,11 @@ namespace Lumen
         virtual bool Run(std::function<bool()> update, std::function<void()> preRender) = 0;
 
 #ifdef EDITOR
-        /// get layout settings
-        virtual Engine::LayoutSettings GetLayoutSettings() = 0;
+        /// get settings
+        virtual Engine::Settings GetSettings() = 0;
 
-        /// set layout settings
-        virtual void SetLayoutSettings(Engine::LayoutSettings &layoutSettings) = 0;
+        /// set settings
+        virtual void SetSettings(Engine::Settings &settings) = 0;
 #endif
 
         /// get fullscreen size
