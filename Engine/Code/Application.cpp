@@ -62,6 +62,9 @@ protected:
     /// get application state
     [[nodiscard]] State GetState();
 
+    /// get paused state
+    bool Paused();
+
     /// start application
     void Start();
 
@@ -91,6 +94,9 @@ private:
 #else
     /// application state
     State mState { State::Stopped };
+
+    /// paused state
+    bool mPaused { false };
 
     /// editor pointer
     EditorPtr mEditor;
@@ -156,25 +162,23 @@ bool Application::Impl::Run(float deltaTime)
     switch (mState)
     {
     case State::Running:
-        mDeltaTime = deltaTime;
-        mTime += mDeltaTime;
-        SceneManager::Run();
-        break;
-    case State::Pausing:
-        mDeltaTime = deltaTime;
-        mTime += mDeltaTime;
-        SceneManager::Run();
-        mState = State::Paused;
-        break;
-    case State::Paused:
-        mDeltaTime = 0.f;
+        if (!mPaused)
+        {
+            mDeltaTime = deltaTime;
+            mTime += mDeltaTime;
+        }
+        else
+        {
+            mDeltaTime = 0.f;
+        }
         SceneManager::Run();
         break;
     case State::Stepping:
         mDeltaTime = 1.f / 30.f;
         mTime += mDeltaTime;
         SceneManager::Run();
-        mState = State::Paused;
+        mState = State::Running;
+        mPaused = true;
         break;
     case State::Stopping:
         mDeltaTime = 0.f;
@@ -201,6 +205,12 @@ Application::State Application::Impl::GetState()
     return mState;
 }
 
+/// get paused state
+bool Application::Impl::Paused()
+{
+    return mPaused;
+}
+
 /// start application
 void Application::Impl::Start()
 {
@@ -210,14 +220,7 @@ void Application::Impl::Start()
 /// pause application
 void Application::Impl::Pause()
 {
-    if (mState == State::Paused)
-    {
-        mState = State::Running;
-    }
-    else
-    {
-        mState = State::Pausing;
-    }
+    mPaused = !mPaused;
 }
 
 /// step application
@@ -314,6 +317,12 @@ void Application::Quit()
 Application::State Application::GetState()
 {
     return mImpl->GetState();
+}
+
+/// get paused state
+bool Application::Paused()
+{
+    return mImpl->Paused();
 }
 
 /// start application

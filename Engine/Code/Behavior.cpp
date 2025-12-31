@@ -38,6 +38,7 @@ public:
         {
             if (auto owner = mOwner.lock())
             {
+#ifdef EDITOR
                 bool doRun = false;
                 if (auto entity = owner->Entity().lock())
                 {
@@ -48,6 +49,9 @@ public:
                 {
                     owner->Update();
                 }
+#else
+                owner->Update();
+#endif
             }
         }
     }

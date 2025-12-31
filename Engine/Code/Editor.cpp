@@ -348,17 +348,8 @@ void Editor::Impl::RunTopBar()
     if (auto application = mApplication.lock())
     {
         ImGui::SetCursorPosX(centerX);
-        bool started, paused;
-        if (application->GetState() == Application::State::Running)
-        {
-            started = true;
-            paused = false;
-        }
-        else
-        {
-            started = false;
-            paused = application->GetState() == Application::State::Paused;
-        }
+        bool started = application->GetState() == Application::State::Running;
+        bool paused = application->Paused();
         if (started)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
@@ -368,18 +359,15 @@ void Editor::Impl::RunTopBar()
         {
             if (started)
             {
+                if (paused)
+                {
+                    application->Pause();
+                }
                 application->Stop();
             }
             else
             {
-                if (paused)
-                {
-                    application->Stop();
-                }
-                else
-                {
-                    application->Start();
-                }
+                application->Start();
             }
         }
         if (started)
@@ -402,7 +390,8 @@ void Editor::Impl::RunTopBar()
         }
         ImGui::SameLine();
 
-        ImGui::BeginDisabled(!(started || paused));
+        bool canStep = started;
+        ImGui::BeginDisabled(!canStep);
         if (ImGuiLib::Button(MATERIAL_ICONS_STEP, 5.f, ImDrawFlags_RoundCornersRight))
         {
             application->Step();
