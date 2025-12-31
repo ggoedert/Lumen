@@ -57,7 +57,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     _CrtSetBreakAlloc(-1);  // \todo @review@ sometimes we already to late to do this, we can force _crtBreakAlloc var in watch window at dbgheap.c:392
 #endif
 
-    // tells Windows not to virtualize/stretch your window coordinates
+    // tells Windows not to virtualize/stretch window coordinates
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     if (!DirectX::XMVerifyCPUSupport())

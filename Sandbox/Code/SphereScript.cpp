@@ -9,6 +9,8 @@
 #include "lTransform.h"
 #include "lSceneManager.h"
 
+#include <chrono>
+
 DEFINE_COMPONENT_TYPEINFO(SphereScript);
 
 /// constructs a sphere script with a background color
@@ -18,7 +20,9 @@ SphereScript::SphereScript(const Lumen::EntityWeakPtr &entity) :
 /// creates a smart pointer version of the sphere script component
 Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::EntityWeakPtr &entity)
 {
-    return Lumen::ComponentPtr(new SphereScript(entity));
+    auto ptr = Lumen::ComponentPtr(new SphereScript(entity));
+    ptr->Initialize();
+    return ptr;
 }
 
 /// serialize
@@ -41,19 +45,26 @@ void SphereScript::Start()
 /// update is called once per frame
 void SphereScript::Update()
 {
+    // test rotate the sphere
     if (auto entity = Entity().lock())
     {
+        static float lastTime = 0.f;
+        float currentTime = entity->GetApplication().Time();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
         if (auto transform = entity->Transform().lock())
         {
-            transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
+            //transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
+            transform->Rotate(0.f, 90.f * deltaTime, 0.f);
         }
     }
 
-    /* temp delme - log messages at random intervals
+    // test log messages at random intervals
+    constexpr auto interval = std::chrono::milliseconds { 334 }; // 3 messages per second
     using clock = std::chrono::steady_clock;
-    static auto lastLogTime = clock::now() - std::chrono::seconds(1);
+    static auto lastLogTime = clock::now() - interval;
     auto now = clock::now();
-    if (now - lastLogTime >= std::chrono::milliseconds(334))
+    if (now - lastLogTime >= interval)
     {
         lastLogTime = now;
 
@@ -75,5 +86,4 @@ void SphereScript::Update()
             Lumen::DebugLog::Error("SphereScript: Error log message.");
         }
     }
-    */
 }

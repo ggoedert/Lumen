@@ -14,7 +14,7 @@ namespace Lumen
     CLASS_WEAK_PTR_DEF(Behavior);
 
     /// Behavior class
-    class Behavior : public Component
+    class Behavior : public Component, public std::enable_shared_from_this<Behavior>
     {
         CLASS_NO_DEFAULT_CTOR(Behavior);
         CLASS_NO_COPY_MOVE(Behavior);
@@ -25,6 +25,9 @@ namespace Lumen
 
         /// destructor
         ~Behavior() override;
+
+        /// initialize behavior
+        void Initialize() override;
 
         /// control enabled
         void Enable(bool enable);

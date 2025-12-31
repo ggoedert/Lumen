@@ -23,7 +23,7 @@ namespace Lumen
         ~EditorLog();
 
         /// creates a smart pointer version of the editor log
-        static EditorLogPtr MakePtr();
+        static EditorLogPtr MakePtr(const std::string &logFilename);
 
         /// run editor log
         void Run(const char *title);
@@ -42,7 +42,7 @@ namespace Lumen
 
     protected:
         /// constructs editor log
-        explicit EditorLog();
+        explicit EditorLog(const std::string &logFilename);
 
     private:
         /// private implementation

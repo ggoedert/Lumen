@@ -86,8 +86,11 @@ namespace Lumen
         bool Run();
 
 #ifdef EDITOR
+        /// get executable name
+        [[nodiscard]] std::string GetExecutableName() const;
+
         /// get windows settings
-        Settings GetSettings() const;
+        [[nodiscard]] Settings GetSettings() const;
 
         /// set windows settings
         void SetSettings(Settings &settings);

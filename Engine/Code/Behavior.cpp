@@ -22,13 +22,39 @@ public:
     ~Impl() = default;
 
 public:
+    /// set owner
+    void SetOwner(BehaviorWeakPtr owner) { mOwner = owner; }
+
     /// control enabled
     void Enable(bool enable) { mEnabled = enable; }
 
     /// return enabled
     [[nodiscard]] bool Enabled() { return mEnabled; }
 
+    /// run component
+    void Run()
+    {
+        if (Enabled())
+        {
+            if (auto owner = mOwner.lock())
+            {
+                bool doRun = false;
+                if (auto entity = owner->Entity().lock())
+                {
+                    Application &application = entity->GetApplication();
+                    doRun = (0.f != entity->GetApplication().DeltaTime()) || (application.GetState() == Application::State::Stopping);
+                }
+                if (doRun)
+                {
+                    owner->Update();
+                }
+            }
+        }
+    }
 private:
+    /// owner
+    BehaviorWeakPtr mOwner;
+
     /// behaviour enabled
     bool mEnabled;
 };
@@ -42,6 +68,9 @@ Behavior::Behavior(HashType type, std::string_view name, const EntityWeakPtr &en
 /// destructor
 Behavior::~Behavior() = default;
 
+/// initialize behavior
+void Behavior::Initialize() { mImpl->SetOwner(weak_from_this()); }
+
 /// control enabled
 void Behavior::Enable(bool enable) { mImpl->Enable(enable); }
 
@@ -49,10 +78,4 @@ void Behavior::Enable(bool enable) { mImpl->Enable(enable); }
 bool Behavior::Enabled() { return mImpl->Enabled(); }
 
 /// run component
-void Behavior::Run()
-{
-    if (Enabled())
-    {
-        Update();
-    }
-}
+void Behavior::Run() { return mImpl->Run(); }

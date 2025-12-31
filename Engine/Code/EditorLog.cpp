@@ -3,6 +3,9 @@
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
 
+#include <fstream>
+#include <chrono>
+
 using namespace Lumen;
 
 /// EditorLog::Impl class
@@ -13,10 +16,16 @@ class EditorLog::Impl
 
 public:
     /// constructs editor
-    explicit Impl() : mWindowOpen(true), mAutoScroll(true), mCurrentLogLevel(2) {}
+    explicit Impl(const std::string &logFilename) : mLogFile(logFilename, std::ios::out | std::ios::trunc), mWindowOpen(true), mAutoScroll(true), mCurrentLogLevel(2) {}
 
     /// destructor
-    ~Impl() {}
+    ~Impl()
+    {
+        if (mLogFile.is_open())
+        {
+            mLogFile.close();
+        }
+    }
 
     /// run editor log
     void Run(const char *title)
@@ -124,24 +133,43 @@ public:
         }
 
         // create app log message
+        using clock = std::chrono::system_clock;
+        auto time = clock::to_time_t(clock::now());
+        std::tm timeInfo;
+        localtime_s(&timeInfo, &time);
+        std::ostringstream messageFile;
+        messageFile << std::put_time(&timeInfo, "%H:%M:%S ");
         std::string messageLower;
         switch (level)
         {
         case DebugLog::LogLevel::Error:
+            messageFile << "[Error] ";
             messageLower = "[error] ";
             break;
         case DebugLog::LogLevel::Warning:
+            messageFile << "[Warning] ";
             messageLower = "[warning] ";
             break;
         case DebugLog::LogLevel::Info:
+            messageFile << "[Info] ";
             messageLower = "[info] ";
             break;
         case DebugLog::LogLevel::Detail:
+            messageFile << "[Detail] ";
             messageLower = "[detail] ";
             break;
         default:
+            messageFile << "[Log] ";
             messageLower = "[log] ";
             break;
+        }
+        if (mLogFile.is_open())
+        {
+            mLogFile << messageFile.str() << message << "\n";
+            if (level == DebugLog::LogLevel::Error)
+            {
+                mLogFile.flush();
+            }
         }
         std::transform(message.begin(), message.end(), std::back_inserter(messageLower), [](char c) { return std::tolower(c); });
 
@@ -252,6 +280,9 @@ private:
         return false;
     }
 
+    /// log file
+    std::ofstream mLogFile;
+
     /// window open
     bool mWindowOpen;
 
@@ -280,15 +311,15 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs editor
-EditorLog::EditorLog() : mImpl(EditorLog::Impl::MakeUniquePtr()) {}
+EditorLog::EditorLog(const std::string &logFilename) : mImpl(EditorLog::Impl::MakeUniquePtr(logFilename)) {}
 
 /// destructor
 EditorLog::~EditorLog() {}
 
 /// creates a smart pointer version of the editor log
-EditorLogPtr EditorLog::MakePtr()
+EditorLogPtr EditorLog::MakePtr(const std::string &logFilename)
 {
-    return EditorLogPtr(new EditorLog());
+    return EditorLogPtr(new EditorLog(logFilename));
 }
 
 /// run editor log

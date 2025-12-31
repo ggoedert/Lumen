@@ -30,28 +30,6 @@ public:
                 return;
             }
 
-            // draw a toolbar
-            bool paused = false;
-            if (auto application = engine->GetApplication().lock())
-            {
-                paused = application->Paused();
-                if (paused)
-                {
-                    if (ImGui::Button("Play"))
-                    {
-                        application->Pause(false);
-                    }
-                }
-                else
-                {
-                    if (ImGui::Button("Pause"))
-                    {
-                        application->Pause(true);
-                    }
-                }
-                ImGui::SameLine();
-            }
-
             // combo box to switch render targets
             static int currentView = 0; // 0 - RenderTexture / 1 - DepthStencil
             const char *views[] = { "RenderTexture", "DepthStencil" };

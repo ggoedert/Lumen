@@ -59,11 +59,20 @@ protected:
     bool Run(float deltaTime);
 
 #ifdef EDITOR
-    /// set application pause
-    void Pause(bool pause);
+    /// get application state
+    [[nodiscard]] State GetState();
 
-    /// return if paused
-    bool Paused();
+    /// start application
+    void Start();
+
+    /// pause application
+    void Pause();
+
+    /// step application
+    void Step();
+
+    /// stop application
+    void Stop();
 #endif
 
     /// quit application
@@ -73,18 +82,16 @@ private:
     /// default background color
     static constexpr Math::Vector4 cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
 
-    /// application running
-    bool mRunning { true };
-
-#ifdef EDITOR
-    /// application paused
-    bool mPaused { false };
-#endif
-
     /// engine pointer
     EngineWeakPtr mEngine;
 
-#ifdef EDITOR
+#ifndef EDITOR
+    /// application state
+    State mState { State::Running };
+#else
+    /// application state
+    State mState { State::Stopped };
+
     /// editor pointer
     EditorPtr mEditor;
 #endif
@@ -136,40 +143,100 @@ void Application::Impl::Editor()
 /// run application
 bool Application::Impl::Run(float deltaTime)
 {
-    if (mRunning)
+#ifndef EDITOR
+    if (mState == State::Running)
     {
-#ifdef EDITOR
-        if (mPaused)
-        {
-            deltaTime = 0.f;
-        }
-#endif
         mDeltaTime = deltaTime;
         mTime += mDeltaTime;
         SceneManager::Run();
         return true;
     }
     return false;
+#else
+    switch (mState)
+    {
+    case State::Running:
+        mDeltaTime = deltaTime;
+        mTime += mDeltaTime;
+        SceneManager::Run();
+        break;
+    case State::Pausing:
+        mDeltaTime = deltaTime;
+        mTime += mDeltaTime;
+        SceneManager::Run();
+        mState = State::Paused;
+        break;
+    case State::Paused:
+        mDeltaTime = 0.f;
+        SceneManager::Run();
+        break;
+    case State::Stepping:
+        mDeltaTime = 1.f / 30.f;
+        mTime += mDeltaTime;
+        SceneManager::Run();
+        mState = State::Paused;
+        break;
+    case State::Stopping:
+        mDeltaTime = 0.f;
+        mTime = 0.f;
+        SceneManager::Run();
+        mState = State::Stopped;
+        break;
+    case State::Stopped:
+        mDeltaTime = 0.f;
+        SceneManager::Run();
+        break;
+    case State::Quit:
+        return false;
+        break;
+    }
+    return true;
+#endif
 }
 
 #ifdef EDITOR
-/// set application pause
-void Application::Impl::Pause(bool pause)
+/// get application state
+Application::State Application::Impl::GetState()
 {
-    mPaused = pause;
+    return mState;
 }
 
-/// return if paused
-bool Application::Impl::Paused()
+/// start application
+void Application::Impl::Start()
 {
-    return mPaused;
+    mState = State::Running;
+}
+
+/// pause application
+void Application::Impl::Pause()
+{
+    if (mState == State::Paused)
+    {
+        mState = State::Running;
+    }
+    else
+    {
+        mState = State::Pausing;
+    }
+}
+
+/// step application
+void Application::Impl::Step()
+{
+    mState = State::Stepping;
+}
+
+/// stop application
+void Application::Impl::Stop()
+{
+    mState = State::Stopping;
 }
 #endif
 
 /// quit application
 void Application::Impl::Quit()
 {
-    mRunning = false;
+    mState = State::Quit;
 }
 
 /// get background color
@@ -243,16 +310,34 @@ void Application::Quit()
 }
 
 #ifdef EDITOR
-/// set application pause
-void Application::Pause(bool pause)
+/// get application state
+Application::State Application::GetState()
 {
-    mImpl->Pause(pause);
+    return mImpl->GetState();
 }
 
-/// return if paused
-bool Application::Paused()
+/// start application
+void Application::Start()
 {
-    return mImpl->Paused();
+    mImpl->Start();
+}
+
+/// pause application
+void Application::Pause()
+{
+    mImpl->Pause();
+}
+
+/// step application
+void Application::Step()
+{
+    mImpl->Step();
+}
+
+/// stop application
+void Application::Stop()
+{
+    mImpl->Stop();
 }
 
 /// run editor

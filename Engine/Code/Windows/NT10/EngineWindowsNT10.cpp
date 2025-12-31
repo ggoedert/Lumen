@@ -79,6 +79,9 @@ namespace Lumen::WindowsNT10
         void OnWindowSizeChanged(int width, int height);
 
 #ifdef EDITOR
+        /// get executable name
+        std::string GetExecutableName() const override;
+
         /// get settings
         Engine::Settings GetSettings() noexcept override;
 
@@ -363,6 +366,13 @@ namespace Lumen::WindowsNT10
     bool EngineWindowsNT10::Initialize(const Object &config)
     {
 #ifdef EDITOR
+        // make sure we have the required assets for the editor
+        if (!std::filesystem::exists(Lumen::ImGuiLib::gMaterialIconsFontFilename))
+        {
+            Lumen::DebugLog::Error("EngineWindowsNT10::Initialize font file does not exist, {}", Lumen::ImGuiLib::gMaterialIconsFontFilename);
+            return false;
+        }
+
         // make process DPI aware and obtain main monitor scale
         ImGui_ImplWin32_EnableDpiAwareness();
         mMainScale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
@@ -428,8 +438,9 @@ namespace Lumen::WindowsNT10
         ImGui::LoadIniSettingsFromMemory(combinedImGuiIni.c_str(), combinedImGuiIni.size());
 
         // setup Dear ImGui style
-        ImGui::StyleColorsDark();
+        //ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
+        ImGui::StyleColorsClassic();
 
         // setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
@@ -476,6 +487,16 @@ namespace Lumen::WindowsNT10
             resourceDescriptors->Free(resourceDescriptors->GetIndex(cpu_handle, gpu_handle));
         };
         ImGui_ImplDX12_Init(&init_info);
+
+        // Merge Material Icons PUA range
+        io.Fonts->AddFontDefault(); // ensures a base font exists
+        ImFontConfig imFontConfig;
+        imFontConfig.MergeMode = true;
+        imFontConfig.PixelSnapH = true;
+        imFontConfig.GlyphOffset.y = Lumen::ImGuiLib::gMaterialIconsIconsGlyphOffset;
+        Lumen::ImGuiLib::gMaterialIconsFont = io.Fonts->AddFontFromFileTTF(Lumen::ImGuiLib::gMaterialIconsFontFilename, Lumen::ImGuiLib::gMaterialIconsFontSize, &imFontConfig,
+            Lumen::ImGuiLib::gMaterialIconsIconsRanges);
+        ImGui_ImplDX12_CreateDeviceObjects(); // build font atlas
 
         // mark ImGui initialized
         mImGuiInitialized = true;
@@ -892,6 +913,16 @@ namespace Lumen::WindowsNT10
     }
 
 #ifdef EDITOR
+    std::string EngineWindowsNT10::GetExecutableName() const
+    {
+        wchar_t buffer[MAX_PATH];
+        if (GetModuleFileNameW(NULL, buffer, MAX_PATH) == 0)
+        {
+            return "unknown";
+        }
+        return std::filesystem::path(buffer).stem().string();
+    }
+
     /// get settings
     Engine::Settings EngineWindowsNT10::GetSettings() noexcept
     {

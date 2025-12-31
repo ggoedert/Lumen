@@ -171,6 +171,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Editor|Win32'">
     <ClCompile>
@@ -195,6 +203,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -223,6 +239,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Editor|Win32'">
     <ClCompile>
@@ -251,6 +275,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -275,6 +307,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">
     <ClCompile>
@@ -299,6 +339,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -327,6 +375,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Editor|x64'">
     <ClCompile>
@@ -355,6 +411,14 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)$(ProjectName)PostBuild.cmd" ^
+     "$(ProjectDir)..\..\.." ^
+     "$(ProjectDir)..\.."</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>$(ProjectName) Post-Build</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Code\SphereScript.h" />

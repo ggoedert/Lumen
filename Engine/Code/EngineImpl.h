@@ -43,6 +43,9 @@ namespace Lumen
         virtual bool Run(std::function<bool()> update, std::function<void()> preRender) = 0;
 
 #ifdef EDITOR
+        /// get executable name
+        virtual std::string GetExecutableName() const = 0;
+
         /// get settings
         virtual Engine::Settings GetSettings() = 0;
 

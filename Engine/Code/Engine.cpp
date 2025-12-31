@@ -42,7 +42,13 @@ bool Engine::Initialize(const Object &config)
         return false;
 
 #ifdef EDITOR
-    DebugLog::Info("Engine initialized in editor mode");
+    using clock = std::chrono::system_clock;
+    auto time = clock::to_time_t(clock::now());
+    std::tm timeInfo;
+    localtime_s(&timeInfo, &time);
+    std::ostringstream oss;
+    oss << std::put_time(&timeInfo, "%Y-%m-%d");
+    DebugLog::Info("[{}] Engine initialized in editor mode", oss.str());
 #endif
 
     // initialize application
@@ -117,6 +123,12 @@ bool Engine::Run()
 }
 
 #ifdef EDITOR
+/// get executable name
+std::string Engine::GetExecutableName() const
+{
+    return mImpl->GetExecutableName();
+}
+
 /// get settings
 Engine::Settings Engine::GetSettings() const
 {

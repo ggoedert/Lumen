@@ -61,10 +61,10 @@ public:
     void ResetLayout();
 private:
 
-    /// run main menu bar
-    void RunMainMenuBar();
+    /// run top bar
+    void RunTopBar();
 
-    /// run Status Bar
+    /// run status Bar
     void RunStatusBar();
 
     /// current viewport
@@ -88,7 +88,20 @@ private:
 
 /// constructs editor
 Editor::Impl::Impl(const ApplicationWeakPtr &application) :
-    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorView(EditorView::MakePtr()), mEditorLog(EditorLog::MakePtr()) {}
+    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorView(EditorView::MakePtr())
+{
+    Lumen::ApplicationPtr applicationLock;
+    Lumen::EnginePtr engine;
+    if (applicationLock = mApplication.lock())
+    {
+        engine = applicationLock->GetEngine().lock();
+    }
+    if (!engine)
+    {
+        throw std::runtime_error("Editor::Impl::Impl no valid application or engine");
+    }
+    mEditorLog = EditorLog::MakePtr(engine->GetExecutableName() + ".log");
+}
 
 /// destroys editor
 Editor::Impl::~Impl() {}
@@ -229,7 +242,7 @@ void Editor::Impl::Run()
         ResetLayout();
     }
 
-    RunMainMenuBar();
+    RunTopBar();
     mEditorView->Run("View", engine);
     mEditorLog->Run("Log");
     RunStatusBar();
@@ -243,7 +256,7 @@ void Editor::Impl::ResetLayout()
     // clear existing layout
     ImGui::DockBuilderRemoveNode(mDockMainId);
 
-    // add the main node with DockSpace and PassthruCentralNode flags, allows to see your background behind the docking system if no window is docked there
+    // add the main node with DockSpace and PassthruCentralNode flags, allows to see the background behind the docking system if no window is docked there
     ImGui::DockBuilderAddNode(mDockMainId, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode);
     ImGui::DockBuilderSetNodeSize(mDockMainId, mViewport->Size);
 
@@ -262,9 +275,11 @@ void Editor::Impl::ResetLayout()
     ImGui::SetWindowFocus("View");
 }
 
-/// run main menu bar
-void Editor::Impl::RunMainMenuBar()
+/// run top bar
+void Editor::Impl::RunTopBar()
 {
+    // main menu bar
+    float menuBarHeight = 0.f;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Project"))
@@ -300,8 +315,105 @@ void Editor::Impl::RunMainMenuBar()
             }
             ImGui::EndMenu();
         }
+        menuBarHeight = ImGui::GetCurrentWindow()->MenuBarHeight;
         ImGui::EndMainMenuBar();
     }
+
+    // toolbar
+    const float toolbarHeight = ImGuiLib::gMaterialIconsFontSize * 3.f;
+    ImGui::PushFont(Lumen::ImGuiLib::gMaterialIconsFont, 0.f);
+    ImGui::BeginViewportSideBar("ToolBar", mViewport, ImGuiDir_Up, toolbarHeight, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(ImGuiLib::gMaterialIconsFontSize * 0.125f, 0.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGuiLib::gMaterialIconsFontSize * 0.75f, ImGuiLib::gMaterialIconsFontSize - 10.f));
+    ImGui::SetCursorPosY((toolbarHeight - ImGui::GetFrameHeight()) * 0.5f);
+
+    // calculate total width of the center buttons
+    float playWidth = ImGui::CalcTextSize(MATERIAL_ICONS_PLAY).x + ImGui::GetStyle().FramePadding.x * 2.f;
+    float pauseWidth = ImGui::CalcTextSize(MATERIAL_ICONS_PAUSE).x + ImGui::GetStyle().FramePadding.x * 2.f;
+    float stepWidth = ImGui::CalcTextSize(MATERIAL_ICONS_STEP).x + ImGui::GetStyle().FramePadding.x * 2.f;
+    float totalGroupWidth = playWidth + ImGui::GetStyle().ItemSpacing.x + pauseWidth + ImGui::GetStyle().ItemSpacing.x + stepWidth - ImGui::GetStyle().WindowPadding.x * 2.f;
+    float centerX = (ImGui::GetContentRegionAvail().x - totalGroupWidth) * 0.5f;
+
+    // side buttons
+    if (ImGuiLib::Button(MATERIAL_ICONS_HAND, 5.f, ImDrawFlags_RoundCornersLeft)) {}
+    ImGui::SameLine();
+    if (ImGui::Button(MATERIAL_ICONS_MOVE)) {}
+    ImGui::SameLine();
+    if (ImGui::Button(MATERIAL_ICONS_ROTATE)) {}
+    ImGui::SameLine();
+    if (ImGuiLib::Button(MATERIAL_ICONS_SCALE, 5.f, ImDrawFlags_RoundCornersRight)) {}
+    ImGui::SameLine();
+
+    // center buttons
+    if (auto application = mApplication.lock())
+    {
+        ImGui::SetCursorPosX(centerX);
+        bool started, paused;
+        if (application->GetState() == Application::State::Running)
+        {
+            started = true;
+            paused = false;
+        }
+        else
+        {
+            started = false;
+            paused = application->GetState() == Application::State::Paused;
+        }
+        if (started)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        }
+        if (ImGuiLib::Button(MATERIAL_ICONS_PLAY, 5.f, ImDrawFlags_RoundCornersLeft))
+        {
+            if (started)
+            {
+                application->Stop();
+            }
+            else
+            {
+                if (paused)
+                {
+                    application->Stop();
+                }
+                else
+                {
+                    application->Start();
+                }
+            }
+        }
+        if (started)
+        {
+            ImGui::PopStyleColor(2);
+        }
+        ImGui::SameLine();
+        if (paused)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        }
+        if (ImGui::Button(MATERIAL_ICONS_PAUSE))
+        {
+            application->Pause();
+        }
+        if (paused)
+        {
+            ImGui::PopStyleColor(2);
+        }
+        ImGui::SameLine();
+
+        ImGui::BeginDisabled(!(started || paused));
+        if (ImGuiLib::Button(MATERIAL_ICONS_STEP, 5.f, ImDrawFlags_RoundCornersRight))
+        {
+            application->Step();
+        }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+    }
+
+    ImGui::PopStyleVar(2);
+    ImGui::End();
+    ImGui::PopFont();
 }
 
 /// run status bar

@@ -25,6 +25,9 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(Application);
 
     public:
+        /// application state
+        enum class State { Running, Pausing, Paused, Stepping, Stopping, Stopped, Quit };
+
         /// get engine
         [[nodiscard]] EngineWeakPtr GetEngine();
 
@@ -59,11 +62,20 @@ namespace Lumen
         void Quit();
 
 #ifdef EDITOR
-        /// set application pause
-        void Pause(bool pause);
+        /// get application state
+        [[nodiscard]] State GetState();
 
-        /// return if paused
-        bool Paused();
+        /// start application
+        void Start();
+
+        /// step application
+        void Step();
+
+        /// pause application
+        void Pause();
+
+        /// stop application
+        void Stop();
 #endif
 
     protected:

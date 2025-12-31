@@ -11,6 +11,9 @@ External/Windows/NT6_1/microsoft.xaudio2.redist
 *.depend
 *.layout
 
+# Sandbox constructed Data folder
+Sandbox/Data/
+
 # Local data
 scratch/
 html/
