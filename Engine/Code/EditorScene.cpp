@@ -1,13 +1,18 @@
+//==============================================================================================================================================================================
+/// \file
+/// \brief     Editor Scene
+/// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
+//==============================================================================================================================================================================
 #ifdef EDITOR
 
-#include "lEditorView.h"
+#include "lEditorScene.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
 
 using namespace Lumen;
 
-/// EditorView::Impl class
-class EditorView::Impl
+/// EditorScene::Impl class
+class EditorScene::Impl
 {
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
@@ -19,7 +24,7 @@ public:
     /// destructor
     ~Impl() {}
 
-    /// run editor view
+    /// run editor scene
     void Run(const char *title, Lumen::EnginePtr engine)
     {
         if (mWindowOpen)
@@ -31,24 +36,24 @@ public:
             }
 
             // combo box to switch render targets
-            static int currentView = 0; // 0 - RenderTexture / 1 - DepthStencil
-            const char *views[] = { "RenderTexture", "DepthStencil" };
+            static int currentRenderTarget = 0; // 0 - RenderTexture / 1 - DepthStencil
+            const char *renderTargets[] = { "RenderTexture", "DepthStencil" };
 
             // calc the width required by the combo box
             float maxWidth = 0;
-            for (int i = 0; i < IM_ARRAYSIZE(views); i++)
+            for (int i = 0; i < IM_ARRAYSIZE(renderTargets); i++)
             {
-                float width = ImGui::CalcTextSize(views[i]).x;
+                float width = ImGui::CalcTextSize(renderTargets[i]).x;
                 if (width > maxWidth) maxWidth = width;
             }
             float totalWidth = maxWidth + ImGui::GetStyle().FramePadding.x * 2.0f + ImGui::GetFrameHeight();
 
             // draw the combo box
             ImGui::SetNextItemWidth(totalWidth);
-            if (ImGui::Combo("##View", &currentView, views, IM_ARRAYSIZE(views))) {}
+            if (ImGui::Combo("##RenderTarget", &currentRenderTarget, renderTargets, IM_ARRAYSIZE(renderTargets))) {}
 
             // draw the render texture in the remaining space
-            Id::Type texId = static_cast<Id::Type>(currentView);
+            Id::Type texId = static_cast<Id::Type>(currentRenderTarget);
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             engine->SetRenderTextureSize(texId, { static_cast<int>(viewportPanelSize.x), static_cast<int>(viewportPanelSize.y) });
             ImGui::Image(engine->GetRenderTextureHandle(texId), viewportPanelSize);
@@ -57,13 +62,13 @@ public:
         }
     }
 
-    /// return editor view visibility
+    /// return editor scene window visibility
     bool Visible()
     {
         return mWindowOpen;
     }
 
-    /// set editor view visibility
+    /// set editor scene window visibility
     void Show(bool visible)
     {
         mWindowOpen = visible;
@@ -77,31 +82,31 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs editor
-EditorView::EditorView() : mImpl(EditorView::Impl::MakeUniquePtr()) {}
+EditorScene::EditorScene() : mImpl(EditorScene::Impl::MakeUniquePtr()) {}
 
 /// destructor
-EditorView::~EditorView() {}
+EditorScene::~EditorScene() {}
 
 /// creates a smart pointer version of the editor log
-EditorViewPtr EditorView::MakePtr()
+EditorScenePtr EditorScene::MakePtr()
 {
-    return EditorViewPtr(new EditorView());
+    return EditorScenePtr(new EditorScene());
 }
 
-/// run editor view
-void EditorView::Run(const char *title, Lumen::EnginePtr engine)
+/// run editor scene
+void EditorScene::Run(const char *title, Lumen::EnginePtr engine)
 {
     mImpl->Run(title, engine);
 }
 
-/// return editor view visibility
-bool EditorView::Visible()
+/// return editor scene window visibility
+bool EditorScene::Visible()
 {
     return mImpl->Visible();
 }
 
-/// set editor view visibility
-void EditorView::Show(bool visible)
+/// set editor scene window visibility
+void EditorScene::Show(bool visible)
 {
     mImpl->Show(visible);
 }

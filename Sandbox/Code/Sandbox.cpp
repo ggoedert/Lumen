@@ -68,5 +68,4 @@ void Sandbox::Open()
         mMainScene->Serialize(out, false);
         std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
     }
-
 }

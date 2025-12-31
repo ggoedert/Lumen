@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Editor View interface
+/// \brief     Editor Scene interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -12,32 +12,32 @@
 namespace Lumen
 {
     CLASS_PTR_DEF(Engine);
-    CLASS_PTR_DEF(EditorView);
+    CLASS_PTR_DEF(EditorScene);
 
-    /// EditorView class
-    class EditorView
+    /// EditorScene class
+    class EditorScene
     {
-        CLASS_NO_COPY_MOVE(EditorView);
+        CLASS_NO_COPY_MOVE(EditorScene);
 
     public:
         /// destructor
-        ~EditorView();
+        ~EditorScene();
 
-        /// creates a smart pointer version of the editor view
-        static EditorViewPtr MakePtr();
+        /// creates a smart pointer version of the editor scene
+        static EditorScenePtr MakePtr();
 
-        /// run editor view
+        /// run editor scene
         void Run(const char *title, Lumen::EnginePtr engine);
 
-        /// return editor view visibility
+        /// return editor scene window visibility
         bool Visible();
 
-        /// set editor view visibility
+        /// set editor scene window visibility
         void Show(bool visible);
 
     protected:
-        /// constructs editor view
-        explicit EditorView();
+        /// constructs editor scene
+        explicit EditorScene();
 
     private:
         /// private implementation

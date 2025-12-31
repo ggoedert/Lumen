@@ -209,7 +209,7 @@
     <ClInclude Include="..\..\Include\lEditorLog.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\lEditorView.h">
+    <ClInclude Include="..\..\Include\lEditorScene.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
   </ItemGroup>
@@ -316,7 +316,7 @@
     <ClCompile Include="..\..\Code\EditorLog.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\EditorView.cpp">
+    <ClCompile Include="..\..\Code\EditorScene.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
   </ItemGroup>

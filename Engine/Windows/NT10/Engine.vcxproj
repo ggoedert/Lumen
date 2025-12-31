@@ -312,7 +312,7 @@
     <ClInclude Include="..\..\Include\lDefs.h" />
     <ClInclude Include="..\..\Include\lEditor.h" />
     <ClInclude Include="..\..\Include\lEditorLog.h" />
-    <ClInclude Include="..\..\Include\lEditorView.h" />
+    <ClInclude Include="..\..\Include\lEditorScene.h" />
     <ClInclude Include="..\..\Include\lEngine.h" />
     <ClInclude Include="..\..\Include\lEvent.h" />
     <ClInclude Include="..\..\Include\lEventReceiver.h" />
@@ -352,7 +352,7 @@
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
     <ClCompile Include="..\..\Code\Editor.cpp" />
     <ClCompile Include="..\..\Code\EditorLog.cpp" />
-    <ClCompile Include="..\..\Code\EditorView.cpp" />
+    <ClCompile Include="..\..\Code\EditorScene.cpp" />
     <ClCompile Include="..\..\Code\Engine.cpp" />
     <ClCompile Include="..\..\Code\Event.cpp" />
     <ClCompile Include="..\..\Code\FileSystem.cpp" />

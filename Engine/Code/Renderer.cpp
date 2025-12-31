@@ -24,7 +24,7 @@ class Renderer::Impl
 
 public:
     /// constructs a renderer
-    explicit Impl(const EngineWeakPtr &engine) : mEngine(engine) {}
+    explicit Impl(Renderer &owner, const EngineWeakPtr &engine) : mOwner(owner), mEngine(engine) {}
 
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
@@ -63,41 +63,38 @@ public:
     {
         if (auto engineLock = mEngine.lock())
         {
-            if (auto renderer = mOwner.lock())
+            if (auto entity = mOwner.Entity().lock())
             {
-                if (auto entity = renderer->Entity().lock())
+                if (auto geometry = std::static_pointer_cast<Geometry>(entity->Component(Geometry::Type()).lock()))
                 {
-                    if (auto geometry = std::static_pointer_cast<Geometry>(entity->Component(Geometry::Type()).lock()))
+                    MeshPtr mesh = geometry->GetMesh();
+                    ShaderPtr shader = mMaterial->GetShader();
+                    TexturePtr texture;
+                    auto textureProperty = mMaterial->GetProperty("diffuseTex");
+                    if (textureProperty.HasValue())
                     {
-                        MeshPtr mesh = geometry->GetMesh();
-                        ShaderPtr shader = mMaterial->GetShader();
-                        TexturePtr texture;
-                        auto textureProperty = mMaterial->GetProperty("diffuseTex");
-                        if (textureProperty.HasValue())
+                        if (auto pTexture = std::get_if<TexturePtr>(&textureProperty.Value()))
                         {
-                            if (auto pTexture = std::get_if<TexturePtr>(&textureProperty.Value()))
-                            {
-                                texture = *pTexture;
-                            }
+                            texture = *pTexture;
                         }
-                        if (mesh && shader && texture)
-                        {
-                            Engine::DrawPrimitive drawPrimitive;
-                            drawPrimitive.meshId = mesh->GetMeshId();
-                            drawPrimitive.shaderId = shader->GetShaderId();
-                            drawPrimitive.texId = texture->GetTextureId();
-                            entity->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
-                            engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
-                        }
-
                     }
+                    if (mesh && shader && texture)
+                    {
+                        Engine::DrawPrimitive drawPrimitive;
+                        drawPrimitive.meshId = mesh->GetMeshId();
+                        drawPrimitive.shaderId = shader->GetShaderId();
+                        drawPrimitive.texId = texture->GetTextureId();
+                        entity->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
+                        engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
+                    }
+
                 }
             }
         }
     }
 
     /// owner
-    RendererWeakPtr mOwner;
+    Renderer &mOwner;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -112,14 +109,12 @@ DEFINE_COMPONENT_TYPEINFO(Renderer);
 
 /// constructs a renderer with an material
 Renderer::Renderer(const EngineWeakPtr &engine, const EntityWeakPtr &entity) :
-    Component(Type(), Name(), entity), mImpl(Renderer::Impl::MakeUniquePtr(engine)) {}
+    Component(Type(), Name(), entity), mImpl(Renderer::Impl::MakeUniquePtr(*this, engine)) {}
 
 /// creates a smart pointer version of the renderer component
 ComponentPtr Renderer::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)
 {
-    auto ptr = RendererPtr(new Renderer(engine, entity));
-    ptr->mImpl->mOwner = ptr;
-    return ptr;
+    return RendererPtr(new Renderer(engine, entity));
 }
 
 /// serialize

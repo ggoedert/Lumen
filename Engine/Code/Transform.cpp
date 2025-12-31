@@ -17,7 +17,7 @@ class Transform::Impl
 
 public:
     /// constructs a transform
-    explicit Impl(const EntityWeakPtr &entity) : mEntity(entity) {}
+    explicit Impl(Transform &owner, const EntityWeakPtr &entity) : mOwner(owner), mEntity(entity) {}
 
     /// destroys transform
     ~Impl() = default;
@@ -95,7 +95,7 @@ public:
     /// set parent
     void SetParent(const TransformWeakPtr &parent)
     {
-        L_ASSERT(parent.lock() != mOwner.lock());
+        L_ASSERT(parent.lock().get() != &mOwner);
         mParent = parent;
     }
 
@@ -147,7 +147,7 @@ public:
     }
 
     /// owner
-    TransformWeakPtr mOwner;
+    Transform &mOwner;
 
     /// owning entity
     EntityWeakPtr mEntity;
@@ -168,7 +168,7 @@ public:
 //==============================================================================================================================================================================
 
 /// constructor
-Transform::Transform(const EntityWeakPtr &entity) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(entity)) {}
+Transform::Transform(const EntityWeakPtr &entity) : Object(Type()), mImpl(Transform::Impl::MakeUniquePtr(*this, entity)) {}
 
 /// destructor
 Transform::~Transform() = default;
@@ -176,9 +176,7 @@ Transform::~Transform() = default;
 /// creates a smart pointer version of the transform component
 TransformPtr Transform::MakePtr(const EntityWeakPtr &entity)
 {
-    auto ptr = TransformPtr(new Transform(entity));
-    ptr->mImpl->mOwner = ptr;
-    return ptr;
+    return TransformPtr(new Transform(entity));
 }
 
 /// serialize

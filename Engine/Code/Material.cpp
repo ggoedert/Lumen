@@ -22,7 +22,7 @@ class Material::Impl
 
 public:
     /// constructs a material
-    explicit Impl() {}
+    explicit Impl(Material &owner) : mOwner(owner) {}
 
     /// register material name / path
     static void Register(std::string_view name, std::string_view path)
@@ -150,7 +150,7 @@ public:
     /// load material
     bool Load()
     {
-        const std::filesystem::path &path = mOwner.lock()->Path();
+        const std::filesystem::path &path = mOwner.Path();
         Lumen::DebugLog::Info("Material::Impl::Load {}", path.string());
 
         // read the material
@@ -186,7 +186,7 @@ public:
 
 private:
     /// owner
-    MaterialWeakPtr mOwner;
+    Material &mOwner;
 
     /// shader
     ShaderPtr mShader;
@@ -203,14 +203,12 @@ StringMap<std::string> Material::Impl::mAssetPaths;
 //==============================================================================================================================================================================
 
 /// constructs a material
-Material::Material(const std::filesystem::path &path) : Asset(Type(), path), mImpl(Material::Impl::MakeUniquePtr()) {}
+Material::Material(const std::filesystem::path &path) : Asset(Type(), path), mImpl(Material::Impl::MakeUniquePtr(*this)) {}
 
 /// custom smart pointer maker
 Expected<AssetPtr> Material::MakePtr(const std::filesystem::path &path)
 {
-    auto ptr = MaterialPtr(new Material(path));
-    ptr->mImpl->mOwner = ptr;
-    return ptr;
+    return MaterialPtr(new Material(path));
 }
 
 /// register material name / path

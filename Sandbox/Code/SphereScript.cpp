@@ -20,9 +20,7 @@ SphereScript::SphereScript(const Lumen::EntityWeakPtr &entity) :
 /// creates a smart pointer version of the sphere script component
 Lumen::ComponentPtr SphereScript::MakePtr(const Lumen::EngineWeakPtr &engine, const Lumen::EntityWeakPtr &entity)
 {
-    auto ptr = Lumen::ComponentPtr(new SphereScript(entity));
-    ptr->Initialize();
-    return ptr;
+    return Lumen::ComponentPtr(new SphereScript(entity));
 }
 
 /// serialize

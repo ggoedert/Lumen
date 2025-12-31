@@ -16,15 +16,12 @@ class Behavior::Impl
 
 public:
     /// constructs a behavior
-    explicit Impl() : mEnabled(true) {}
+    explicit Impl(Behavior &owner) : mOwner(owner), mEnabled(true) {}
 
     /// destroys behavior
     ~Impl() = default;
 
 public:
-    /// set owner
-    void SetOwner(BehaviorWeakPtr owner) { mOwner = owner; }
-
     /// control enabled
     void Enable(bool enable) { mEnabled = enable; }
 
@@ -36,28 +33,25 @@ public:
     {
         if (Enabled())
         {
-            if (auto owner = mOwner.lock())
-            {
 #ifdef EDITOR
-                bool doRun = false;
-                if (auto entity = owner->Entity().lock())
-                {
-                    Application &application = entity->GetApplication();
-                    doRun = (0.f != entity->GetApplication().DeltaTime()) || (application.GetState() == Application::State::Stopping);
-                }
-                if (doRun)
-                {
-                    owner->Update();
-                }
-#else
-                owner->Update();
-#endif
+            bool doRun = false;
+            if (auto entity = mOwner.Entity().lock())
+            {
+                Application &application = entity->GetApplication();
+                doRun = (0.f != entity->GetApplication().DeltaTime()) || (application.GetState() == Application::State::Stopping);
             }
+            if (doRun)
+            {
+                mOwner.Update();
+            }
+#else
+            mOwner.Update();
+#endif
         }
     }
 private:
     /// owner
-    BehaviorWeakPtr mOwner;
+    Behavior &mOwner;
 
     /// behaviour enabled
     bool mEnabled;
@@ -67,13 +61,10 @@ private:
 
 /// constructor
 Behavior::Behavior(HashType type, std::string_view name, const EntityWeakPtr &entity) :
-    Component(type, name, entity), mImpl(Behavior::Impl::MakeUniquePtr()) {}
+    Component(type, name, entity), mImpl(Behavior::Impl::MakeUniquePtr(*this)) {}
 
 /// destructor
 Behavior::~Behavior() = default;
-
-/// initialize behavior
-void Behavior::Initialize() { mImpl->SetOwner(weak_from_this()); }
 
 /// control enabled
 void Behavior::Enable(bool enable) { mImpl->Enable(enable); }

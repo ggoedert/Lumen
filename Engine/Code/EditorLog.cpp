@@ -1,3 +1,8 @@
+//==============================================================================================================================================================================
+/// \file
+/// \brief     Editor Log
+/// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
+//==============================================================================================================================================================================
 #ifdef EDITOR
 
 #include "lEditorLog.h"
@@ -189,12 +194,12 @@ public:
         PrintLog(mStatus);
     }
 
-    /// return editor log visibility
+    /// return editor log window visibility
     bool Visible()
     {
         return mWindowOpen;
     }
-    /// set editor log visibility
+    /// set editor log window visibility
     void Show(bool visible)
     {
         mWindowOpen = visible;
@@ -340,13 +345,13 @@ void EditorLog::PrintStatus()
     mImpl->PrintStatus();
 }
 
-/// return editor log visibility
+/// return editor log window visibility
 bool EditorLog::Visible()
 {
     return mImpl->Visible();
 }
 
-/// set editor log visibility
+/// set editor log window visibility
 void EditorLog::Show(bool visible)
 {
     mImpl->Show(visible);

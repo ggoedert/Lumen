@@ -19,7 +19,7 @@ class Texture::Impl
 
 public:
     /// constructs a texture
-    explicit Impl(const EngineWeakPtr &engine, const Info &info) : mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
+    explicit Impl(Texture &owner, const EngineWeakPtr &engine, const Info &info) : mOwner(owner), mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
 
     /// register texture name / path
     static void Register(std::string_view name, std::string_view path)
@@ -80,7 +80,7 @@ public:
     }
 
     /// owner
-    TextureWeakPtr mOwner;
+    Texture &mOwner;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -104,7 +104,7 @@ StringMap<std::string> Texture::Impl::mAssetPaths;
 
 /// constructs a texture
 Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info) :
-    Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(engine, info)) {}
+    Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(*this, engine, info)) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -116,7 +116,6 @@ Texture::~Texture()
 AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info)
 {
     auto ptr = TexturePtr(new Texture(engine, path, info));
-    ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {
         ptr->mImpl->mTextureId = engineLock->CreateTexture(ptr, info.mWidth, info.mHeight);

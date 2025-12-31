@@ -18,7 +18,7 @@ class EventDispatcher::Impl
 
 public:
     /// constructs an event dispatcher
-    explicit Impl() {}
+    explicit Impl(EventDispatcher &owner) : mOwner(owner) {}
 
     /// attach an event receiver
     void Attach(const EventReceiverPtr &receiver)
@@ -71,7 +71,7 @@ public:
 
 private:
     /// owner
-    EventDispatcherWeakPtr mOwner;
+    EventDispatcher &mOwner;
 
     /// receivers
     std::vector<EventReceiverPtr> mReceivers;
@@ -80,14 +80,12 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs an event dispatcher
-EventDispatcher::EventDispatcher() : mImpl(EventDispatcher::Impl::MakeUniquePtr()) {}
+EventDispatcher::EventDispatcher() : mImpl(EventDispatcher::Impl::MakeUniquePtr(*this)) {}
 
 /// creates a smart pointer version of an event dispatcher
 EventDispatcherPtr EventDispatcher::MakePtr()
 {
-    auto ptr = EventDispatcherPtr(new EventDispatcher());
-    ptr->mImpl->mOwner = ptr;
-    return ptr;
+    return EventDispatcherPtr(new EventDispatcher());
 }
 
 /// attach an event receiver

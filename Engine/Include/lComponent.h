@@ -29,9 +29,6 @@ namespace Lumen
         /// deserialize
         virtual void Deserialize(const Serialized::Type &in, bool packed) = 0;
 
-        /// initialize component
-        virtual void Initialize() {}
-
         /// get name
         [[nodiscard]] std::string_view Name() const;
 

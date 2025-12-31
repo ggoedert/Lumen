@@ -1,12 +1,12 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     editor
+/// \brief     Editor
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #ifdef EDITOR
 
 #include "lEditor.h"
-#include "lEditorView.h"
+#include "lEditorScene.h"
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
@@ -32,10 +32,10 @@ public:
         /// settings version
         dword version = 0;
 
-        /// view visibility
-        bool view = true;
+        /// scene window visibility
+        bool scene = true;
 
-        /// log visibility
+        /// log window visibility
         bool log = true;
     };
 
@@ -79,8 +79,8 @@ private:
     /// application pointer
     ApplicationWeakPtr mApplication;
 
-    /// app view
-    EditorViewPtr mEditorView;
+    /// app scene
+    EditorScenePtr mEditorScene;
 
     /// app log
     EditorLogPtr mEditorLog;
@@ -88,7 +88,7 @@ private:
 
 /// constructs editor
 Editor::Impl::Impl(const ApplicationWeakPtr &application) :
-    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorView(EditorView::MakePtr())
+    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorScene(EditorScene::MakePtr())
 {
     Lumen::ApplicationPtr applicationLock;
     Lumen::EnginePtr engine;
@@ -150,7 +150,7 @@ void Editor::Impl::Initialize()
                 {
                     Serialized::Type inEditorSettings = in["Editor"];
                     mSettings.version = inEditorSettings.value("Version", mSettings.version);
-                    mSettings.view = inEditorSettings.value("View", mSettings.view);
+                    mSettings.scene = inEditorSettings.value("Scene", mSettings.scene);
                     mSettings.log = inEditorSettings.value("Log", mSettings.log);
                 }
 
@@ -169,7 +169,7 @@ void Editor::Impl::Initialize()
     }
 
     // apply settings
-    mEditorView->Show(mSettings.view);
+    mEditorScene->Show(mSettings.scene);
     mEditorLog->Show(mSettings.log);
 }
 
@@ -196,7 +196,7 @@ void Editor::Impl::Shutdown()
 
             Serialized::Type outEditorSettings = {};
             outEditorSettings["Version"] = mSettings.version;
-            outEditorSettings["View"] = mEditorView->Visible();
+            outEditorSettings["Scene"] = mEditorScene->Visible();
             outEditorSettings["Log"] = mEditorLog->Visible();
             out["Editor"] = outEditorSettings;
         }
@@ -243,7 +243,7 @@ void Editor::Impl::Run()
     }
 
     RunTopBar();
-    mEditorView->Run("View", engine);
+    mEditorScene->Run("Scene", engine);
     mEditorLog->Run("Log");
     RunStatusBar();
 }
@@ -264,15 +264,15 @@ void Editor::Impl::ResetLayout()
     ImGui::DockBuilderSplitNode(mDockMainId, ImGuiDir_Down, 0.2f, &dockDownId, &mDockMainId);
 
     // dock the windows
-    ImGui::DockBuilderDockWindow("View", mDockMainId);
+    ImGui::DockBuilderDockWindow("Scene", mDockMainId);
     ImGui::DockBuilderDockWindow("Log", dockDownId);
 
     ImGui::DockBuilderFinish(mDockMainId);
 
-    mEditorView->Show(true);
+    mEditorScene->Show(true);
     mEditorLog->Show(true);
 
-    ImGui::SetWindowFocus("View");
+    ImGui::SetWindowFocus("Scene");
 }
 
 /// run top bar
@@ -303,10 +303,10 @@ void Editor::Impl::RunTopBar()
                 ResetLayout();
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("View"))
+            if (ImGui::MenuItem("Scene"))
             {
-                mEditorView->Show(true);
-                ImGui::SetWindowFocus("View");
+                mEditorScene->Show(true);
+                ImGui::SetWindowFocus("Scene");
             }
             if (ImGui::MenuItem("Log"))
             {

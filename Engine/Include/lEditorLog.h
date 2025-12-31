@@ -34,10 +34,10 @@ namespace Lumen
         /// print status
         void PrintStatus();
 
-        /// return editor log visibility
+        /// return editor log window visibility
         bool Visible();
 
-        /// set editor log visibility
+        /// set editor log window visibility
         void Show(bool visible);
 
     protected:

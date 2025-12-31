@@ -26,9 +26,6 @@ namespace Lumen
         /// destructor
         ~Behavior() override;
 
-        /// initialize behavior
-        void Initialize() override;
-
         /// control enabled
         void Enable(bool enable);
 

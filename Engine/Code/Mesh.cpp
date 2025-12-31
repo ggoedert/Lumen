@@ -20,7 +20,7 @@ class Mesh::Impl
 
 public:
     /// constructs a mesh
-    explicit Impl(const EngineWeakPtr &engine) : mEngine(engine), mMeshId(Id::Invalid) {}
+    explicit Impl(Mesh &owner, const EngineWeakPtr &engine) : mOwner(owner), mEngine(engine), mMeshId(Id::Invalid) {}
 
     /// register mesh name / path
     static void Register(std::string_view name, std::string_view path)
@@ -66,12 +66,12 @@ public:
     /// get mesh data
     void GetMeshData(byte *data)
     {
-        const std::filesystem::path &path = mOwner.lock()->Path();
+        const std::filesystem::path &path = mOwner.Path();
         // if ("|Procedural|Sphere" == path.string()) do something?
     }
 
     /// owner
-    MeshWeakPtr mOwner;
+    Mesh &mOwner;
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -88,7 +88,7 @@ StringMap<std::string> Mesh::Impl::mAssetPaths;
 //==============================================================================================================================================================================
 
 /// constructs a mesh
-Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Mesh::Impl::MakeUniquePtr(engine)) {}
+Mesh::Mesh(const EngineWeakPtr &engine, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Mesh::Impl::MakeUniquePtr(*this, engine)) {}
 
 /// destroys mesh
 Mesh::~Mesh()
@@ -100,7 +100,6 @@ Mesh::~Mesh()
 AssetPtr Mesh::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path)
 {
     auto ptr = MeshPtr(new Mesh(engine, path));
-    ptr->mImpl->mOwner = ptr;
     if (auto engineLock = engine.lock())
     {
         ptr->mImpl->mMeshId = engineLock->CreateMesh(ptr);

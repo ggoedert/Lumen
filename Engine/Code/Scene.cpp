@@ -20,7 +20,7 @@ class Scene::Impl
 
 public:
     /// constructs a behavior
-    explicit Impl(Lumen::Application &application) : mApplication(application) {}
+    explicit Impl(Scene &owner, Lumen::Application &application) : mOwner(owner), mApplication(application) {}
 
     /// destroys behavior
     ~Impl() = default;
@@ -101,7 +101,7 @@ public:
     /// load scene
     bool Load()
     {
-        const std::filesystem::path &path = mOwner.lock()->Path();
+        const std::filesystem::path &path = mOwner.Path();
         Lumen::DebugLog::Info("Scene::Load {}", path.string());
 
         // read the scene
@@ -143,7 +143,7 @@ public:
     }
 
     /// owner
-    SceneWeakPtr mOwner;
+    Scene &mOwner;
 
     /// application reference
     Lumen::Application &mApplication;
@@ -161,7 +161,7 @@ StringMap<std::string> Scene::Impl::mAssetPaths;
 
 /// constructor
 Scene::Scene(Lumen::Application &application, const std::filesystem::path &path) :
-    Asset(Type(), path), mImpl(Scene::Impl::MakeUniquePtr(application)) {}
+    Asset(Type(), path), mImpl(Scene::Impl::MakeUniquePtr(*this, application)) {}
 
 /// destroys scene
 Scene::~Scene()
@@ -172,9 +172,7 @@ Scene::~Scene()
 /// creates a smart pointer version of the scene
 ScenePtr Scene::MakePtr(Lumen::Application &application, const std::filesystem::path &path)
 {
-    auto ptr = ScenePtr(new Scene(application, path));
-    ptr->mImpl->mOwner = ptr;
-    return ptr;
+    return ScenePtr(new Scene(application, path));
 }
 
 /// register scene name / path
