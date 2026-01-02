@@ -87,6 +87,9 @@ namespace Lumen::WindowsNT10
 
         /// set settings
         void SetSettings(Engine::Settings &settings) noexcept override;
+
+        /// check if light theme is used
+        bool IsLightTheme() const override;
 #endif
 
         // get fullscreen size
@@ -436,11 +439,6 @@ namespace Lumen::WindowsNT10
             combinedImGuiIni += '\n';
         }
         ImGui::LoadIniSettingsFromMemory(combinedImGuiIni.c_str(), combinedImGuiIni.size());
-
-        // setup Dear ImGui style
-        //ImGui::StyleColorsDark();
-        //ImGui::StyleColorsLight();
-        ImGui::StyleColorsClassic();
 
         // setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
@@ -976,6 +974,28 @@ namespace Lumen::WindowsNT10
 
         // update the layout cache
         mSettings = settings;
+    }
+
+    /// check if light theme is used
+    bool EngineWindowsNT10::IsLightTheme() const
+    {
+        DWORD value = 1;
+        DWORD valueSize = sizeof(value);
+
+        if (RegGetValueW(
+            HKEY_CURRENT_USER,
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            L"AppsUseLightTheme",
+            RRF_RT_REG_DWORD,
+            nullptr,
+            &value,
+            &valueSize) == ERROR_SUCCESS)
+        {
+            return value == 1; // 0 = dark, 1 = light
+        }
+
+        // Default fallback (Windows default is light)
+        return true;
     }
 #endif
 

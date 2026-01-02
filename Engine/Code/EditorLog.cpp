@@ -224,19 +224,20 @@ private:
     {
         if (appLogMessage.level != DebugLog::LogLevel::None)
         {
+            ImVec4 labelColor = ImGuiLib::gLogLevelColors[static_cast<size_t>(appLogMessage.level)];
             switch (appLogMessage.level)
             {
             case DebugLog::LogLevel::Error:
-                ImGui::TextColored({ 1.f, 0.333f, 0.333f, 1.f }, "[Error]");
+                ImGui::TextColored(labelColor, "[Error]");
                 break;
             case DebugLog::LogLevel::Warning:
-                ImGui::TextColored({ 1.f, 1.f, 0.333f, 1.f }, "[Warning]");
+                ImGui::TextColored(labelColor, "[Warning]");
                 break;
             case DebugLog::LogLevel::Info:
-                ImGui::TextColored({ 0.667f, 0.667f, 0.667f, 1.0f }, "[Info]");
+                ImGui::TextColored(labelColor, "[Info]");
                 break;
             case DebugLog::LogLevel::Detail:
-                ImGui::TextColored({ 0.5f, 0.5f, 0.5f, 1.0f }, "[Detail]");
+                ImGui::TextColored(labelColor, "[Detail]");
                 break;
             default:
                 ImGui::TextUnformatted("[Log]");

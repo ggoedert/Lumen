@@ -6,6 +6,7 @@
 #ifdef EDITOR
 
 #include "lEditor.h"
+#include "lEditorPreferences.h"
 #include "lEditorScene.h"
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
@@ -37,6 +38,9 @@ public:
 
         /// log window visibility
         bool log = true;
+
+        /// theme index
+        int theme = 0;
     };
 
     /// constructs editor
@@ -48,11 +52,14 @@ public:
     /// initialize editor
     void Initialize();
 
-    /// shutdown aplication
+    /// shutdown editor
     void Shutdown();
 
     /// log callback
     void LogCallback(DebugLog::LogLevel level, std::string_view message);
+
+    /// editor first run
+    void FirstRun();
 
     /// run editor
     void Run();
@@ -79,6 +86,9 @@ private:
     /// application pointer
     ApplicationWeakPtr mApplication;
 
+    /// app preferences
+    EditorPreferencesPtr mEditorPreferences;
+
     /// app scene
     EditorScenePtr mEditorScene;
 
@@ -88,7 +98,7 @@ private:
 
 /// constructs editor
 Editor::Impl::Impl(const ApplicationWeakPtr &application) :
-    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorScene(EditorScene::MakePtr())
+    mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorPreferences(EditorPreferences::MakePtr()), mEditorScene(EditorScene::MakePtr())
 {
     Lumen::ApplicationPtr applicationLock;
     Lumen::EnginePtr engine;
@@ -152,6 +162,7 @@ void Editor::Impl::Initialize()
                     mSettings.version = inEditorSettings.value("Version", mSettings.version);
                     mSettings.scene = inEditorSettings.value("Scene", mSettings.scene);
                     mSettings.log = inEditorSettings.value("Log", mSettings.log);
+                    mSettings.theme = inEditorSettings.value("Theme", mSettings.theme);
                 }
 
                 // versioning conversion
@@ -167,13 +178,9 @@ void Editor::Impl::Initialize()
     {
         Lumen::DebugLog::Error("Unable to open user settings file for reading, {}", e.what());
     }
-
-    // apply settings
-    mEditorScene->Show(mSettings.scene);
-    mEditorLog->Show(mSettings.log);
 }
 
-/// shutdown aplication
+/// shutdown editor
 void Editor::Impl::Shutdown()
 {
     std::filesystem::path outFile = "Settings/User.settings";
@@ -198,6 +205,7 @@ void Editor::Impl::Shutdown()
             outEditorSettings["Version"] = mSettings.version;
             outEditorSettings["Scene"] = mEditorScene->Visible();
             outEditorSettings["Log"] = mEditorLog->Visible();
+            outEditorSettings["Theme"] = mEditorPreferences->GetTheme();
             out["Editor"] = outEditorSettings;
         }
     }
@@ -217,6 +225,25 @@ void Editor::Impl::LogCallback(DebugLog::LogLevel level, std::string_view messag
     mEditorLog->AddMessage(level, message);
 }
 
+/// editor first run
+void Editor::Impl::FirstRun()
+{
+    // apply settings
+    mEditorPreferences->Show(false);
+    mEditorScene->Show(mSettings.scene);
+    mEditorLog->Show(mSettings.log);
+
+    // apply theme
+    Lumen::ApplicationPtr application;
+    Lumen::EnginePtr engine;
+    if (application = mApplication.lock())
+    {
+        engine = application->GetEngine().lock();
+    }
+    L_ASSERT(engine);
+    mEditorPreferences->SetTheme(mSettings.theme, engine);
+}
+
 /// run editor
 void Editor::Impl::Run()
 {
@@ -226,10 +253,7 @@ void Editor::Impl::Run()
     {
         engine = application->GetEngine().lock();
     }
-    if (!engine)
-    {
-        return;
-    }
+    L_ASSERT(engine);
     static bool sNeedLayoutSetup = (!mSettings.version);
 
     mViewport = ImGui::GetMainViewport();
@@ -243,6 +267,7 @@ void Editor::Impl::Run()
     }
 
     RunTopBar();
+    mEditorPreferences->Run("Preferences", engine);
     mEditorScene->Run("Scene", engine);
     mEditorLog->Run("Log");
     RunStatusBar();
@@ -269,6 +294,7 @@ void Editor::Impl::ResetLayout()
 
     ImGui::DockBuilderFinish(mDockMainId);
 
+    mEditorPreferences->Show(false);
     mEditorScene->Show(true);
     mEditorLog->Show(true);
 
@@ -293,6 +319,14 @@ void Editor::Impl::RunTopBar()
                 {
                     application->Quit();
                 }
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Preferences"))
+            {
+                mEditorPreferences->Show(true);
             }
             ImGui::EndMenu();
         }
@@ -435,10 +469,16 @@ void Editor::Initialize()
     mImpl->Initialize();
 }
 
-/// shutdown aplication
+/// shutdown editor
 void Editor::Shutdown()
 {
     mImpl->Shutdown();
+}
+
+/// editor first run
+void Editor::FirstRun()
+{
+    mImpl->FirstRun();
 }
 
 /// run editor

@@ -11,7 +11,8 @@ External/Windows/NT6_1/microsoft.xaudio2.redist
 *.depend
 *.layout
 
-# Sandbox constructed Data folder
+# Sandbox automatic data
+Sandbox/SandboxEditor.log
 Sandbox/Data/
 
 # Local data

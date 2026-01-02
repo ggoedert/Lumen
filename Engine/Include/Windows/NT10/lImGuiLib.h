@@ -28,6 +28,10 @@ namespace Lumen::ImGuiLib
     extern ImWchar gMaterialIconsIconsRanges[];
     extern float gMaterialIconsFontSize;
     extern float gMaterialIconsIconsGlyphOffset;
+    extern ImVec4 gLogLevelColors[];
+
+    /// lumen theme
+    void LumenTheme(bool nLight);
 
     /// custom version ImGui::Button with round value and draw flags
     bool Button(const char *label, float round_val, ImDrawFlags draw_flags = ImDrawFlags_None, const ImVec2 &size = ImVec2(0, 0));

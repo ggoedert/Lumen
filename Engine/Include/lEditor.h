@@ -32,6 +32,9 @@ namespace Lumen
         /// shutdown editor
         virtual void Shutdown();
 
+        /// editor first run
+        virtual void FirstRun();
+
         /// run editor
         void Run();
 

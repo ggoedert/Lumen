@@ -51,6 +51,9 @@ namespace Lumen
 
         /// set settings
         virtual void SetSettings(Engine::Settings &settings) = 0;
+
+        /// check if light theme is used
+        virtual bool IsLightTheme() const = 0;
 #endif
 
         /// get fullscreen size

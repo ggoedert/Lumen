@@ -37,7 +37,7 @@ public:
     /// initialize application
     void Initialize(const Lumen::ApplicationWeakPtr &application);
 
-    /// shutdown aplication
+    /// shutdown application
     void Shutdown();
 
     /// get delta time
@@ -130,7 +130,7 @@ void Application::Impl::Initialize(const Lumen::ApplicationWeakPtr &application)
 #endif
 }
 
-/// shutdown aplication
+/// shutdown application
 void Application::Impl::Shutdown()
 {
 #ifdef EDITOR
@@ -142,6 +142,12 @@ void Application::Impl::Shutdown()
 /// run editor
 void Application::Impl::Editor()
 {
+    static bool firstrun = true;
+    if (firstrun)
+    {
+        firstrun = false;
+        mEditor->FirstRun();
+    }
     mEditor->Run();
 }
 #endif
@@ -282,7 +288,7 @@ void Application::Initialize(const ApplicationWeakPtr &application)
     mImpl->Initialize(application);
 }
 
-/// shutdown aplication
+/// shutdown application
 void Application::Shutdown()
 {
     mImpl->Shutdown();

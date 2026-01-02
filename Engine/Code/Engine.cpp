@@ -140,6 +140,12 @@ void Engine::SetSettings(Engine::Settings &settings)
 {
     mImpl->SetSettings(settings);
 }
+
+/// check if light theme is used
+bool Engine::IsLightTheme() const
+{
+    return mImpl->IsLightTheme();
+}
 #endif
 
 /// get fullscreen size

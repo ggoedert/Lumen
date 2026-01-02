@@ -94,6 +94,9 @@ namespace Lumen
 
         /// set windows settings
         void SetSettings(Settings &settings);
+
+        /// check if light theme is used
+        [[nodiscard]] bool IsLightTheme() const;
 #endif
 
         /// get fullscreen size
