@@ -79,8 +79,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     HICON hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_LUMENAPPLICATION));
 
     // start engine and application
-    auto engine = Lumen::Engine::MakePtr(Sandbox::MakePtr("Sandbox", 1));
-    int result = Lumen::Windows::Start(hInstance, nCmdShow, szTitle, szWindowClass, hIcon, engine);
+    auto application = Sandbox::MakePtr("Sandbox", 1);
+    int result = Lumen::Windows::Start(hInstance, nCmdShow, szTitle, szWindowClass, hIcon, application);
 
 #if (_WIN32_WINNT < _WIN32_WINNT_WINTHRESHOLD)
     CoUninitialize();

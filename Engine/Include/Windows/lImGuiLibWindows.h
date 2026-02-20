@@ -1,24 +1,11 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Event implementation
+/// \brief     ImGui lib for editor support, windows support
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
+#pragma once
 
-#include "lEvent.h"
-
-using namespace Lumen;
-
-/// constructor
-Event::Event(HashType type) : Object(type) {}
-
-/// creates a smart pointer version of an event
-EventPtr Event::MakePtr(HashType type)
-{
-    return EventPtr(new Event(type));
-}
-
-/// creates a unique pointer version of an event
-EventUniquePtr Event::MakeUniquePtr(HashType type)
-{
-    return EventUniquePtr(new Event(type));
-}
+#ifdef EDITOR
+#include "lImGuiLib.h"
+#include "backends/imgui_impl_win32.h"
+#endif

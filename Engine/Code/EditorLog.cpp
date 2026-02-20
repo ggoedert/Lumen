@@ -21,7 +21,7 @@ class EditorLog::Impl
 
 public:
     /// constructs editor
-    explicit Impl(const std::string &logFilename) : mLogFile(logFilename, std::ios::out | std::ios::trunc), mWindowOpen(true), mAutoScroll(true), mCurrentLogLevel(2) {}
+    explicit Impl(const std::string &logFilename) : mLogFile(logFilename, std::ios::out | std::ios::trunc), mWindowOpen(true), mAutoScroll(true), mCurrentLogLevel(1) {}
 
     /// destructor
     ~Impl()
@@ -64,9 +64,8 @@ public:
 
             // draw the combo box
             ImGui::SetNextItemWidth(totalWidth);
-            int logLevel = mCurrentLogLevel - 1;
+            int logLevel = mCurrentLogLevel;
             if (ImGui::Combo("##LogLevel", &logLevel, logLevelArray, IM_ARRAYSIZE(logLevelArray))) {}
-            logLevel++;
             ImGui::SameLine();
 
             // main window
@@ -132,11 +131,6 @@ public:
     /// add message to editor log
     void AddMessage(DebugLog::LogLevel level, std::string_view message)
     {
-        if (level == DebugLog::LogLevel::None)
-        {
-            return;
-        }
-
         // create app log message
         using clock = std::chrono::system_clock;
         auto time = clock::to_time_t(clock::now());
@@ -222,30 +216,27 @@ private:
     /// print log
     void PrintLog(AppLogMessage &appLogMessage)
     {
-        if (appLogMessage.level != DebugLog::LogLevel::None)
+        ImVec4 labelColor = ImGuiLib::gLogLevelColors[static_cast<size_t>(appLogMessage.level)];
+        switch (appLogMessage.level)
         {
-            ImVec4 labelColor = ImGuiLib::gLogLevelColors[static_cast<size_t>(appLogMessage.level)];
-            switch (appLogMessage.level)
-            {
-            case DebugLog::LogLevel::Error:
-                ImGui::TextColored(labelColor, "[Error]");
-                break;
-            case DebugLog::LogLevel::Warning:
-                ImGui::TextColored(labelColor, "[Warning]");
-                break;
-            case DebugLog::LogLevel::Info:
-                ImGui::TextColored(labelColor, "[Info]");
-                break;
-            case DebugLog::LogLevel::Detail:
-                ImGui::TextColored(labelColor, "[Detail]");
-                break;
-            default:
-                ImGui::TextUnformatted("[Log]");
-                break;
-            }
-            ImGui::SameLine();
-            ImGui::TextUnformatted(appLogMessage.message.c_str());
+        case DebugLog::LogLevel::Error:
+            ImGui::TextColored(labelColor, "[Error]");
+            break;
+        case DebugLog::LogLevel::Warning:
+            ImGui::TextColored(labelColor, "[Warning]");
+            break;
+        case DebugLog::LogLevel::Info:
+            ImGui::TextColored(labelColor, "[Info]");
+            break;
+        case DebugLog::LogLevel::Detail:
+            ImGui::TextColored(labelColor, "[Detail]");
+            break;
+        default:
+            ImGui::TextUnformatted("[Log]");
+            break;
         }
+        ImGui::SameLine();
+        ImGui::TextUnformatted(appLogMessage.message.c_str());
     }
 
     /// add message to filtered log if it passes the filter
@@ -311,7 +302,7 @@ private:
     std::vector<AppLogMessage> mFilteredAppLog;
 
     /// last status message
-    AppLogMessage mStatus = { DebugLog::LogLevel::None, std::string(), std::string() };
+    AppLogMessage mStatus = { DebugLog::LogLevel::Count, std::string(), std::string() };
 };
 
 //==============================================================================================================================================================================

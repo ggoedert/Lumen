@@ -7,6 +7,8 @@
 
 #include "lDefs.h"
 #include "lId.h"
+#include "lEvent.h"
+#include "lRenderCommand.h"
 #include "lFileSystem.h"
 #include "lAsset.h"
 #include "lApplication.h"
@@ -46,20 +48,11 @@ namespace Lumen
         };
 #endif
 
-        struct DrawPrimitive
-        {
-            Id::Type meshId;
-            Id::Type shaderId;
-            Id::Type texId;
-            Math::Matrix44 world;
-        };
-        using RenderCommand = std::variant<DrawPrimitive>;
+        /// constructor
+        explicit Engine(const ApplicationPtr &application, Impl *impl);
 
         /// destructor
         ~Engine() = default;
-
-        /// allocate smart pointer version of the engine, implemented at platform level
-        [[nodiscard]] static EnginePtr MakePtr(const ApplicationPtr &application);
 
         /// get implementation
         [[nodiscard]] Impl *GetImpl() const;
@@ -70,8 +63,16 @@ namespace Lumen
         /// debug log, implemented at platform level
         static void DebugOutput(const std::string &message);
 
+        /// set owner
+        void SetOwner(EngineWeakPtr owner);
+
         /// initialization and management
         bool Initialize(const Object &config);
+
+#ifdef EDITOR
+        /// check if initialized
+        bool Initialized();
+#endif
 
         /// shutdown
         void Shutdown();
@@ -105,20 +106,11 @@ namespace Lumen
         /// create a file system for the assets
         [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
 
-        /// push a batch of asset changes (monitoring)
-        void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch);
+        /// post event
+        void PostEvent(EventUniquePtr event);
 
-        /// pop all batches of items
-        bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue);
-
-        /// begin scene
-        void BeginScene();
-
-        /// push render command
-        void PushRenderCommand(RenderCommand renderCommand);
-
-        /// end scene
-        void EndScene();
+        /// post render command
+        void PostRenderCommand(RenderCommandUniquePtr renderCommand);
 
         /// create a texture
         [[nodiscard]] Id::Type CreateTexture(const TexturePtr &texture, int width, int height);
@@ -145,9 +137,6 @@ namespace Lumen
         qword GetRenderTextureHandle(Id::Type texId);
 
     protected:
-        /// protected constructor
-        explicit Engine(const ApplicationPtr &application, Impl *impl);
-
         // application
         ApplicationPtr mApplication;
 

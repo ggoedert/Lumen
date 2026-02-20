@@ -11,6 +11,7 @@
 #include "lTransform.h"
 #include "lAssetManager.h"
 #include "lSceneManager.h"
+#include "lDrawPrimitive.h"
 
 using namespace Lumen;
 
@@ -80,14 +81,10 @@ public:
                     }
                     if (mesh && shader && texture)
                     {
-                        Engine::DrawPrimitive drawPrimitive;
-                        drawPrimitive.meshId = mesh->GetMeshId();
-                        drawPrimitive.shaderId = shader->GetShaderId();
-                        drawPrimitive.texId = texture->GetTextureId();
-                        entity->Transform().lock()->GetWorldMatrix(drawPrimitive.world);
-                        engineLock->PushRenderCommand(Engine::RenderCommand(drawPrimitive));
+                        Math::Matrix44 world;
+                        entity->Transform().lock()->GetWorldMatrix(world);
+                        engineLock->PostRenderCommand(DrawPrimitive::MakeUniquePtr(mesh->GetMeshId(), shader->GetShaderId(), texture->GetTextureId(), world));
                     }
-
                 }
             }
         }

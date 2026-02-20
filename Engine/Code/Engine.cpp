@@ -28,6 +28,12 @@ ApplicationWeakPtr Engine::GetApplication() const
     return mApplication;
 }
 
+/// set owner
+void Engine::SetOwner(EngineWeakPtr owner)
+{
+    mImpl->SetOwner(owner);
+}
+
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
@@ -60,7 +66,7 @@ bool Engine::Initialize(const Object &config)
 
     // process initial detected files
     std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-    if (PopAssetChangeBatchQueue(batchQueue))
+    if (mImpl->PopAssetChangeBatchQueue(batchQueue))
     {
         AssetManager::ProcessAssetChanges(std::move(batchQueue));
     }
@@ -68,6 +74,14 @@ bool Engine::Initialize(const Object &config)
     // success
     return true;
 }
+
+#ifdef EDITOR
+/// check if initialized
+bool Engine::Initialized()
+{
+    return mImpl->Initialized();
+}
+#endif
 
 /// shutdown
 void Engine::Shutdown()
@@ -103,7 +117,7 @@ bool Engine::Run()
 {
     // process file changes
     std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-    if (PopAssetChangeBatchQueue(batchQueue))
+    if (mImpl->PopAssetChangeBatchQueue(batchQueue))
     {
         AssetManager::ProcessAssetChanges(std::move(batchQueue));
     }
@@ -160,34 +174,16 @@ IFileSystemPtr Engine::AssetsFileSystem() const
     return mImpl->AssetsFileSystem();
 }
 
-/// push a batch of asset changes (monitoring)
-void Engine::PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch)
+/// post event
+void Engine::PostEvent(EventUniquePtr event)
 {
-    mImpl->PushAssetChangeBatch(std::move(batch));
+    return mImpl->PostEvent(std::move(event));
 }
 
-/// pop all batches of items
-bool Engine::PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue)
+/// post render command
+void Engine::PostRenderCommand(RenderCommandUniquePtr renderCommand)
 {
-    return mImpl->PopAssetChangeBatchQueue(batchQueue);
-}
-
-/// begin scene
-void Engine::BeginScene()
-{
-    return mImpl->BeginScene();
-}
-
-/// push render command
-void Engine::PushRenderCommand(Engine::RenderCommand renderCommand)
-{
-    return mImpl->PushRenderCommand(renderCommand);
-}
-
-/// end scene
-void Engine::EndScene()
-{
-    return mImpl->EndScene();
+    return mImpl->PostRenderCommand(std::move(renderCommand));
 }
 
 /// create a texture

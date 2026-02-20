@@ -417,11 +417,6 @@ public:                                                                         
 template <typename...Args>                                                                                                 \
 inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
 
-#define CLASS_PIMPL_MAKER(TYPE)                                                                                           \
-public:                                                                                                                   \
-template <typename...Args>                                                                                                \
-inline static TYPE##UniquePtr MakeUniquePtr(Args&&...args) { return std::make_unique<TYPE>(std::forward<Args>(args)...); }
-
 #ifdef TYPEINFO
 #define TYPE_METHOD static const Lumen::HashType Type() { return Lumen::ClassType(CURRENT_FUNCTION); }
 #else

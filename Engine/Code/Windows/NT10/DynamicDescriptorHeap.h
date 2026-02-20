@@ -9,8 +9,8 @@
 
 #include "DescriptorHeap.h"
 
-/// Lumen WindowsNT10 namespace
-namespace Lumen::WindowsNT10
+/// Lumen Windows NT10 namespace
+namespace Lumen::Windows::NT10
 {
     /// DynamicDescriptorHeap class
     class DynamicDescriptorHeap

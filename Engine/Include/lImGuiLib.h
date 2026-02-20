@@ -9,8 +9,6 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "backends/imgui_impl_win32.h"
-#include "backends/imgui_impl_dx12.h"
 
 #define MATERIAL_ICONS_HAND   "\xee\x9d\xa4" // E764
 #define MATERIAL_ICONS_MOVE   "\xee\xa2\x9f" // E89F

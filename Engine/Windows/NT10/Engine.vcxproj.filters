@@ -48,9 +48,6 @@
     <Filter Include="Header Files\Utils">
       <UniqueIdentifier>{e059df18-4e49-45d0-97dc-60d5888aecad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Object">
-      <UniqueIdentifier>{da100511-c0d9-4add-bd07-1040c3bff4ed}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\System\Windows">
       <UniqueIdentifier>{30d65542-1567-4e16-8dbc-bc8f538916ec}</UniqueIdentifier>
     </Filter>
@@ -68,6 +65,9 @@
     </Filter>
     <Filter Include="Header Files\Editor">
       <UniqueIdentifier>{8e596d87-275a-4a80-a399-7e518f7a7ade}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\System\Windows\Object">
+      <UniqueIdentifier>{da100511-c0d9-4add-bd07-1040c3bff4ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -159,13 +159,13 @@
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lEntity.h">
-      <Filter>Header Files\Object</Filter>
+      <Filter>Header Files\System\Windows\Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lObject.h">
-      <Filter>Header Files\Object</Filter>
+      <Filter>Header Files\System\Windows\Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lTransform.h">
-      <Filter>Header Files\Object</Filter>
+      <Filter>Header Files\System\Windows\Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\lDefs.h">
       <Filter>Header Files\System</Filter>
@@ -200,9 +200,6 @@
     <ClInclude Include="..\..\Include\lEventReceiver.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Windows\NT10\lImGuiLib.h">
-      <Filter>Header Files\System\Windows\NT10</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\lEditor.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
@@ -215,6 +212,24 @@
     <ClInclude Include="..\..\Include\lEditorPreferences.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Windows\lImGuiLibWindows.h">
+      <Filter>Header Files\System\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lImGuiLib.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Windows\NT10\lImGuiLibDX12.h">
+      <Filter>Header Files\System\Windows\NT10</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lRenderCommand.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lDrawPrimitive.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Code\Windows\EngineWindows.h">
+      <Filter>Source Files\Systems\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -225,9 +240,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\EngineWindows.cpp">
       <Filter>Source Files\Systems\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\NT10\EngineWindowsNT10.cpp">
-      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\Camera.cpp">
       <Filter>Source Files\Components</Filter>
@@ -310,9 +322,6 @@
     <ClCompile Include="..\..\Code\Event.cpp">
       <Filter>Source Files\Events</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\NT10\ImGuiLib.cpp">
-      <Filter>Source Files\Systems\Windows\NT10</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Code\Editor.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
@@ -324,6 +333,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\EditorPreferences.cpp">
       <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\ImGuiLibNT10.cpp">
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\ImGuiLibWindows.cpp">
+      <Filter>Source Files\Systems\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\ImGuiLib.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\NT10\EngineDX12.cpp">
+      <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

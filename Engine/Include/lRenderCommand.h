@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Event interface
+/// \brief     Render Command interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -10,27 +10,20 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(Event);
-    CLASS_UNIQUE_PTR_DEF(Event);
+    CLASS_UNIQUE_PTR_DEF(RenderCommand);
 
-    /// Event class
-    class Event : public Object
+    /// Render command class
+    class RenderCommand : public Object
     {
-        CLASS_NO_DEFAULT_CTOR(Event);
-        CLASS_NO_COPY_MOVE(Event);
+        CLASS_NO_DEFAULT_CTOR(RenderCommand);
+        CLASS_NO_COPY_MOVE(RenderCommand);
 
     public:
-        /// creates a smart pointer version of the event
-        static EventPtr MakePtr(HashType type);
-
-        /// creates a unique pointer version of the event
-        static EventUniquePtr MakeUniquePtr(HashType type);
-
-        /// destroys event
-        ~Event() override = default;
+        /// destroys render command
+        ~RenderCommand() override = default;
 
     protected:
         /// constructor
-        explicit Event(HashType type);
+        explicit RenderCommand(HashType type) : Object(type) {}
     };
 }

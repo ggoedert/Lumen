@@ -1,13 +1,8 @@
-//
 // StepTimer.h - A simple timer that provides elapsed time information
-//
-
 #pragma once
 
-#include <cmath>
 #include <cstdint>
 #include <exception>
-
 
 namespace Lumen
 {

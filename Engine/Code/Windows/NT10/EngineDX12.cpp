@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine windows nt10 implementation
+/// \brief     Engine windows dx12 implementation
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 
@@ -9,10 +9,10 @@
 #include "lTexture.h"
 #include "lShader.h"
 #include "lMesh.h"
-#include "lAssetManager.h"
 #include "lEngine.h"
+#include "lDrawPrimitive.h"
 
-#include "EngineImpl.h"
+#include "EngineWindows.h"
 
 // helpers headers
 #include "EngineFramework.h"
@@ -23,8 +23,7 @@
 
 #ifdef EDITOR
 // ImGui editor support
-#include "lImGuiLib.h"
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#include "lImGuiLibDX12.h"
 #endif
 
 using namespace DX;
@@ -34,24 +33,31 @@ using namespace Lumen;
 
 using Microsoft::WRL::ComPtr;
 
-/// Lumen WindowsNT10 namespace
-namespace Lumen::WindowsNT10
+/// Lumen Windows::NT10 namespace
+namespace Lumen::Windows::NT10
 {
-    /// Engine windows NT10 implementation.
-    /// creates a D3D12 device and provides a game loop
-    class EngineWindowsNT10 final : public Engine::Impl, public DX::IDeviceNotify
+    /// Engine windows DX12 implementation
+    class EngineDX12 : public Windows::EngineWindows, public DX::IDeviceNotify
     {
-        CLASS_NO_COPY_MOVE(EngineWindowsNT10);
+        CLASS_NO_COPY_MOVE(EngineDX12);
 
     public:
-        explicit EngineWindowsNT10();
-        ~EngineWindowsNT10() override;
+        /// constructs an engine
+        explicit EngineDX12();
+
+        /// destroys engine
+        ~EngineDX12() override;
 
         /// set owner
         void SetOwner(EngineWeakPtr owner) override { mOwner = owner; }
 
-        // initialization and management
+        /// initialization and management
         bool Initialize(const Object &config) override;
+
+#ifdef EDITOR
+        /// check if initialized
+        bool Initialized() override { return mInitialized; }
+#endif
 
         /// create new resources
         bool CreateNewResources() override;
@@ -95,128 +101,17 @@ namespace Lumen::WindowsNT10
         // get fullscreen size
         void GetFullscreenSize(int &width, int &height) const noexcept override;
 
-        static BYTE sBuffer[65536];
-        static OVERLAPPED sOverlapped;
-        static HANDLE sDirHandle;
-
         /// create a file system for the assets
         IFileSystemPtr AssetsFileSystem() const override
         {
             return FolderFileSystem::MakePtr("Assets");
         }
 
-#ifdef EDITOR
-        static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped)
-        {
-            if (errorCode == ERROR_SUCCESS)
-            {
-                reinterpret_cast<EngineWindowsNT10 *>(overlapped->hEvent)->FileChangeCallback();
-            }
-            else
-            {
-                std::string message;
-                LPSTR buffer = nullptr;
-                DWORD size = FormatMessage(
-                    FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                    FORMAT_MESSAGE_FROM_SYSTEM |
-                    FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr,
-                    errorCode,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                    (LPTSTR)&buffer,
-                    0, nullptr);
-                if (size != 0 && buffer != nullptr)
-                {
-                    message = buffer;
-                    LocalFree(buffer);
-                }
-                else
-                {
-                    message = "Unknown error";
-                }
-                Lumen::DebugLog::Error("FileChange callback error: {}", message);  // OutputDebugStringA should be thread safe
-            }
+        /// post event
+        void PostEvent(EventUniquePtr event) override;
 
-            // re-arm the watcher
-            ReadDirectoryChangesW(
-                sDirHandle,
-                sBuffer,
-                sizeof(sBuffer),
-                TRUE, // recursive
-                FILE_NOTIFY_CHANGE_FILE_NAME |
-                FILE_NOTIFY_CHANGE_DIR_NAME |
-                FILE_NOTIFY_CHANGE_LAST_WRITE,
-                NULL,
-                overlapped,
-                StaticFileChangeCallback
-            );
-        }
-
-        void FileChangeCallback()
-        {
-            static DWORD sLastAction = -1;
-            static double sLastTimer = -1.f;
-            static std::string sLastFilename;
-            static std::vector<Lumen::AssetManager::AssetChange> batch;
-
-            /// get elapsed milliseconds since last callback
-            double timer = mTimer.GetElapsedSeconds();
-            double elapsedMiliseconds = (sLastTimer >= 0.f) ? (timer - sLastTimer) * 1000.f : FLT_MAX;
-            sLastTimer = timer;
-
-            FILE_NOTIFY_INFORMATION *info = (FILE_NOTIFY_INFORMATION *)sBuffer;
-            while (true)
-            {
-                std::wstring wfilename(info->FileName, info->FileNameLength / sizeof(WCHAR));
-                int size_needed = WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), nullptr, 0, nullptr, nullptr);
-                std::string filename(size_needed, 0);
-                WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), filename.data(), size_needed, nullptr, nullptr);
-
-                if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
-                {
-                    switch (info->Action)
-                    {
-                    case FILE_ACTION_ADDED:
-                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, filename, "" });
-                        break;
-                    case FILE_ACTION_MODIFIED:
-                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Modified, filename, "" });
-                        break;
-                    case FILE_ACTION_RENAMED_NEW_NAME:
-                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Renamed, filename, sLastFilename });
-                        break;
-                    case FILE_ACTION_REMOVED:
-                        batch.push_back({ Lumen::AssetManager::AssetChange::Type::Removed, filename, "" });
-                        break;
-                    }
-                    sLastFilename = filename;
-                    sLastAction = info->Action;
-                }
-
-                if (info->NextEntryOffset == 0)
-                {
-                    break;
-                }
-                info = (FILE_NOTIFY_INFORMATION *) (((BYTE *)info) + info->NextEntryOffset);
-            }
-            if (!batch.empty())
-            {
-                if (auto owner = mOwner.lock())
-                {
-                    owner->PushAssetChangeBatch(std::move(batch));
-                }
-            }
-        }
-#endif
-
-        /// begin scene
-        void BeginScene() override;
-
-        /// push render command
-        void PushRenderCommand(Engine::RenderCommand renderCommand) override;
-
-        /// end scene
-        void EndScene() override;
+        /// post render command
+        void PostRenderCommand(RenderCommandUniquePtr renderCommand) override;
 
         /// create a texture
         Id::Type CreateTexture(const TexturePtr &texture, int width, int height) override;
@@ -242,11 +137,6 @@ namespace Lumen::WindowsNT10
         /// get render texture id
         qword GetRenderTextureHandle(Id::Type texId) override;
 
-#ifdef EDITOR
-        /// check if ImGui is initialized
-        bool ImGuiInitialized() { return mImGuiInitialized; }
-#endif
-
     private:
         void Render();
 
@@ -260,8 +150,8 @@ namespace Lumen::WindowsNT10
         HWND mWindow = nullptr;
 
 #ifdef EDITOR
-        /// ImGui initialized
-        bool mImGuiInitialized = false;
+        /// initialized
+        bool mInitialized = false;
 
         /// ImGui monitor scale information
         float mMainScale = 1.f;
@@ -337,7 +227,7 @@ namespace Lumen::WindowsNT10
         TextureMapType mTextureMap;
         std::vector<TextureMapType::iterator> mNewDeviceTextureMap;
 
-        std::vector<Engine::RenderCommand> mRenderCommands;
+        std::vector<RenderCommandUniquePtr> mRenderCommands;
 
 #ifdef EDITOR
         /// cached settings
@@ -348,8 +238,8 @@ namespace Lumen::WindowsNT10
         EngineWeakPtr mOwner;
     };
 
-    EngineWindowsNT10::EngineWindowsNT10() :
-        mDeviceResources(std::make_unique<DeviceResources>())
+    /// constructs an engine
+    EngineDX12::EngineDX12() : Windows::EngineWindows(), mDeviceResources(std::make_unique<DeviceResources>())
     {
         // TODO: Provide parameters for swapchain format, depth/stencil format, and backbuffer count.
         //   Add DeviceResources::c_AllowTearing to opt-in to variable rate displays.
@@ -357,7 +247,8 @@ namespace Lumen::WindowsNT10
         mDeviceResources->RegisterDeviceNotify(this);
     }
 
-    EngineWindowsNT10::~EngineWindowsNT10()
+    /// destroys engine
+    EngineDX12::~EngineDX12()
     {
         if (mDeviceResources)
         {
@@ -366,13 +257,13 @@ namespace Lumen::WindowsNT10
     }
 
     /// initialize the Direct3D resources required to run
-    bool EngineWindowsNT10::Initialize(const Object &config)
+    bool EngineDX12::Initialize(const Object &config)
     {
 #ifdef EDITOR
         // make sure we have the required assets for the editor
         if (!std::filesystem::exists(Lumen::ImGuiLib::gMaterialIconsFontFilename))
         {
-            Lumen::DebugLog::Error("EngineWindowsNT10::Initialize font file does not exist, {}", Lumen::ImGuiLib::gMaterialIconsFontFilename);
+            Lumen::DebugLog::Error("EngineDX12::Initialize font file does not exist, {}", Lumen::ImGuiLib::gMaterialIconsFontFilename);
             return false;
         }
 
@@ -442,8 +333,8 @@ namespace Lumen::WindowsNT10
 
         // setup scaling
         ImGuiStyle &style = ImGui::GetStyle();
-        //style.ScaleAllSizes(mMainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-        //style.FontScaleDpi = mMainScale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+        style.ScaleAllSizes(mMainScale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+        style.FontScaleDpi = mMainScale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
         io.ConfigDpiScaleFonts = true;          // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
         io.ConfigDpiScaleViewports = true;      // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
 
@@ -496,73 +387,17 @@ namespace Lumen::WindowsNT10
             Lumen::ImGuiLib::gMaterialIconsIconsRanges);
         ImGui_ImplDX12_CreateDeviceObjects(); // build font atlas
 
-        // mark ImGui initialized
-        mImGuiInitialized = true;
+        // mark initialized (after this point, we can start processing file change callbacks and trigger events)
+        mInitialized = true;
 #endif
 
-        try
+        // call base initialize
+        if (!EngineWindows::Initialize(config))
         {
-            static std::vector<Lumen::AssetManager::AssetChange> batch;
-            for (const auto &entry : std::filesystem::recursive_directory_iterator("Assets"))
-            {
-                if (entry.is_regular_file())
-                {
-                    std::string filename = entry.path().lexically_relative("Assets").generic_string();
-                    batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, entry.path().generic_string(), "" });
-                }
-            }
-            if (!batch.empty())
-            {
-                if (auto owner = mOwner.lock())
-                {
-                    owner->PushAssetChangeBatch(std::move(batch));
-                }
-            }
-        }
-        catch (const std::exception &e)
-        {
-            DebugLog::Error("Initialize engine, unable to process {} directory: {}", "Assets", e.what());
+            return false;
         }
 
 #ifdef EDITOR
-        std::string monitorDir = "Assets";
-        sDirHandle = CreateFileA(
-            monitorDir.c_str(),
-            FILE_LIST_DIRECTORY,
-            FILE_SHARE_READ |
-            FILE_SHARE_WRITE |
-            FILE_SHARE_DELETE,
-            NULL,
-            OPEN_EXISTING,
-            FILE_FLAG_BACKUP_SEMANTICS |
-            FILE_FLAG_OVERLAPPED,
-            NULL
-        );
-
-        if (sDirHandle != INVALID_HANDLE_VALUE)
-        {
-            sOverlapped = {};
-            sOverlapped.hEvent = this; // store "this" so callback can find the object
-
-            // start watching
-            ReadDirectoryChangesW(
-                sDirHandle,
-                sBuffer,
-                sizeof(sBuffer),
-                TRUE, // recursive
-                FILE_NOTIFY_CHANGE_FILE_NAME |
-                FILE_NOTIFY_CHANGE_DIR_NAME |
-                FILE_NOTIFY_CHANGE_LAST_WRITE,
-                NULL,
-                &sOverlapped,
-                StaticFileChangeCallback
-            );
-        }
-        else
-        {
-            Lumen::DebugLog::Error("Could not open directory to monitor: {}", monitorDir);
-        }
-
         // trigger initial window size changed to setup ImGui
         RECT rc;
         GetClientRect(mWindow, &rc);
@@ -573,7 +408,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// create resources
-    bool EngineWindowsNT10::CreateNewResources()
+    bool EngineDX12::CreateNewResources()
     {
         CreateNewDeviceDependentResources();
         CreateNewWindowSizeDependentResources();
@@ -581,7 +416,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// shutdown
-    void EngineWindowsNT10::Shutdown()
+    void EngineDX12::Shutdown()
     {
         mDeviceResources->WaitForGpu();
 
@@ -648,14 +483,14 @@ namespace Lumen::WindowsNT10
     }
 
     // get elapsed time since last run
-    float EngineWindowsNT10::GetElapsedTime()
+    float EngineDX12::GetElapsedTime()
     {
         return static_cast<float>(mTimer.GetElapsedSeconds());
     }
 
 #pragma region Frame Update
     /// executes the basic game loop
-    bool EngineWindowsNT10::Run(std::function<bool()> update, std::function<void()> preRender)
+    bool EngineDX12::Run(std::function<bool()> update, std::function<void()> preRender)
     {
         bool updateResult = true;
 
@@ -693,7 +528,7 @@ namespace Lumen::WindowsNT10
 
 #pragma region Frame Render
     /// draws the scene
-    void EngineWindowsNT10::Render()
+    void EngineDX12::Render()
     {
         // don't try to render anything before the first Update
         if (mTimer.GetFrameCount() == 0)
@@ -782,14 +617,14 @@ namespace Lumen::WindowsNT10
             // draw 3d objects
             for (auto &cmd : mRenderCommands)
             {
-                if (auto pDrawPrimitiveData = std::get_if<Engine::DrawPrimitive>(&cmd))
+                if (cmd->Type() == DrawPrimitive::Type())
                 {
-                    auto &drawPrimitiveData = *pDrawPrimitiveData;
+                    auto &drawPrimitiveData = static_cast<DrawPrimitive &>(*cmd);
 
-                    SimpleMath::Matrix world(*drawPrimitiveData.world);
-                    Id::Type meshId = drawPrimitiveData.meshId;
-                    Id::Type shaderId = drawPrimitiveData.shaderId;
-                    Id::Type texId = drawPrimitiveData.texId;
+                    SimpleMath::Matrix world(*drawPrimitiveData.mWorld);
+                    Id::Type meshId = drawPrimitiveData.mMeshId;
+                    Id::Type shaderId = drawPrimitiveData.mShaderId;
+                    Id::Type texId = drawPrimitiveData.mTexId;
 
                     auto meshIt = mMeshMap.find(meshId);
                     if (meshIt != mMeshMap.end())
@@ -864,40 +699,40 @@ namespace Lumen::WindowsNT10
 #pragma endregion
 
 #pragma region Message Handlers
-    void EngineWindowsNT10::OnActivated()
+    void EngineDX12::OnActivated()
     {
         // TODO: game is becoming active window
     }
 
-    void EngineWindowsNT10::OnDeactivated()
+    void EngineDX12::OnDeactivated()
     {
         // TODO: game is becoming background window
     }
 
-    void EngineWindowsNT10::OnSuspending()
+    void EngineDX12::OnSuspending()
     {
         // TODO: game is being power-suspended (or minimized)
     }
 
-    void EngineWindowsNT10::OnResuming()
+    void EngineDX12::OnResuming()
     {
         mTimer.ResetElapsedTime();
 
         // TODO: game is being power-resumed (or returning from minimize)
     }
 
-    void EngineWindowsNT10::OnWindowMoved()
+    void EngineDX12::OnWindowMoved()
     {
         auto r = mDeviceResources->GetOutputSize();
         mDeviceResources->WindowSizeChanged(r.right, r.bottom);
     }
 
-    void EngineWindowsNT10::OnDisplayChange()
+    void EngineDX12::OnDisplayChange()
     {
         mDeviceResources->UpdateColorSpace();
     }
 
-    void EngineWindowsNT10::OnWindowSizeChanged(int width, int height)
+    void EngineDX12::OnWindowSizeChanged(int width, int height)
     {
         if (mDeviceResources->GetWindow() != nullptr)
         {
@@ -911,7 +746,7 @@ namespace Lumen::WindowsNT10
     }
 
 #ifdef EDITOR
-    std::string EngineWindowsNT10::GetExecutableName() const
+    std::string EngineDX12::GetExecutableName() const
     {
         wchar_t buffer[MAX_PATH];
         if (GetModuleFileNameW(NULL, buffer, MAX_PATH) == 0)
@@ -922,7 +757,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// get settings
-    Engine::Settings EngineWindowsNT10::GetSettings() noexcept
+    Engine::Settings EngineDX12::GetSettings() noexcept
     {
         // update cached layout window settings
         WINDOWPLACEMENT wp;
@@ -956,7 +791,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// set settings
-    void EngineWindowsNT10::SetSettings(Engine::Settings &settings) noexcept
+    void EngineDX12::SetSettings(Engine::Settings &settings) noexcept
     {
         WINDOWPLACEMENT wp;
         wp.length = sizeof(WINDOWPLACEMENT);
@@ -977,7 +812,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// check if light theme is used
-    bool EngineWindowsNT10::IsLightTheme() const
+    bool EngineDX12::IsLightTheme() const
     {
         DWORD value = 1;
         DWORD valueSize = sizeof(value);
@@ -1000,31 +835,56 @@ namespace Lumen::WindowsNT10
 #endif
 
     /// get fullscreen size
-    void EngineWindowsNT10::GetFullscreenSize(int &width, int &height) const noexcept
+    void EngineDX12::GetFullscreenSize(int &width, int &height) const noexcept
     {
         width = GetSystemMetrics(SM_CXSCREEN);
         height = GetSystemMetrics(SM_CYSCREEN);
     }
 #pragma endregion
 
-    /// begin scene
-    void EngineWindowsNT10::BeginScene()
+    /// post event
+    void EngineDX12::PostEvent(EventUniquePtr event)
     {
+        Hash eventType = event->Type();
+        if (eventType == EngineWindows::Activated)
+        {
+            OnActivated();
+        }
+        else if (eventType == EngineWindows::Deactivated)
+        {
+            OnDeactivated();
+        }
+        else if (eventType == EngineWindows::Suspending)
+        {
+            OnSuspending();
+        }
+        else if (eventType == EngineWindows::Resuming)
+        {
+            OnResuming();
+        }
+        else if (eventType == EngineWindows::WindowMoved)
+        {
+            OnWindowMoved();
+        }
+        if (eventType == EngineWindows::DisplayChanged)
+        {
+            OnDisplayChange();
+        }
+        else if (eventType == EngineWindows::WindowSizeChanged::Type())
+        {
+            auto &windowSizeChangedEvent = static_cast<EngineWindows::WindowSizeChanged &>(*event);
+            OnWindowSizeChanged(windowSizeChangedEvent.mWidth, windowSizeChangedEvent.mHeight);
+        }
     }
 
-    /// push render command
-    void EngineWindowsNT10::PushRenderCommand(Engine::RenderCommand renderCommand)
+    /// post render command
+    void EngineDX12::PostRenderCommand(RenderCommandUniquePtr renderCommand)
     {
         mRenderCommands.push_back(std::move(renderCommand));
     }
 
-    /// end scene
-    void EngineWindowsNT10::EndScene()
-    {
-    }
-
     /// create a texture
-    Id::Type EngineWindowsNT10::CreateTexture(const TexturePtr &texture, int width, int height)
+    Id::Type EngineDX12::CreateTexture(const TexturePtr &texture, int width, int height)
     {
         Id::Type texId = mTexIdGenerator.Next();
         TextureData textureData;
@@ -1036,7 +896,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// release a texture
-    void EngineWindowsNT10::ReleaseTexture(Id::Type texId)
+    void EngineDX12::ReleaseTexture(Id::Type texId)
     {
         auto it = mTextureMap.find(texId);
         if (it != mTextureMap.end())
@@ -1047,7 +907,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// create a shader
-    Id::Type EngineWindowsNT10::CreateShader(const ShaderPtr &shader)
+    Id::Type EngineDX12::CreateShader(const ShaderPtr &shader)
     {
         Id::Type shaderID = mShaderIdGenerator.Next();
         ShaderData shaderData;
@@ -1060,7 +920,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// release a shader
-    void EngineWindowsNT10::ReleaseShader(Id::Type shaderID)
+    void EngineDX12::ReleaseShader(Id::Type shaderID)
     {
         auto it = mShaderMap.find(shaderID);
         if (it != mShaderMap.end())
@@ -1070,7 +930,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// create a mesh
-    Id::Type EngineWindowsNT10::CreateMesh(const MeshPtr &mesh)
+    Id::Type EngineDX12::CreateMesh(const MeshPtr &mesh)
     {
         Id::Type meshId = mMeshIdGenerator.Next();
         MeshData meshData;
@@ -1080,7 +940,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// release a mesh
-    void EngineWindowsNT10::ReleaseMesh(Id::Type meshId)
+    void EngineDX12::ReleaseMesh(Id::Type meshId)
     {
         auto it = mMeshMap.find(meshId);
         if (it != mMeshMap.end())
@@ -1090,7 +950,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// set render texture size
-    void EngineWindowsNT10::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
+    void EngineDX12::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
     {
         //FIXME TESTING ONLY
         // prevent zero sized textures when window is collapsed
@@ -1104,7 +964,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// get render texture id
-    qword EngineWindowsNT10::GetRenderTextureHandle(Id::Type texId)
+    qword EngineDX12::GetRenderTextureHandle(Id::Type texId)
     {
         //FIXME TESTING ONLY
         if (texId == 0)
@@ -1120,7 +980,7 @@ namespace Lumen::WindowsNT10
     }
 
 #pragma region Direct3D Resources
-    void EngineWindowsNT10::CreateNewDeviceDependentResources()
+    void EngineDX12::CreateNewDeviceDependentResources()
     {
         auto device = mDeviceResources->GetD3DDevice();
 
@@ -1219,7 +1079,7 @@ namespace Lumen::WindowsNT10
         mNewDeviceShaderMap.clear();
     }
 
-    void EngineWindowsNT10::CreateNewWindowSizeDependentResources()
+    void EngineDX12::CreateNewWindowSizeDependentResources()
     {
         // iterate over all shaders in the map
         for (auto &pair : mShaderMap)
@@ -1242,7 +1102,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// these are the resources that depend on the device.
-    void EngineWindowsNT10::CreateDeviceDependentResources()
+    void EngineDX12::CreateDeviceDependentResources()
     {
         auto device = mDeviceResources->GetD3DDevice();
 
@@ -1284,7 +1144,7 @@ namespace Lumen::WindowsNT10
     }
 
     /// allocate all memory resources that change on a window SizeChanged event
-    void EngineWindowsNT10::CreateWindowSizeDependentResources()
+    void EngineDX12::CreateWindowSizeDependentResources()
     {
         RECT size;
         // TODO: initialize windows-size dependent objects here
@@ -1426,7 +1286,7 @@ namespace Lumen::WindowsNT10
         CreateNewWindowSizeDependentResources();
     }
 
-    void EngineWindowsNT10::OnDeviceLost()
+    void EngineDX12::OnDeviceLost()
     {
         // TODO: add Direct3D resource cleanup here
         if (mSceneSRVIndex != DynamicDescriptorHeap::InvalidIndex)
@@ -1465,266 +1325,19 @@ namespace Lumen::WindowsNT10
         mGraphicsMemory.reset();
     }
 
-    void EngineWindowsNT10::OnDeviceRestored()
+    void EngineDX12::OnDeviceRestored()
     {
         CreateDeviceDependentResources();
         CreateWindowSizeDependentResources();
     }
 #pragma endregion
 
-#ifdef EDITOR
-    BYTE EngineWindowsNT10::sBuffer[65536];
-    OVERLAPPED EngineWindowsNT10::sOverlapped;
-    HANDLE EngineWindowsNT10::sDirHandle;
-#endif
-}
-
-/// Lumen Windows namespace
-namespace Lumen::Windows
-{
-    /// windows procedure
-    LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    /// allocate smart pointer version of the engine, implemented at platform level
+    EnginePtr MakePtr(const ApplicationPtr &application)
     {
-        static bool s_in_sizemove = false;
-        static bool s_in_suspend = false;
-        static bool s_minimized = false;
-#ifdef _DEBUG
-        static bool s_fullscreen = false;
-#else
-        static bool s_fullscreen = true;
-#endif
-
-        Engine *engine = reinterpret_cast<Engine *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-        WindowsNT10::EngineWindowsNT10 *engineImpl = nullptr;
-        if (engine)
-        {
-            engineImpl = static_cast<WindowsNT10::EngineWindowsNT10 *>(engine->GetImpl());
-        }
-
-#ifdef EDITOR
-        if (engineImpl && engineImpl->ImGuiInitialized())
-        {
-            ImGuiIO &io = ImGui::GetIO();
-            if (io.WantCaptureMouse || io.WantCaptureMouseUnlessPopupClose)
-            {
-                switch (message)
-                {
-                case WM_LBUTTONDOWN:
-                case WM_LBUTTONUP:
-                case WM_LBUTTONDBLCLK:
-                case WM_RBUTTONDOWN:
-                case WM_RBUTTONUP:
-                case WM_RBUTTONDBLCLK:
-                case WM_MBUTTONDOWN:
-                case WM_MBUTTONUP:
-                case WM_MBUTTONDBLCLK:
-                case WM_MOUSEWHEEL:
-                case WM_MOUSEMOVE:
-                    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
-                    return TRUE;
-                }
-            }
-            if (io.WantCaptureKeyboard)
-            {
-                switch (message)
-                {
-                case WM_KEYDOWN:
-                case WM_KEYUP:
-                case WM_SYSKEYDOWN:
-                case WM_SYSKEYUP:
-                case WM_CHAR:
-                    ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
-                    return TRUE;
-                }
-            }
-            if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-            {
-                return TRUE;
-            }
-        }
-#endif
-
-        switch (message)
-        {
-        case WM_PAINT:
-            if (s_in_sizemove && engine)
-            {
-                engine->Run();
-            }
-            else
-            {
-                PAINTSTRUCT ps;
-                (void)BeginPaint(hWnd, &ps);
-                EndPaint(hWnd, &ps);
-            }
-            break;
-
-        case WM_DISPLAYCHANGE:
-            if (engineImpl)
-            {
-                engineImpl->OnDisplayChange();
-            }
-            break;
-
-        case WM_MOVE:
-            if (engineImpl)
-            {
-                engineImpl->OnWindowMoved();
-            }
-            break;
-
-        case WM_SIZE:
-            if (wParam == SIZE_MINIMIZED)
-            {
-                if (!s_minimized)
-                {
-                    s_minimized = true;
-                    if (!s_in_suspend && engineImpl)
-                        engineImpl->OnSuspending();
-                    s_in_suspend = true;
-                }
-            }
-            else if (s_minimized)
-            {
-                s_minimized = false;
-                if (s_in_suspend && engineImpl)
-                    engineImpl->OnResuming();
-                s_in_suspend = false;
-            }
-            else if (!s_in_sizemove && engineImpl)
-            {
-                engineImpl->OnWindowSizeChanged(LOWORD(lParam), HIWORD(lParam));
-            }
-            break;
-
-        case WM_ENTERSIZEMOVE:
-            s_in_sizemove = true;
-            break;
-
-        case WM_EXITSIZEMOVE:
-            s_in_sizemove = false;
-            if (engineImpl)
-            {
-                RECT rc;
-                GetClientRect(hWnd, &rc);
-
-                engineImpl->OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
-            }
-            break;
-
-        case WM_GETMINMAXINFO:
-            if (lParam)
-            {
-                auto info = reinterpret_cast<MINMAXINFO *>(lParam);
-                info->ptMinTrackSize.x = 320;
-                info->ptMinTrackSize.y = 200;
-            }
-            break;
-
-        case WM_ACTIVATEAPP:
-            if (engineImpl)
-            {
-                if (wParam)
-                {
-                    engineImpl->OnActivated();
-                }
-                else
-                {
-                    engineImpl->OnDeactivated();
-                }
-            }
-            break;
-
-        case WM_POWERBROADCAST:
-            switch (wParam)
-            {
-            case PBT_APMQUERYSUSPEND:
-                if (!s_in_suspend && engineImpl)
-                    engineImpl->OnSuspending();
-                s_in_suspend = true;
-                return TRUE;
-
-            case PBT_APMRESUMESUSPEND:
-                if (!s_minimized)
-                {
-                    if (s_in_suspend && engineImpl)
-                        engineImpl->OnResuming();
-                    s_in_suspend = false;
-                }
-                return TRUE;
-            }
-            break;
-
-#ifdef EDITOR
-        case WM_CLOSE:
-            if (engineImpl)
-            {
-                engineImpl->GetSettings();
-            }
-            break;
-#endif
-
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
-
-#if defined(_DEBUG) && !defined(EDITOR)
-        case WM_SYSKEYDOWN:
-            if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
-            {
-                // implements the classic ALT+ENTER fullscreen toggle
-                if (s_fullscreen)
-                {
-                    SetWindowLongPtr(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-                    SetWindowLongPtr(hWnd, GWL_EXSTYLE, 0);
-
-                    int width = 1280 / 3;
-                    int height = 720 / 3;
-                    if (auto application = engine->GetApplication().lock())
-                    {
-                        application->GetWindowSize(width, height);
-                    }
-
-                    ShowWindow(hWnd, SW_SHOWNORMAL);
-                    SetWindowPos(hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
-                }
-                else
-                {
-                    SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP);
-                    SetWindowLongPtr(hWnd, GWL_EXSTYLE, WS_EX_TOPMOST);
-
-                    SetWindowPos(hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-                    ShowWindow(hWnd, SW_SHOWMAXIMIZED);
-                }
-
-                s_fullscreen = !s_fullscreen;
-            }
-            break;
-#endif
-
-        case WM_MENUCHAR:
-            // a menu is active and the user presses a key that does not correspond
-            // to any mnemonic or accelerator key. Ignore so we don't produce an error beep.
-            return MAKELRESULT(0, MNC_CLOSE);
-        }
-
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        auto ptr = EnginePtr(new Engine(application, new Windows::NT10::EngineDX12()));
+        ptr->SetOwner(ptr);
+        application->SetEngine(ptr);
+        return ptr;
     }
-}
-
-//==============================================================================================================================================================================
-
-/// allocate smart pointer version of the engine, implemented at platform level
-EnginePtr Engine::MakePtr(const ApplicationPtr &application)
-{
-    auto ptr = EnginePtr(new Engine(application, new WindowsNT10::EngineWindowsNT10()));
-    application->SetEngine(ptr);
-    ptr->mImpl->SetOwner(ptr);
-    return ptr;
-}
-
-/// debug log, implemented at platform level
-void Engine::DebugOutput(const std::string &message)
-{
-    OutputDebugStringA((message+'\n').c_str());
 }

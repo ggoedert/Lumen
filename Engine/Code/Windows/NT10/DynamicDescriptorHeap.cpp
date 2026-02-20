@@ -8,7 +8,7 @@
 
 #include "lDefs.h"
 
-Lumen::WindowsNT10::DynamicDescriptorHeap::DynamicDescriptorHeap(ID3D12Device *device, int initialSize)
+Lumen::Windows::NT10::DynamicDescriptorHeap::DynamicDescriptorHeap(ID3D12Device *device, int initialSize)
 {
     mResourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(device, initialSize);
     mFreeIndices.reserve(initialSize);
@@ -18,7 +18,7 @@ Lumen::WindowsNT10::DynamicDescriptorHeap::DynamicDescriptorHeap(ID3D12Device *d
     }
 }
 
-Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::DynamicDescriptorHeap::GetIndex(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) const
+Lumen::Windows::NT10::DynamicDescriptorHeap::IndexType Lumen::Windows::NT10::DynamicDescriptorHeap::GetIndex(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) const
 {
     IndexType cpuIndex = (cpuHandle.ptr - mResourceDescriptors->GetFirstCpuHandle().ptr) / mResourceDescriptors->Increment();
     IndexType gpuIndex = (gpuHandle.ptr - mResourceDescriptors->GetFirstGpuHandle().ptr) / mResourceDescriptors->Increment();
@@ -26,7 +26,7 @@ Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::Dynamic
     return static_cast<IndexType>(cpuIndex);
 }
 
-Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::DynamicDescriptorHeap::Allocate()
+Lumen::Windows::NT10::DynamicDescriptorHeap::IndexType Lumen::Windows::NT10::DynamicDescriptorHeap::Allocate()
 {
     // make sure we have enough room
     L_ASSERT_MSG(
@@ -37,7 +37,7 @@ Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType Lumen::WindowsNT10::Dynamic
     );
 
     // get a free index
-    Lumen::WindowsNT10::DynamicDescriptorHeap::IndexType index = mFreeIndices.back();
+    Lumen::Windows::NT10::DynamicDescriptorHeap::IndexType index = mFreeIndices.back();
     mFreeIndices.pop_back();
     return index;
 }

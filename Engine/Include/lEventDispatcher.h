@@ -20,6 +20,10 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(EventDispatcher);
 
     public:
+        /// simple events
+        static Lumen::HashType AttachType;
+        static Lumen::HashType DettachType;
+
         /// creates a smart pointer version of the event dispatcher
         static EventDispatcherPtr MakePtr();
 

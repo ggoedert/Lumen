@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lObject.h"
 #include "lEngine.h"
 
 #include <Windows.h>
@@ -17,10 +16,16 @@ namespace Lumen::Windows
     struct Config : Object
     {
         OBJECT_TYPEINFO;
-        explicit Config(HWND window, int width, int height) : Object(Type()), mWindow(window), mWidth(width), mHeight(height) {}
-        HWND mWindow; int mWidth; int mHeight;
+        explicit Config(HWND window) : Object(Type()), mWindow(window) {}
+        HWND mWindow;
     };
 
     /// start engine
-    int Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, EnginePtr engine);
+    int Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, const ApplicationPtr application);
+
+    /// Lumen Windows NT10 namespace
+    namespace NT10
+    {
+        EnginePtr MakePtr(const ApplicationPtr &application);
+    }
 }

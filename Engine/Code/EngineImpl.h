@@ -6,7 +6,6 @@
 #pragma once
 
 #include "lEngine.h"
-#include "lConcurrentBatchQueue.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -29,6 +28,11 @@ namespace Lumen
 
         /// initialization and management
         virtual bool Initialize(const Object &config) = 0;
+
+#ifdef EDITOR
+        /// check if initialized
+        virtual bool Initialized() = 0;
+#endif
 
         /// create new resources
         virtual bool CreateNewResources() = 0;
@@ -62,14 +66,11 @@ namespace Lumen
         /// create a folder file system
         virtual IFileSystemPtr AssetsFileSystem() const = 0;
 
-        /// begin scene
-        virtual void BeginScene() = 0;
+        /// post event
+        virtual void PostEvent(EventUniquePtr event) = 0;
 
-        /// push render command
-        virtual void PushRenderCommand(RenderCommand renderCommand) = 0;
-
-        /// end scene
-        virtual void EndScene() = 0;
+        /// post render command
+        virtual void PostRenderCommand(RenderCommandUniquePtr renderCommand) = 0;
 
         /// create a texture
         virtual Id::Type CreateTexture(const TexturePtr &texture, int width, int height) = 0;
@@ -95,14 +96,7 @@ namespace Lumen
         /// get render texture id
         virtual qword GetRenderTextureHandle(Id::Type texId) = 0;
 
-        /// push a batch of asset changes (monitoring)
-        void PushAssetChangeBatch(std::vector<AssetManager::AssetChange> &&batch) { mAssetChangeBatches.PushBatch(std::move(batch)); }
-
         /// pop all batches of items
-        bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) { return mAssetChangeBatches.PopBatchQueue(batchQueue); }
-
-    private:
-        /// asset change batches
-        ConcurrentBatchQueue<AssetManager::AssetChange> mAssetChangeBatches;
+        virtual bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) = 0;
     };
 }

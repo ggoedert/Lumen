@@ -12,7 +12,7 @@
 namespace Lumen::DebugLog
 {
     /// log types
-    enum class LogLevel { None, Detail, Info, Warning, Error, Count };
+    enum class LogLevel { Detail, Info, Warning, Error, Count };
     using LogCallback = std::function<void(LogLevel level, std::string_view message)>;
 
     /// set log callback

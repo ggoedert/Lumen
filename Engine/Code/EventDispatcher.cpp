@@ -24,14 +24,14 @@ public:
     void Attach(const EventReceiverPtr &receiver)
     {
         mReceivers.push_back(receiver);
-        receiver->HandleEvent(Event::MakePtr(Event::AttachType));
+        receiver->HandleEvent(Event::MakePtr(AttachType));
     }
 
     /// detach an event receiver
     void Detach(const EventReceiverPtr &receiver)
     {
         Lumen::RemoveFromVector(mReceivers, receiver);
-        receiver->HandleEvent(Event::MakePtr(Event::DettachType));
+        receiver->HandleEvent(Event::MakePtr(DettachType));
     }
 
     /// broadcast to all event receivers, ignore if handled
@@ -78,6 +78,10 @@ private:
 };
 
 //==============================================================================================================================================================================
+
+/// simple events
+Lumen::HashType EventDispatcher::AttachType = Lumen::EncodeType("EventDispatcher::AttachEvent");
+Lumen::HashType EventDispatcher::DettachType = Lumen::EncodeType("EventDispatcher::DettachEvent");
 
 /// constructs an event dispatcher
 EventDispatcher::EventDispatcher() : mImpl(EventDispatcher::Impl::MakeUniquePtr(*this)) {}
