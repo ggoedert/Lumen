@@ -19,7 +19,7 @@ public:
     /// constructs a asset
     explicit Impl(const std::filesystem::path &path) : mPath(path) {}
 
-    /// destroys behavior
+    /// destructor
     ~Impl() = default;
 
     /// get path

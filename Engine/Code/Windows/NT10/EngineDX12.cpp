@@ -1331,13 +1331,10 @@ namespace Lumen::Windows::NT10
         CreateWindowSizeDependentResources();
     }
 #pragma endregion
+}
 
-    /// allocate smart pointer version of the engine, implemented at platform level
-    EnginePtr MakePtr(const ApplicationPtr &application)
-    {
-        auto ptr = EnginePtr(new Engine(application, new Windows::NT10::EngineDX12()));
-        ptr->SetOwner(ptr);
-        application->SetEngine(ptr);
-        return ptr;
-    }
+/// create a smart pointer version of the engine, dx12 version
+EnginePtr Lumen::Windows::CreateEngine(const ApplicationPtr &application)
+{
+    return Engine::MakePtr(new Lumen::Windows::NT10::EngineDX12(), application);
 }

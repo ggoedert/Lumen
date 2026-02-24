@@ -249,7 +249,7 @@ bool EngineWindows::Impl::Initialize(const Object &config)
 int Lumen::Windows::Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, const ApplicationPtr application)
 {
     // create engine
-    auto engine = NT10::MakePtr(application);
+    auto engine = CreateEngine(application);
 
     // register class and create window
     {

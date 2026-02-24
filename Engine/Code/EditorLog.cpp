@@ -193,6 +193,7 @@ public:
     {
         return mWindowOpen;
     }
+
     /// set editor log window visibility
     void Show(bool visible)
     {

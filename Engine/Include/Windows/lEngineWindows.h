@@ -23,9 +23,6 @@ namespace Lumen::Windows
     /// start engine
     int Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, const ApplicationPtr application);
 
-    /// Lumen Windows NT10 namespace
-    namespace NT10
-    {
-        EnginePtr MakePtr(const ApplicationPtr &application);
-    }
+    /// create a smart pointer version of the engine
+    EnginePtr CreateEngine(const ApplicationPtr &application);
 }

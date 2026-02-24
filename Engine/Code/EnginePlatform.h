@@ -1,6 +1,6 @@
 //==============================================================================================================================================================================
 /// \file
-/// \brief     Engine private implementation virtual interface
+/// \brief     Engine platform virtual interface
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
@@ -10,18 +10,18 @@
 /// Lumen namespace
 namespace Lumen
 {
-    /// Engine::Impl class
-    class Engine::Impl
+    /// EnginePlatform class
+    class EnginePlatform
     {
-        CLASS_NO_COPY_MOVE(Impl);
-        CLASS_PTR_UNIQUEMAKER(Impl);
+        CLASS_NO_COPY_MOVE(EnginePlatform);
+        CLASS_PTR_MAKER(EnginePlatform);
 
     public:
         /// constructs an engine
-        explicit Impl() {}
+        explicit EnginePlatform() {}
 
         /// virtual destroys engine
-        virtual ~Impl() = default;
+        virtual ~EnginePlatform() = default;
 
         /// set owner
         virtual void SetOwner(EngineWeakPtr owner) = 0;

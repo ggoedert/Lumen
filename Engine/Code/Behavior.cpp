@@ -18,7 +18,7 @@ public:
     /// constructs a behavior
     explicit Impl(Behavior &owner) : mOwner(owner), mEnabled(true) {}
 
-    /// destroys behavior
+    /// destructor
     ~Impl() = default;
 
 public:

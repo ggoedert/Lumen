@@ -5,13 +5,13 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "EngineImpl.h"
+#include "EnginePlatform.h"
 
 /// Lumen Windows namespace
 namespace Lumen::Windows
 {
     /// Engine windows class
-    class EngineWindows : public Engine::Impl
+    class EngineWindows : public EnginePlatform
     {
         CLASS_NO_COPY_MOVE(EngineWindows);
 

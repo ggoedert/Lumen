@@ -19,6 +19,7 @@ namespace Lumen
 {
     CLASS_PTR_DEF(Engine);
     CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_PTR_DEF(EnginePlatform);
     CLASS_PTR_DEF(Application);
     CLASS_WEAK_PTR_DEF(Application);
     CLASS_PTR_DEF(Texture);
@@ -33,7 +34,6 @@ namespace Lumen
     {
         CLASS_NO_DEFAULT_CTOR(Engine);
         CLASS_NO_COPY_MOVE(Engine);
-        class Impl;
 
     public:
 #ifdef EDITOR
@@ -48,23 +48,17 @@ namespace Lumen
         };
 #endif
 
-        /// constructor
-        explicit Engine(const ApplicationPtr &application, Impl *impl);
+        /// create a smart pointer version of the engine
+        static EnginePtr MakePtr(EnginePlatform *platform, const ApplicationPtr &application);
 
         /// destructor
-        ~Engine() = default;
-
-        /// get implementation
-        [[nodiscard]] Impl *GetImpl() const;
+        ~Engine();
 
         /// get application
         [[nodiscard]] ApplicationWeakPtr GetApplication() const;
         
         /// debug log, implemented at platform level
         static void DebugOutput(const std::string &message);
-
-        /// set owner
-        void SetOwner(EngineWeakPtr owner);
 
         /// initialization and management
         bool Initialize(const Object &config);
@@ -136,11 +130,10 @@ namespace Lumen
         /// get render texture id
         qword GetRenderTextureHandle(Id::Type texId);
 
-    protected:
-        // application
-        ApplicationPtr mApplication;
-
     private:
+        /// constructor
+        explicit Engine(EnginePlatform *platform, const ApplicationPtr &application);
+
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

@@ -19,10 +19,10 @@ class Scene::Impl
     CLASS_PTR_UNIQUEMAKER(Impl);
 
 public:
-    /// constructs a behavior
+    /// constructs a scene
     explicit Impl(Scene &owner, Lumen::Application &application) : mOwner(owner), mApplication(application) {}
 
-    /// destroys behavior
+    /// destructor
     ~Impl() = default;
 
     /// register scene name / path

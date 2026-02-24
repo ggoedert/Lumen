@@ -327,6 +327,7 @@ void Editor::Impl::RunTopBar()
             if (ImGui::MenuItem("Preferences"))
             {
                 mEditorPreferences->Show(true);
+                ImGui::SetWindowFocus("Preferences");
             }
             ImGui::EndMenu();
         }

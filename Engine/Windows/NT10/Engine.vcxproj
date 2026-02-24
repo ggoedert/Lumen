@@ -293,7 +293,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Code\EngineImpl.h" />
+    <ClInclude Include="..\..\Code\EnginePlatform.h" />
     <ClInclude Include="..\..\Code\Windows\DDS.h" />
     <ClInclude Include="..\..\Code\Windows\EngineWindows.h" />
     <ClInclude Include="..\..\Code\Windows\NT10\D3DX12.h" />

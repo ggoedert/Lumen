@@ -9,70 +9,277 @@
 #include "lFileSystemResources.h"
 #include "lBuiltinResources.h"
 
-#include "EngineImpl.h"
+#include "EnginePlatform.h"
 
 using namespace Lumen;
 
-/// constructor
-Engine::Engine(const ApplicationPtr &application, Impl *impl) : mApplication(application), mImpl(ImplUniquePtr(impl)) {}
-
-/// get implementation
-Engine::Impl *Engine::GetImpl() const
+/// Engine::Impl class
+class Engine::Impl
 {
-    return mImpl.get();
+    CLASS_NO_DEFAULT_CTOR(Impl);
+    CLASS_NO_COPY_MOVE(Impl);
+    CLASS_PTR_UNIQUEMAKER(Impl);
+
+public:
+    /// constructor
+    explicit Impl(EnginePlatform *platform, const ApplicationPtr &application) : mPlatform(EnginePlatformPtr(platform)), mApplication(application) {}
+
+    /// destructor
+    ~Impl() = default;
+
+    /// set owner
+    void SetOwner(EngineWeakPtr owner)
+    {
+        mOwner = owner;
+        mPlatform->SetOwner(mOwner);
+        mApplication->SetEngine(mOwner);
+    }
+
+    /// get application
+    ApplicationWeakPtr GetApplication() const
+    {
+        return mApplication;
+    }
+
+    /// initialization and management
+    bool Initialize(const Object &config)
+    {
+        //AssetManager::Initialize(shared_from_this());
+        AssetManager::Initialize(mOwner);
+        AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
+        AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
+
+        FileSystem::Initialize();
+        SceneManager::Initialize();
+
+        if (!mApplication)
+            return false;
+
+#ifdef EDITOR
+        using clock = std::chrono::system_clock;
+        auto time = clock::to_time_t(clock::now());
+        std::tm timeInfo;
+        localtime_s(&timeInfo, &time);
+        std::ostringstream oss;
+        oss << std::put_time(&timeInfo, "%Y-%m-%d");
+        DebugLog::Info("[{}] Engine initialized in editor mode", oss.str());
+#endif
+
+        // initialize application
+        mApplication->Initialize(GetApplication());
+        if (!mPlatform->Initialize(config))
+        {
+            return false;
+        }
+
+        // process initial detected files
+        std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+        if (mPlatform->PopAssetChangeBatchQueue(batchQueue))
+        {
+            AssetManager::ProcessAssetChanges(std::move(batchQueue));
+        }
+
+        // success
+        return true;
+    }
+
+#ifdef EDITOR
+    /// check if initialized
+    bool Initialized()
+    {
+        return mPlatform->Initialized();
+    }
+#endif
+
+    /// shutdown
+    void Shutdown()
+    {
+        // shutdown application
+        if (mApplication)
+            mApplication->Shutdown();
+
+        SceneManager::Shutdown();
+        FileSystem::Shutdown();
+
+        AssetManager::Shutdown();
+
+        mPlatform->Shutdown();
+    }
+
+    /// new project
+    bool New()
+    {
+        mApplication->New();
+        return true;
+    }
+
+    /// open project
+    bool Open()
+    {
+        mApplication->Open();
+        return mPlatform->CreateNewResources();
+    }
+
+    /// basic game loop
+    bool Run()
+    {
+        // process file changes
+        std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+        if (mPlatform->PopAssetChangeBatchQueue(batchQueue))
+        {
+            AssetManager::ProcessAssetChanges(std::move(batchQueue));
+        }
+
+        // run application
+        if (mApplication)
+        {
+            return mPlatform->Run(std::function<bool()>([&]() { return mApplication->Run(mPlatform->GetElapsedTime()); }),
+#ifdef EDITOR
+                std::function<void()>([&]() { mApplication->Editor(); }));
+#else
+                nullptr);
+#endif
+        }
+
+        return false;
+    }
+
+#ifdef EDITOR
+    /// get executable name
+    std::string GetExecutableName() const
+    {
+        return mPlatform->GetExecutableName();
+    }
+
+    /// get settings
+    Settings GetSettings() const
+    {
+        return mPlatform->GetSettings();
+    }
+
+    /// set settings
+    void SetSettings(Settings &settings)
+    {
+        mPlatform->SetSettings(settings);
+    }
+
+    /// check if light theme is used
+    bool IsLightTheme() const
+    {
+        return mPlatform->IsLightTheme();
+    }
+#endif
+
+    /// get fullscreen size
+    void GetFullscreenSize(int &width, int &height) const
+    {
+        return mPlatform->GetFullscreenSize(width, height);
+    }
+
+    /// create a file system for the assets
+    IFileSystemPtr AssetsFileSystem() const
+    {
+        return mPlatform->AssetsFileSystem();
+    }
+
+    /// post event
+    void PostEvent(EventUniquePtr event)
+    {
+        return mPlatform->PostEvent(std::move(event));
+    }
+
+    /// post render command
+    void PostRenderCommand(RenderCommandUniquePtr renderCommand)
+    {
+        return mPlatform->PostRenderCommand(std::move(renderCommand));
+    }
+
+    /// create a texture
+    Id::Type CreateTexture(const TexturePtr &texture, int width, int height)
+    {
+        return mPlatform->CreateTexture(texture, width, height);
+    }
+
+    /// release a texture
+    void ReleaseTexture(Id::Type texId)
+    {
+        mPlatform->ReleaseTexture(texId);
+    }
+
+    /// create a shader
+    Id::Type CreateShader(const ShaderPtr &shader)
+    {
+        return mPlatform->CreateShader(shader);
+    }
+
+    /// release a shader
+    void ReleaseShader(Id::Type shaderId)
+    {
+        return mPlatform->ReleaseShader(shaderId);
+    }
+
+    /// create a mesh
+    Id::Type CreateMesh(const MeshPtr &mesh)
+    {
+        return mPlatform->CreateMesh(mesh);
+    }
+
+    /// release a mesh
+    void ReleaseMesh(Id::Type meshId)
+    {
+        mPlatform->ReleaseMesh(meshId);
+    }
+
+    /// set render texture size
+    void SetRenderTextureSize(Id::Type texId, Math::Int2 size)
+    {
+        mPlatform->SetRenderTextureSize(texId, size);
+    }
+
+    /// get render texture id
+    qword GetRenderTextureHandle(Id::Type texId)
+    {
+        return mPlatform->GetRenderTextureHandle(texId);
+    }
+
+private:
+    /// owner
+    EngineWeakPtr mOwner;
+
+    /// platform virtual interface
+    EnginePlatformPtr mPlatform;
+
+    // application
+    ApplicationPtr mApplication;
+};
+
+
+//==============================================================================================================================================================================
+
+/// create a smart pointer version of the engine
+EnginePtr Engine::MakePtr(EnginePlatform *platform, const ApplicationPtr &application)
+{
+    auto engine = EnginePtr(new Engine(platform, application));
+    engine->mImpl->SetOwner(engine);
+    return engine;
 }
+
+/// constructor
+Engine::Engine(EnginePlatform *platform, const ApplicationPtr &application) : mImpl(Engine::Impl::MakeUniquePtr(platform, application)) {}
+
+/// destructor
+Engine::~Engine() = default;
 
 /// get application
 ApplicationWeakPtr Engine::GetApplication() const
 {
-    return mApplication;
-}
-
-/// set owner
-void Engine::SetOwner(EngineWeakPtr owner)
-{
-    mImpl->SetOwner(owner);
+    return mImpl->GetApplication();
 }
 
 /// initialization and management
 bool Engine::Initialize(const Object &config)
 {
-    AssetManager::Initialize(shared_from_this());
-    AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
-    AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
-
-    FileSystem::Initialize();
-    SceneManager::Initialize();
-
-    if (!mApplication)
-        return false;
-
-#ifdef EDITOR
-    using clock = std::chrono::system_clock;
-    auto time = clock::to_time_t(clock::now());
-    std::tm timeInfo;
-    localtime_s(&timeInfo, &time);
-    std::ostringstream oss;
-    oss << std::put_time(&timeInfo, "%Y-%m-%d");
-    DebugLog::Info("[{}] Engine initialized in editor mode", oss.str());
-#endif
-
-    // initialize application
-    mApplication->Initialize(GetApplication());
-    if (!mImpl->Initialize(config))
-    {
-        return false;
-    }
-
-    // process initial detected files
-    std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-    if (mImpl->PopAssetChangeBatchQueue(batchQueue))
-    {
-        AssetManager::ProcessAssetChanges(std::move(batchQueue));
-    }
-
-    // success
-    return true;
+    return mImpl->Initialize(config);
 }
 
 #ifdef EDITOR
@@ -86,54 +293,25 @@ bool Engine::Initialized()
 /// shutdown
 void Engine::Shutdown()
 {
-    // shutdown application
-    if (mApplication)
-        mApplication->Shutdown();
-
-    SceneManager::Shutdown();
-    FileSystem::Shutdown();
-
-    AssetManager::Shutdown();
-
     mImpl->Shutdown();
 }
 
 /// new project
 bool Engine::New()
 {
-    mApplication->New();
-    return true;
+    return mImpl->New();
 }
 
 /// open project
 bool Engine::Open()
 {
-    mApplication->Open();
-    return mImpl->CreateNewResources();
+    return mImpl->Open();
 }
 
 /// basic game loop
 bool Engine::Run()
 {
-    // process file changes
-    std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-    if (mImpl->PopAssetChangeBatchQueue(batchQueue))
-    {
-        AssetManager::ProcessAssetChanges(std::move(batchQueue));
-    }
-
-    // run application
-    if (mApplication)
-    {
-        return mImpl->Run(std::function<bool()>([&]() { return mApplication->Run(mImpl->GetElapsedTime()); }),
-#ifdef EDITOR
-            std::function<void()>([&]() { mApplication->Editor(); }));
-#else
-            nullptr);
-#endif
-    }
-
-    return false;
+    return mImpl->Run();
 }
 
 #ifdef EDITOR

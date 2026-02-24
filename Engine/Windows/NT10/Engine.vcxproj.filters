@@ -95,9 +95,6 @@
     <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h">
       <Filter>Source Files\Systems\Windows\NT10</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Code\EngineImpl.h">
-      <Filter>Source Files\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\lAsset.h">
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
@@ -229,6 +226,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Code\Windows\EngineWindows.h">
       <Filter>Source Files\Systems\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Code\EnginePlatform.h">
+      <Filter>Source Files\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
