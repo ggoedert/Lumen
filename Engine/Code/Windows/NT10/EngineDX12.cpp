@@ -62,11 +62,11 @@ namespace Lumen::Windows::NT10
         /// shutdown
         void Shutdown() override;
 
-        // get elapsed time since last run
-        float GetElapsedTime() override;
-
         // basic game loop
         bool Run(std::function<bool()> update, std::function<void()> preRender) override;
+
+        // get elapsed time since last run
+        float GetElapsedTime() override;
 
         // IDeviceNotify
         void OnDeviceLost() override;
@@ -80,20 +80,6 @@ namespace Lumen::Windows::NT10
         void OnWindowMoved();
         void OnDisplayChange();
         void OnWindowSizeChanged(int width, int height);
-
-#ifdef EDITOR
-        /// get executable name
-        std::string GetExecutableName() const override;
-
-        /// get settings
-        Engine::Settings GetSettings() noexcept override;
-
-        /// set settings
-        void SetSettings(Engine::Settings &settings) noexcept override;
-
-        /// check if light theme is used
-        bool IsLightTheme() const override;
-#endif
 
         // get fullscreen size
         void GetFullscreenSize(int &width, int &height) const noexcept override;
@@ -142,9 +128,6 @@ namespace Lumen::Windows::NT10
 
         void CreateDeviceDependentResources();
         void CreateWindowSizeDependentResources();
-
-        /// main window handle
-        HWND mWindow = nullptr;
 
 #ifdef EDITOR
         /// initialized
@@ -225,11 +208,6 @@ namespace Lumen::Windows::NT10
         std::vector<TextureMapType::iterator> mNewDeviceTextureMap;
 
         std::vector<RenderCommandUniquePtr> mRenderCommands;
-
-#ifdef EDITOR
-        /// cached settings
-        Engine::Settings mSettings;
-#endif
     };
 
     /// constructs an engine
@@ -277,21 +255,20 @@ namespace Lumen::Windows::NT10
         }
 
         const auto &initializeConfig = static_cast<const Windows::Config &>(config);
-        mWindow = initializeConfig.mWindow;
 #ifdef EDITOR
         /// get cached settings
-        mSettings = GetSettings();
-        mSceneWidth = mSettings.width;
-        mSceneHeight = mSettings.height;
+        Engine::Settings settings = GetSettings();
+        mSceneWidth = settings.width;
+        mSceneHeight = settings.height;
 #else
         RECT rc;
-        GetClientRect(mWindow, &rc);
+        GetClientRect(initializeConfig.mWindow, &rc);
         OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
         mSceneWidth = rc.right - rc.left;
         mSceneHeight = rc.bottom - rc.top;
 #endif
         mSceneNeedsResize = false;
-        mDeviceResources->SetWindow(mWindow, mSceneWidth, mSceneHeight);
+        mDeviceResources->SetWindow(initializeConfig.mWindow, mSceneWidth, mSceneHeight);
 
         mDeviceResources->CreateDeviceResources();
         CreateDeviceDependentResources();
@@ -318,7 +295,7 @@ namespace Lumen::Windows::NT10
 
         // load ImGui settings
         std::string combinedImGuiIni;
-        for (const auto &line : mSettings.imGuiIni)
+        for (const auto &line : settings.imGuiIni)
         {
             combinedImGuiIni += line;
             combinedImGuiIni += '\n';
@@ -340,7 +317,7 @@ namespace Lumen::Windows::NT10
         }
 
         // Setup Platform/Renderer backends
-        ImGui_ImplWin32_Init(mWindow);
+        ImGui_ImplWin32_Init(initializeConfig.mWindow);
 
         // for backbuffer count
         DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -394,7 +371,7 @@ namespace Lumen::Windows::NT10
 #ifdef EDITOR
         // trigger initial window size changed to setup ImGui
         RECT rc;
-        GetClientRect(mWindow, &rc);
+        GetClientRect(initializeConfig.mWindow, &rc);
         OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
 #endif
 
@@ -476,12 +453,6 @@ namespace Lumen::Windows::NT10
         L_ASSERT(mTextureMap.empty());
     }
 
-    // get elapsed time since last run
-    float EngineDX12::GetElapsedTime()
-    {
-        return static_cast<float>(mTimer.GetElapsedSeconds());
-    }
-
 #pragma region Frame Update
     /// executes the basic game loop
     bool EngineDX12::Run(std::function<bool()> update, std::function<void()> preRender)
@@ -519,6 +490,12 @@ namespace Lumen::Windows::NT10
         return true;
     }
 #pragma endregion
+
+    // get elapsed time since last run
+    float EngineDX12::GetElapsedTime()
+    {
+        return static_cast<float>(mTimer.GetElapsedSeconds());
+    }
 
 #pragma region Frame Render
     /// draws the scene
@@ -738,95 +715,6 @@ namespace Lumen::Windows::NT10
             // TODO: game window is being resized
         }
     }
-
-#ifdef EDITOR
-    std::string EngineDX12::GetExecutableName() const
-    {
-        wchar_t buffer[MAX_PATH];
-        if (GetModuleFileNameW(NULL, buffer, MAX_PATH) == 0)
-        {
-            return "unknown";
-        }
-        return std::filesystem::path(buffer).stem().string();
-    }
-
-    /// get settings
-    Engine::Settings EngineDX12::GetSettings() noexcept
-    {
-        // update cached layout window settings
-        WINDOWPLACEMENT wp;
-        wp.length = sizeof(WINDOWPLACEMENT);
-        if (GetWindowPlacement(mWindow, &wp))
-        {
-            mSettings.posX = wp.rcNormalPosition.left;
-            mSettings.posY = wp.rcNormalPosition.top;
-            mSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-            mSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-            mSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
-        }
-
-        // update cached layout ImGui settings
-        if (ImGui::GetCurrentContext())
-        {
-            std::string line;
-            std::vector<std::string> imGuiIniSettings;
-            std::stringstream imGuiIniSettingsString(ImGui::SaveIniSettingsToMemory());
-            while (std::getline(imGuiIniSettingsString, line))
-            {
-                imGuiIniSettings.push_back(line);
-            }
-            if (!imGuiIniSettings.empty())
-            {
-                mSettings.imGuiIni = imGuiIniSettings;
-            }
-        }
-
-        return mSettings;
-    }
-
-    /// set settings
-    void EngineDX12::SetSettings(Engine::Settings &settings) noexcept
-    {
-        WINDOWPLACEMENT wp;
-        wp.length = sizeof(WINDOWPLACEMENT);
-
-        // get current placement first to preserve flags we aren't changing
-        GetWindowPlacement(GetActiveWindow(), &wp);
-
-        // set cached layout window settings
-        wp.rcNormalPosition.left = settings.posX;
-        wp.rcNormalPosition.top = settings.posY;
-        wp.rcNormalPosition.right = settings.posX + settings.width;
-        wp.rcNormalPosition.bottom = settings.posY + settings.height;
-        wp.showCmd = settings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
-        SetWindowPlacement(GetActiveWindow(), &wp);
-
-        // update the layout cache
-        mSettings = settings;
-    }
-
-    /// check if light theme is used
-    bool EngineDX12::IsLightTheme() const
-    {
-        DWORD value = 1;
-        DWORD valueSize = sizeof(value);
-
-        if (RegGetValueW(
-            HKEY_CURRENT_USER,
-            L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-            L"AppsUseLightTheme",
-            RRF_RT_REG_DWORD,
-            nullptr,
-            &value,
-            &valueSize) == ERROR_SUCCESS)
-        {
-            return value == 1; // 0 = dark, 1 = light
-        }
-
-        // Default fallback (Windows default is light)
-        return true;
-    }
-#endif
 
     /// get fullscreen size
     void EngineDX12::GetFullscreenSize(int &width, int &height) const noexcept

@@ -9,8 +9,6 @@
 #include "lTransform.h"
 #include "lSceneManager.h"
 
-#include <chrono>
-
 DEFINE_COMPONENT_TYPEINFO(SphereScript);
 
 /// constructs a sphere script with a background color
@@ -55,33 +53,32 @@ void SphereScript::Update()
             //transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
             transform->Rotate(0.f, 90.f * deltaTime, 0.f);
         }
-    }
 
-    // test log messages at random intervals
-    constexpr auto interval = std::chrono::milliseconds { 334 }; // 3 messages per second
-    using clock = std::chrono::steady_clock;
-    static auto lastLogTime = clock::now() - interval;
-    auto now = clock::now();
-    if (now - lastLogTime >= interval)
-    {
-        lastLogTime = now;
+        // test log messages at random intervals
+        constexpr auto interval = 1.f; // 1 messages per second
+        static auto lastLogTime = currentTime - interval;
+        auto now = currentTime;
+        if (now - lastLogTime >= interval)
+        {
+            lastLogTime = now;
 
-        float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        if (r < 0.65)
-        {
-            Lumen::DebugLog::Detail("SphereScript: Detail log message.");
-        }
-        else if (r < 0.85f)
-        {
-            Lumen::DebugLog::Info("SphereScript: Info log message.");
-        }
-        else if (r < 0.95f)
-        {
-            Lumen::DebugLog::Warning("SphereScript: Warning log message.");
-        }
-        else
-        {
-            Lumen::DebugLog::Error("SphereScript: Error log message.");
+            float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if (r < 0.65)
+            {
+                Lumen::DebugLog::Detail("SphereScript: Detail log message.");
+            }
+            else if (r < 0.85f)
+            {
+                Lumen::DebugLog::Info("SphereScript: Info log message.");
+            }
+            else if (r < 0.95f)
+            {
+                Lumen::DebugLog::Warning("SphereScript: Warning log message.");
+            }
+            else
+            {
+                Lumen::DebugLog::Error("SphereScript: Error log message.");
+            }
         }
     }
 }

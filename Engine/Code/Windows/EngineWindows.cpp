@@ -37,6 +37,20 @@ public:
     /// initialization and management
     bool Initialize(const Object &config);
 
+#ifdef EDITOR
+    /// get executable name
+    std::string GetExecutableName() const;
+
+    /// get settings
+    Engine::Settings GetSettings() noexcept;
+
+    /// set settings
+    void SetSettings(Engine::Settings &settings) noexcept;
+
+    /// check if light theme is used
+    bool IsLightTheme() const;
+#endif
+
     /// file change callback, static version
     static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped);
 
@@ -48,6 +62,12 @@ private:
     EngineWindows &mOwner;
 
 #ifdef EDITOR
+    /// main window handle
+    HWND mWindow = nullptr;
+
+    /// cached settings
+    Engine::Settings mSettings;
+
     static BYTE sBuffer[65536];
     static OVERLAPPED sOverlapped;
     static HANDLE sDirHandle;
@@ -178,6 +198,10 @@ void EngineWindows::Impl::FileChangeCallback()
 /// initialization and management
 bool EngineWindows::Impl::Initialize(const Object &config)
 {
+#ifdef EDITOR
+    mWindow = static_cast<const Windows::Config &>(config).mWindow;
+#endif
+
     try
     {
         static std::vector<Lumen::AssetManager::AssetChange> batch;
@@ -245,6 +269,95 @@ bool EngineWindows::Impl::Initialize(const Object &config)
 
     return true;
 }
+
+#ifdef EDITOR
+std::string EngineWindows::Impl::GetExecutableName() const
+{
+    wchar_t buffer[MAX_PATH];
+    if (GetModuleFileNameW(NULL, buffer, MAX_PATH) == 0)
+    {
+        return "unknown";
+    }
+    return std::filesystem::path(buffer).stem().string();
+}
+
+/// get settings
+Lumen::Engine::Settings EngineWindows::Impl::GetSettings() noexcept
+{
+    // update cached layout window settings
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof(WINDOWPLACEMENT);
+    if (GetWindowPlacement(mWindow, &wp))
+    {
+        mSettings.posX = wp.rcNormalPosition.left;
+        mSettings.posY = wp.rcNormalPosition.top;
+        mSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+        mSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+        mSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+    }
+
+    // update cached layout ImGui settings
+    if (ImGui::GetCurrentContext())
+    {
+        std::string line;
+        std::vector<std::string> imGuiIniSettings;
+        std::stringstream imGuiIniSettingsString(ImGui::SaveIniSettingsToMemory());
+        while (std::getline(imGuiIniSettingsString, line))
+        {
+            imGuiIniSettings.push_back(line);
+        }
+        if (!imGuiIniSettings.empty())
+        {
+            mSettings.imGuiIni = imGuiIniSettings;
+        }
+    }
+
+    return mSettings;
+}
+
+/// set settings
+void EngineWindows::Impl::SetSettings(Engine::Settings &settings) noexcept
+{
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof(WINDOWPLACEMENT);
+
+    // get current placement first to preserve flags we aren't changing
+    GetWindowPlacement(GetActiveWindow(), &wp);
+
+    // set cached layout window settings
+    wp.rcNormalPosition.left = settings.posX;
+    wp.rcNormalPosition.top = settings.posY;
+    wp.rcNormalPosition.right = settings.posX + settings.width;
+    wp.rcNormalPosition.bottom = settings.posY + settings.height;
+    wp.showCmd = settings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+    SetWindowPlacement(GetActiveWindow(), &wp);
+
+    // update the layout cache
+    mSettings = settings;
+}
+
+/// check if light theme is used
+bool EngineWindows::Impl::IsLightTheme() const
+{
+    DWORD value = 1;
+    DWORD valueSize = sizeof(value);
+
+    if (RegGetValueW(
+        HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        L"AppsUseLightTheme",
+        RRF_RT_REG_DWORD,
+        nullptr,
+        &value,
+        &valueSize) == ERROR_SUCCESS)
+    {
+        return value == 1; // 0 = dark, 1 = light
+    }
+
+    // Default fallback (Windows default is light)
+    return true;
+}
+#endif
 
 /// start engine
 int Lumen::Windows::Start(HINSTANCE hInstance, int nCmdShow, WCHAR *szTitle, WCHAR *szWindowClass, HICON hIcon, const ApplicationPtr application)
@@ -575,6 +688,32 @@ bool EngineWindows::Initialize(const Object &config)
 {
     return mImpl->Initialize(config);
 }
+
+#ifdef EDITOR
+/// get executable name
+std::string EngineWindows::GetExecutableName() const
+{
+    return mImpl->GetExecutableName();
+}
+
+/// get settings
+Lumen::Engine::Settings EngineWindows::GetSettings() noexcept
+{
+    return mImpl->GetSettings();
+}
+
+/// set settings
+void EngineWindows::SetSettings(Engine::Settings &settings) noexcept
+{
+    mImpl->SetSettings(settings);
+}
+
+/// check if light theme is used
+bool EngineWindows::IsLightTheme() const
+{
+    return mImpl->IsLightTheme();
+}
+#endif
 
 /// debug log, windows support
 void Lumen::Engine::DebugOutput(const std::string &message)

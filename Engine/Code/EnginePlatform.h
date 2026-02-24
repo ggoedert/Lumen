@@ -43,11 +43,11 @@ namespace Lumen
         /// shutdown
         virtual void Shutdown() = 0;
 
-        /// get elapsed time since last run
-        virtual float GetElapsedTime() = 0;
-
         /// basic game loop
         virtual bool Run(std::function<bool()> update, std::function<void()> preRender) = 0;
+
+        /// get elapsed time since last run
+        virtual float GetElapsedTime() = 0;
 
 #ifdef EDITOR
         /// get executable name

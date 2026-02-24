@@ -47,6 +47,20 @@ namespace Lumen::Windows
         /// initialization and management
         bool Initialize(const Object &config) override;
 
+#ifdef EDITOR
+        /// get executable name
+        std::string GetExecutableName() const override;
+
+        /// get settings
+        Engine::Settings GetSettings() noexcept override;
+
+        /// set settings
+        void SetSettings(Engine::Settings &settings) noexcept override;
+
+        /// check if light theme is used
+        bool IsLightTheme() const override;
+#endif
+
     private:
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
