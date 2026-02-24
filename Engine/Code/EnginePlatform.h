@@ -24,7 +24,10 @@ namespace Lumen
         virtual ~EnginePlatform() = default;
 
         /// set owner
-        virtual void SetOwner(EngineWeakPtr owner) = 0;
+        void SetOwner(EngineWeakPtr owner) { mOwner = owner; }
+
+        /// get owner
+        EngineWeakPtr GetOwner() { return mOwner; }
 
         /// initialization and management
         virtual bool Initialize(const Object &config) = 0;
@@ -96,7 +99,8 @@ namespace Lumen
         /// get render texture id
         virtual qword GetRenderTextureHandle(Id::Type texId) = 0;
 
-        /// pop all batches of items
-        virtual bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) = 0;
+    private:
+        /// owner
+        EngineWeakPtr mOwner;
     };
 }

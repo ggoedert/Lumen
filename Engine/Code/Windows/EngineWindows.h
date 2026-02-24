@@ -47,9 +47,6 @@ namespace Lumen::Windows
         /// initialization and management
         bool Initialize(const Object &config) override;
 
-        /// pop all batches of items
-        bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) override;
-
     private:
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

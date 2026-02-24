@@ -8,6 +8,7 @@
 #include "lSceneManager.h"
 #include "lFileSystemResources.h"
 #include "lBuiltinResources.h"
+#include "lConcurrentBatchQueue.h"
 
 #include "EnginePlatform.h"
 
@@ -74,7 +75,7 @@ public:
 
         // process initial detected files
         std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-        if (mPlatform->PopAssetChangeBatchQueue(batchQueue))
+        if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
             AssetManager::ProcessAssetChanges(std::move(batchQueue));
         }
@@ -125,7 +126,7 @@ public:
     {
         // process file changes
         std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
-        if (mPlatform->PopAssetChangeBatchQueue(batchQueue))
+        if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
             AssetManager::ProcessAssetChanges(std::move(batchQueue));
         }
@@ -242,6 +243,12 @@ public:
         return mPlatform->GetRenderTextureHandle(texId);
     }
 
+    /// push a batch of items
+    void PushAssetChangeBatch(std::vector<Lumen::AssetManager::AssetChange> &&batch)
+    {
+        mAssetChangeBatches.PushBatch(std::move(batch));
+    }
+
 private:
     /// owner
     EngineWeakPtr mOwner;
@@ -251,6 +258,9 @@ private:
 
     // application
     ApplicationPtr mApplication;
+
+    /// asset change batches
+    ConcurrentBatchQueue<AssetManager::AssetChange> mAssetChangeBatches;
 };
 
 
@@ -410,6 +420,12 @@ void Engine::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
 qword Engine::GetRenderTextureHandle(Id::Type texId)
 {
     return mImpl->GetRenderTextureHandle(texId);
+}
+
+/// push a batch of items
+void Engine::PushAssetChangeBatch(std::vector<Lumen::AssetManager::AssetChange> &&batch)
+{
+    mImpl->PushAssetChangeBatch(std::move(batch));
 }
 
 //==============================================================================================================================================================================

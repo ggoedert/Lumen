@@ -48,9 +48,6 @@ namespace Lumen::Windows::NT10
         /// destroys engine
         ~EngineDX12() override;
 
-        /// set owner
-        void SetOwner(EngineWeakPtr owner) override { mOwner = owner; }
-
         /// initialization and management
         bool Initialize(const Object &config) override;
 
@@ -233,9 +230,6 @@ namespace Lumen::Windows::NT10
         /// cached settings
         Engine::Settings mSettings;
 #endif
-
-        /// owner
-        EngineWeakPtr mOwner;
     };
 
     /// constructs an engine

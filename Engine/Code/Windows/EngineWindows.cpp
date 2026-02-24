@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 
 #include "lAssetManager.h"
-#include "lConcurrentBatchQueue.h"
 #include "lEngineWindows.h"
 
 #include "EngineWindows.h"
@@ -38,9 +37,6 @@ public:
     /// initialization and management
     bool Initialize(const Object &config);
 
-    /// pop all batches of items
-    bool PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue) { return mAssetChangeBatches.PopBatchQueue(batchQueue); }
-
     /// file change callback, static version
     static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped);
 
@@ -50,9 +46,6 @@ public:
 private:
     /// owner
     EngineWindows &mOwner;
-
-    /// asset change batches
-    ConcurrentBatchQueue<AssetManager::AssetChange> mAssetChangeBatches;
 
 #ifdef EDITOR
     static BYTE sBuffer[65536];
@@ -173,7 +166,11 @@ void EngineWindows::Impl::FileChangeCallback()
     }
     if (!batch.empty())
     {
-        mAssetChangeBatches.PushBatch(std::move(batch));
+        if (auto engine = mOwner.GetOwner().lock())
+        {
+            engine->PushAssetChangeBatch(std::move(batch));
+            batch.clear();
+        }
     }
 }
 #endif
@@ -194,7 +191,11 @@ bool EngineWindows::Impl::Initialize(const Object &config)
         }
         if (!batch.empty())
         {
-            mAssetChangeBatches.PushBatch(std::move(batch));
+            if (auto engine = mOwner.GetOwner().lock())
+            {
+                engine->PushAssetChangeBatch(std::move(batch));
+                batch.clear();
+            }
         }
     }
     catch (const std::exception &e)
@@ -573,12 +574,6 @@ EngineWindows::~EngineWindows() {}
 bool EngineWindows::Initialize(const Object &config)
 {
     return mImpl->Initialize(config);
-}
-
-/// pop all batches of items
-bool EngineWindows::PopAssetChangeBatchQueue(std::list<std::vector<AssetManager::AssetChange>> &batchQueue)
-{
-    return mImpl->PopAssetChangeBatchQueue(batchQueue);
 }
 
 /// debug log, windows support
