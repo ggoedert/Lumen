@@ -62,9 +62,6 @@ protected:
     /// get application state
     [[nodiscard]] State GetState();
 
-    /// get paused state
-    bool Paused();
-
     /// start application
     void Start();
 
@@ -89,14 +86,17 @@ private:
     EngineWeakPtr mEngine;
 
 #ifndef EDITOR
+    /// application previous state
+    State mPreviousState { State::Running };
+
     /// application state
     State mState { State::Running };
 #else
+    /// application previous state
+    State mPreviousState { State::Stopped };
+
     /// application state
     State mState { State::Stopped };
-
-    /// paused state
-    bool mPaused { false };
 
     /// editor pointer
     EditorPtr mEditor;
@@ -155,6 +155,12 @@ void Application::Impl::Editor()
 /// run application
 bool Application::Impl::Run(float deltaTime)
 {
+    if (mPreviousState != mState)
+    {
+        SceneManager::OnState(mPreviousState, mState);
+        mPreviousState = mState;
+    }
+
 #ifndef EDITOR
     if (mState == State::Running)
     {
@@ -168,28 +174,28 @@ bool Application::Impl::Run(float deltaTime)
     switch (mState)
     {
     case State::Running:
-        if (!mPaused)
-        {
-            mDeltaTime = deltaTime;
-            mTime += mDeltaTime;
-        }
-        else
-        {
-            mDeltaTime = 0.f;
-        }
+        mDeltaTime = deltaTime;
+        mTime += mDeltaTime;
+        SceneManager::Run();
+        break;
+    case State::Paused:
+        mDeltaTime = 0.f;
         SceneManager::Run();
         break;
     case State::Stepping:
         mDeltaTime = 1.f / 30.f;
         mTime += mDeltaTime;
         SceneManager::Run();
-        mState = State::Running;
-        mPaused = true;
+        mState = State::Stepped;
+        break;
+    case State::Stepped:
+        mDeltaTime = 0.f;
+        SceneManager::Run();
         break;
     case State::Stopping:
         mDeltaTime = 0.f;
         mTime = 0.f;
-        SceneManager::Run();
+        //SceneManager::Run();
         mState = State::Stopped;
         break;
     case State::Stopped:
@@ -211,34 +217,28 @@ Application::State Application::Impl::GetState()
     return mState;
 }
 
-/// get paused state
-bool Application::Impl::Paused()
-{
-    return mPaused;
-}
-
 /// start application
 void Application::Impl::Start()
 {
     mState = State::Running;
 }
 
+/// stop application
+void Application::Impl::Stop()
+{
+    mState = State::Stopping;
+}
+
 /// pause application
 void Application::Impl::Pause()
 {
-    mPaused = !mPaused;
+    mState = (mState == State::Running) ? State::Paused : State::Running;
 }
 
 /// step application
 void Application::Impl::Step()
 {
     mState = State::Stepping;
-}
-
-/// stop application
-void Application::Impl::Stop()
-{
-    mState = State::Stopping;
 }
 #endif
 
@@ -325,16 +325,16 @@ Application::State Application::GetState()
     return mImpl->GetState();
 }
 
-/// get paused state
-bool Application::Paused()
-{
-    return mImpl->Paused();
-}
-
 /// start application
 void Application::Start()
 {
     mImpl->Start();
+}
+
+/// stop application
+void Application::Stop()
+{
+    mImpl->Stop();
 }
 
 /// pause application
@@ -347,12 +347,6 @@ void Application::Pause()
 void Application::Step()
 {
     mImpl->Step();
-}
-
-/// stop application
-void Application::Stop()
-{
-    mImpl->Stop();
 }
 
 /// run editor

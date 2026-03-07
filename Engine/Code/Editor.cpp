@@ -383,8 +383,8 @@ void Editor::Impl::RunTopBar()
     if (auto application = mApplication.lock())
     {
         ImGui::SetCursorPosX(centerX);
-        bool started = application->GetState() == Application::State::Running;
-        bool paused = application->Paused();
+        bool started = (application->GetState() == Application::State::Running) || (application->GetState() == Application::State::Stepped);
+        bool paused = application->GetState() == Application::State::Paused;
         if (started)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);

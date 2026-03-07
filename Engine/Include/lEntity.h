@@ -8,6 +8,7 @@
 #include "lSerializedData.h"
 #include "lObject.h"
 #include "lApplication.h"
+#include "lSceneManager.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -17,13 +18,13 @@ namespace Lumen
     CLASS_WEAK_PTR_DEF(Entity);
     CLASS_WEAK_PTR_DEF(Transform);
     CLASS_WEAK_PTR_DEF(Component);
-    namespace SceneManager { void Run(); }
 
     /// Entity class
     class Entity : public Object, public std::enable_shared_from_this<Entity>
     {
         CLASS_NO_COPY_MOVE(Entity);
         OBJECT_TYPEINFO;
+        friend void SceneManager::OnState(Application::State previousState, Application::State newState);
         friend void SceneManager::Run();
 
     public:
@@ -55,6 +56,9 @@ namespace Lumen
         [[maybe_unused]] ComponentWeakPtr AddComponent(Hash type);
 
     protected:
+        /// called on state change
+        void OnState(Lumen::Application::State newState);
+
         /// run entity
         void Run();
 
@@ -65,7 +69,4 @@ namespace Lumen
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };
-
-    /// alias for collection of entities
-    using Entities = std::vector<EntityWeakPtr>;
 }

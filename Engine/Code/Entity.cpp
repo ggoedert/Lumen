@@ -121,6 +121,9 @@ public:
     [[maybe_unused]] ComponentWeakPtr AddComponent(const EntityWeakPtr &entity, Hash type);
 
 protected:
+    /// called on state change
+    void OnState(Lumen::Application::State newState);
+
     /// run entity
     void Run();
 
@@ -176,6 +179,17 @@ ComponentWeakPtr Entity::Impl::AddComponent(const EntityWeakPtr &entity, Hash ty
     ComponentWeakPtr component = SceneManager::CreateComponent(mApplication.GetEngine(), entity, type);
     mComponents.push_back(component);
     return component;
+}
+
+/// called on state change
+void Entity::Impl::OnState(Lumen::Application::State newState)
+{
+    for (const ComponentWeakPtr &component : mComponents)
+    {
+        auto componentPtr = component.lock();
+        L_ASSERT(componentPtr);
+        componentPtr->OnState(newState);
+    }
 }
 
 /// run entity
@@ -256,6 +270,12 @@ ComponentWeakPtr Entity::Component(Hash type) const
 ComponentWeakPtr Entity::AddComponent(Hash type)
 {
     return mImpl->AddComponent(shared_from_this(), type);
+}
+
+/// called on state change
+void Entity::OnState(Lumen::Application::State newState)
+{
+    mImpl->OnState(newState);
 }
 
 /// run entity

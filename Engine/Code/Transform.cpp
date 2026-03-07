@@ -129,6 +129,20 @@ public:
         mRotation.Normalize();
     }
 
+    /// get scale
+    [[nodiscard]] const Math::Vector3 &GetScale() const { return mScale; }
+
+    /// set scale
+    void SetScale(const Math::Vector3 &absoluteScale) { mScale = absoluteScale; }
+
+    /// scale
+    void Scale(const Math::Vector3 &relativeScale)
+    {
+        mScale.x *= relativeScale.x;
+        mScale.y *= relativeScale.y;
+        mScale.z *= relativeScale.z;
+    }
+
     /// get world matrix
     void GetWorldMatrix(Math::Matrix44 &world) const
     {
@@ -243,6 +257,24 @@ void Transform::SetRotation(const Math::Quaternion &rotation)
 void Transform::Rotate(float xAngle, float yAngle, float zAngle)
 {
     mImpl->Rotate(xAngle, yAngle, zAngle);
+}
+
+/// get scale
+[[nodiscard]] const Math::Vector3 &Transform::GetScale() const
+{
+    return mImpl->GetScale();
+}
+
+/// set scale
+void Transform::SetScale(const Math::Vector3 &absoluteScale)
+{
+    mImpl->SetScale(absoluteScale);
+}
+
+/// scale
+void Transform::Scale(const Math::Vector3 &relativeScale)
+{
+    mImpl->Scale(relativeScale);
 }
 
 /// get world matrix

@@ -176,7 +176,7 @@ namespace Lumen::Windows::NT10
         /// map of mesh
         struct MeshData
         {
-            MeshPtr mMesh;
+            MeshWeakPtr mMesh;
             std::unique_ptr<GeometricPrimitive> mShape;
         };
         using MeshMapType = std::unordered_map<Id::Type, MeshData>;
@@ -186,7 +186,7 @@ namespace Lumen::Windows::NT10
         /// map of shader
         struct ShaderData
         {
-            ShaderPtr mShader;
+            ShaderWeakPtr mShader;
             std::unique_ptr<IEffect> mEffect;
         };
         using ShaderMapType = std::unordered_map<Id::Type, ShaderData>;
@@ -197,7 +197,7 @@ namespace Lumen::Windows::NT10
         /// map of texture
         struct TextureData
         {
-            TexturePtr mTexture;
+            TextureWeakPtr mTexture;
             DynamicDescriptorHeap::IndexType mIndex = DynamicDescriptorHeap::InvalidIndex;
             Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
             int mWidth = 0;
@@ -423,7 +423,10 @@ namespace Lumen::Windows::NT10
             auto it = mMeshMap.find(meshId);
             if (it != mMeshMap.end())
             {
-                it->second.mMesh->Release();
+                if (auto meshPtr = it->second.mMesh.lock())
+                {
+                    meshPtr->Release();
+                }
             }
         }
         L_ASSERT(mMeshMap.empty());
@@ -435,7 +438,10 @@ namespace Lumen::Windows::NT10
             auto it = mShaderMap.find(shaderID);
             if (it != mShaderMap.end())
             {
-                it->second.mShader->Release();
+                if (auto shaderPtr = it->second.mShader.lock())
+                {
+                    shaderPtr->Release();
+                }
             }
         }
         L_ASSERT(mShaderMap.empty());
@@ -447,7 +453,10 @@ namespace Lumen::Windows::NT10
             auto it = mTextureMap.find(texId);
             if (it != mTextureMap.end())
             {
-                it->second.mTexture->Release();
+                if (auto texturePtr = it->second.mTexture.lock())
+                {
+                    texturePtr->Release();
+                }
             }
         }
         L_ASSERT(mTextureMap.empty());
@@ -470,6 +479,11 @@ namespace Lumen::Windows::NT10
         PIXEndEvent();
         if (!updateResult)
             return false;
+
+        if (!mNewDeviceMeshMap.empty() || !mNewDeviceTextureMap.empty() || !mNewDeviceShaderMap.empty())
+        {
+            CreateNewResources();
+        }
 
 #ifdef EDITOR
         ImGui_ImplWin32_NewFrame();  // window/input
@@ -903,11 +917,14 @@ namespace Lumen::Windows::NT10
             header->caps = DDS_SURFACE_FLAGS_TEXTURE;
 
             // create texture
-            UniqueByteArray textureData = textureDataIt->second.mTexture->PopTextureData();
-            int textureDataPitch = width * elements;
-            for (int y = 0; y < height; ++y)
+            if (auto textureLock = textureDataIt->second.mTexture.lock())
             {
-                memcpy(ddsTexture.data() + ddsPrefix + y * surfacePitch, textureData.data() + y * textureDataPitch, textureDataPitch);
+                UniqueByteArray textureData = textureLock->PopTextureData();
+                int textureDataPitch = width * elements;
+                for (int y = 0; y < height; ++y)
+                {
+                    memcpy(ddsTexture.data() + ddsPrefix + y * surfacePitch, textureData.data() + y * textureDataPitch, textureDataPitch);
+                }
             }
             textureDataIt->second.mIndex = mResourceDescriptors->Allocate();
             ThrowIfFailed(
@@ -946,7 +963,10 @@ namespace Lumen::Windows::NT10
             //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting, pd);
             //shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::Lighting | EffectFlags::Texture, pd);
 
-            bool nIsSimpleDiffuse = shaderDataIt->second.mShader->Name() == "Simple/Diffuse"; //@REVIEW@ FIXME: detected shader
+            if (auto shaderPtr = shaderDataIt->second.mShader.lock())
+            {
+                bool nIsSimpleDiffuse = shaderPtr->Name() == "Simple/Diffuse"; //@REVIEW@ FIXME: detected shader
+            }
 
             shaderDataIt->second.mEffect = std::make_unique<BasicEffect>(device, EffectFlags::PerPixelLighting | EffectFlags::Texture, pd);
             BasicEffect *basicEffect = static_cast<BasicEffect *>(shaderDataIt->second.mEffect.get());

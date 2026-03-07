@@ -62,6 +62,15 @@ namespace Lumen
         /// rotate by euler angles in degrees
         void Rotate(float xAngle, float yAngle, float zAngle);
 
+        /// get scale
+        [[nodiscard]] const Math::Vector3 &GetScale() const;
+
+        /// set scale
+        void SetScale(const Math::Vector3 &absoluteScale);
+
+        /// scale
+        void Scale(const Math::Vector3 &relativeScale);
+
         /// get world matrix
         void GetWorldMatrix(Math::Matrix44 &world) const;
 

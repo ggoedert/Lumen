@@ -21,6 +21,9 @@ public:
     /// constructs a shader
     explicit Impl(const EngineWeakPtr &engine, std::string_view name) : mEngine(engine), mName(name), mShaderId(Id::Invalid) {}
 
+    /// destructor
+    ~Impl() { Release(); }
+
     /// register shader name / path
     static void Register(std::string_view name, std::string_view path)
     {

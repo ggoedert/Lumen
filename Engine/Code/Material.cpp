@@ -24,6 +24,9 @@ public:
     /// constructs a material
     explicit Impl(Material &owner) : mOwner(owner) {}
 
+    /// destructor
+    ~Impl() { Release(); }
+
     /// register material name / path
     static void Register(std::string_view name, std::string_view path)
     {

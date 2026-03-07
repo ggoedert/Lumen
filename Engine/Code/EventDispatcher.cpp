@@ -37,7 +37,7 @@ public:
     /// broadcast to all event receivers, ignore if handled
     void Broadcast(const EventPtr &event) const
     {
-        for (auto &receiver : mReceivers)
+        for (const auto &receiver : mReceivers)
         {
             receiver->HandleEvent(event);
         }
@@ -46,7 +46,7 @@ public:
     /// traverse all event receivers from top to bottom, stop if handled
     bool Traverse(const EventPtr &event) const
     {
-        for (auto &receiver : mReceivers)
+        for (const auto &receiver : mReceivers)
         {
             if (receiver->HandleEvent(event))
             {

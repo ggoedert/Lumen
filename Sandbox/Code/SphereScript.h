@@ -23,9 +23,6 @@ public:
     /// deserialize
     void Deserialize(const Lumen::Serialized::Type &in, bool packed) override;
 
-    /// Start is called before the first frame update
-    void Start() override;
-
     /// Update is called once per frame
     void Update() override;
 

@@ -33,21 +33,14 @@ void SphereScript::Deserialize(const Lumen::Serialized::Type &in, bool packed)
 {
 }
 
-/// start is called before the first frame update
-void SphereScript::Start()
-{
-}
-
 /// update is called once per frame
 void SphereScript::Update()
 {
     // test rotate the sphere
     if (auto entity = Entity().lock())
     {
-        static float lastTime = 0.f;
         float currentTime = entity->GetApplication().Time();
-        float deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
+        float deltaTime = entity->GetApplication().DeltaTime();
         if (auto transform = entity->Transform().lock())
         {
             //transform->Rotate(0.f, 90.f * entity->GetApplication().DeltaTime(), 0.f);
@@ -56,11 +49,10 @@ void SphereScript::Update()
 
         // test log messages at random intervals
         constexpr auto interval = 1.f; // 1 messages per second
-        static auto lastLogTime = currentTime - interval;
-        auto now = currentTime;
-        if (now - lastLogTime >= interval)
+        static auto nextLogTime = 0.f;
+        if (currentTime >= nextLogTime)
         {
-            lastLogTime = now;
+            nextLogTime = currentTime + interval;
 
             float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
             if (r < 0.65)

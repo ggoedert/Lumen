@@ -22,6 +22,9 @@ public:
     /// constructs a mesh
     explicit Impl(Mesh &owner, const EngineWeakPtr &engine) : mOwner(owner), mEngine(engine), mMeshId(Id::Invalid) {}
 
+    /// destructor
+    ~Impl() { Release(); }
+
     /// register mesh name / path
     static void Register(std::string_view name, std::string_view path)
     {

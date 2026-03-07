@@ -7,6 +7,7 @@
 #include "lScene.h"
 #include "lStringMap.h"
 #include "lAssetManager.h"
+#include "lEntity.h"
 #include "lSceneManager.h"
 
 using namespace Lumen;
@@ -136,7 +137,6 @@ public:
             for (auto entityWeakPtr : mEntities)
             {
                 SceneManager::UnregisterEntity(entityWeakPtr);
-
             }
             mEntities.clear();
         }

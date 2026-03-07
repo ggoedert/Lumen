@@ -26,7 +26,7 @@ namespace Lumen
 
     public:
         /// application state
-        enum class State { Running, Stepping, Stopping, Stopped, Quit };
+        enum class State { Running, Paused, Stepping, Stepped, Stopping, Stopped, Quit, None };
 
         /// get engine
         [[nodiscard]] EngineWeakPtr GetEngine();
@@ -65,20 +65,17 @@ namespace Lumen
         /// get application state
         [[nodiscard]] State GetState();
 
-        /// get paused state
-        [[nodiscard]] bool Paused();
-
         /// start application
         void Start();
 
-        /// step application
-        void Step();
+        /// stop application
+        void Stop();
 
         /// pause application
         void Pause();
 
-        /// stop application
-        void Stop();
+        /// step application
+        void Step();
 #endif
 
     protected:

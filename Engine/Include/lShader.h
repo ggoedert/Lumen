@@ -14,6 +14,7 @@
 namespace Lumen
 {
     CLASS_PTR_DEF(Shader);
+    CLASS_WEAK_PTR_DEF(Shader);
 
     /// Shader class
     class Shader : public Asset

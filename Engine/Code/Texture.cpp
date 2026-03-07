@@ -21,6 +21,9 @@ public:
     /// constructs a texture
     explicit Impl(Texture &owner, const EngineWeakPtr &engine, const Info &info) : mOwner(owner), mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
 
+    /// destructor
+    ~Impl() { Release(); }
+
     /// register texture name / path
     static void Register(std::string_view name, std::string_view path)
     {

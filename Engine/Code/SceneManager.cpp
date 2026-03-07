@@ -30,9 +30,6 @@ namespace Lumen::Hidden
         /// entities in the scene
         std::vector<EntityPtr> mEntities;
 
-        /// components that need to be started
-        std::vector<ComponentPtr> mNewComponents;
-
         /// map of components
         std::unordered_map<HashType, std::vector<ComponentPtr>, HashTypeHasher, HashTypeEqual> mComponentsMap;
     };
@@ -81,7 +78,6 @@ void SceneManager::Unload()
     if (Hidden::gSceneManagerState->mCurrentScene)
     {
         Hidden::gSceneManagerState->mCurrentScene->Release();
-        Hidden::gSceneManagerState->mNewComponents.clear();
         Hidden::gSceneManagerState->mEntities.clear();
         Hidden::gSceneManagerState->mComponentsMap.clear();
         Hidden::gSceneManagerState->mCurrentScene.reset();
@@ -132,7 +128,6 @@ ComponentWeakPtr SceneManager::RegisterComponent(const ComponentPtr &component)
     L_ASSERT(component);
 
     Hidden::gSceneManagerState->mComponentsMap[component->Type()].push_back(component);
-    Hidden::gSceneManagerState->mNewComponents.push_back(component);
     return component;
 }
 
@@ -173,19 +168,36 @@ Components SceneManager::GetComponents(Hash type)
     return result;
 }
 
+/// called on state change
+void SceneManager::OnState(Application::State previousState, Application::State newState)
+{
+    L_ASSERT(Hidden::gSceneManagerState);
+
+    static Lumen::Serialized::Type mEditorState;
+    if (previousState == Application::State::Stopped && newState == Application::State::Running)
+    {
+        Hidden::gSceneManagerState->mCurrentScene->Serialize(mEditorState, true);
+    }
+    else if (previousState == Application::State::Stopping && newState == Application::State::Stopped)
+    {
+        if (!mEditorState.empty())
+        {
+            Hidden::gSceneManagerState->mCurrentScene->Release();
+            Hidden::gSceneManagerState->mCurrentScene->Deserialize(mEditorState, true);
+            mEditorState.clear();
+        }
+    }
+
+    for (const EntityPtr &entity : Hidden::gSceneManagerState->mEntities)
+    {
+        entity->OnState(newState);
+    }
+}
+
 /// run application
 void SceneManager::Run()
 {
     L_ASSERT(Hidden::gSceneManagerState);
-
-    if (!Hidden::gSceneManagerState->mNewComponents.empty())
-    {
-        for (const ComponentPtr &component : Hidden::gSceneManagerState->mNewComponents)
-        {
-            component->Start();
-        }
-        Hidden::gSceneManagerState->mNewComponents.clear();
-    }
 
     for (const EntityPtr &entity : Hidden::gSceneManagerState->mEntities)
     {

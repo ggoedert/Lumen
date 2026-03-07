@@ -6,13 +6,13 @@
 #pragma once
 
 #include "lEntity.h"
+#include "lSceneManager.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     CLASS_PTR_DEF(Component);
     CLASS_WEAK_PTR_DEF(Component);
-    namespace SceneManager { void Run(); }
 
     /// Component class
     class Component : public Object
@@ -43,16 +43,13 @@ namespace Lumen
         ~Component() override;
 
     private:
-        /// start component
-        virtual void Start() {};
+        /// called on state change
+        virtual void OnState(Application::State newState) {}
 
         /// run component
-        virtual void Run() {};
+        virtual void Run() {}
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };
-
-    /// alias for collection of components
-    using Components = std::vector<ComponentWeakPtr>;
 }

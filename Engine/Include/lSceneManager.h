@@ -5,8 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lComponent.h"
-#include "lEntity.h"
+#include "lApplication.h"
 #include "lScene.h"
 
 #include <functional>
@@ -15,6 +14,16 @@
 namespace Lumen
 {
     CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_PTR_DEF(Component);
+    CLASS_WEAK_PTR_DEF(Component);
+    CLASS_PTR_DEF(Entity);
+    CLASS_WEAK_PTR_DEF(Entity);
+
+    /// alias for collection of components
+    using Components = std::vector<ComponentWeakPtr>;
+
+    /// alias for collection of entities
+    using Entities = std::vector<EntityWeakPtr>;
 
     /// SceneManager namespace
     namespace SceneManager
@@ -63,6 +72,9 @@ namespace Lumen
 
         /// get all components of type
         [[nodiscard]] Components GetComponents(Hash type);
+
+        /// called on state change
+        void OnState(Application::State previousState, Application::State newState);
 
         /// run application
         void Run();
