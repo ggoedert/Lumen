@@ -74,9 +74,17 @@ namespace Lumen
         [[nodiscard]] Components GetComponents(Hash type);
 
         /// called on state change
-        void OnState(Application::State previousState, Application::State newState);
+        void OnState(Application::State newState);
 
         /// run application
         void Run();
+
+#ifdef EDITOR
+        /// capture current scene state
+        void CaptureSnapshot();
+
+        /// restore scene state from the last captured snapshot
+        void RestoreSnapshot();
+#endif
     }
 }

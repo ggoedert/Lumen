@@ -24,7 +24,7 @@ namespace Lumen
     {
         CLASS_NO_COPY_MOVE(Entity);
         OBJECT_TYPEINFO;
-        friend void SceneManager::OnState(Application::State previousState, Application::State newState);
+        friend void SceneManager::OnState(Application::State newState);
         friend void SceneManager::Run();
 
     public:

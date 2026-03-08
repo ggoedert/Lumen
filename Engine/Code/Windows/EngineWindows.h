@@ -34,7 +34,7 @@ namespace Lumen::Windows
             int mWidth;
             int mHeight;
         private:
-            explicit WindowSizeChanged(int width, int height) : Event(Type()), mWidth(width), mHeight(height) {};
+            explicit WindowSizeChanged(int width, int height) : Event(Type()), mWidth(width), mHeight(height) {}
         };
 
     protected:

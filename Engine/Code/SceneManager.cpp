@@ -32,6 +32,11 @@ namespace Lumen::Hidden
 
         /// map of components
         std::unordered_map<HashType, std::vector<ComponentPtr>, HashTypeHasher, HashTypeEqual> mComponentsMap;
+
+#ifdef EDITOR
+        /// scene state
+        Serialized::Type mSceneState;
+#endif
     };
 
     static std::unique_ptr<SceneManagerState> gSceneManagerState;
@@ -169,24 +174,9 @@ Components SceneManager::GetComponents(Hash type)
 }
 
 /// called on state change
-void SceneManager::OnState(Application::State previousState, Application::State newState)
+void SceneManager::OnState(Application::State newState)
 {
     L_ASSERT(Hidden::gSceneManagerState);
-
-    static Lumen::Serialized::Type mEditorState;
-    if (previousState == Application::State::Stopped && newState == Application::State::Running)
-    {
-        Hidden::gSceneManagerState->mCurrentScene->Serialize(mEditorState, true);
-    }
-    else if (previousState == Application::State::Stopping && newState == Application::State::Stopped)
-    {
-        if (!mEditorState.empty())
-        {
-            Hidden::gSceneManagerState->mCurrentScene->Release();
-            Hidden::gSceneManagerState->mCurrentScene->Deserialize(mEditorState, true);
-            mEditorState.clear();
-        }
-    }
 
     for (const EntityPtr &entity : Hidden::gSceneManagerState->mEntities)
     {
@@ -204,3 +194,23 @@ void SceneManager::Run()
         entity->Run();
     }
 }
+
+#ifdef EDITOR
+/// capture current scene state
+void SceneManager::CaptureSnapshot()
+{
+    Hidden::gSceneManagerState->mSceneState.clear();
+    Hidden::gSceneManagerState->mCurrentScene->Serialize(Hidden::gSceneManagerState->mSceneState, true);
+}
+
+/// restore scene state from the last captured snapshot
+void SceneManager::RestoreSnapshot()
+{
+    if (!Hidden::gSceneManagerState->mSceneState.empty())
+    {
+        Hidden::gSceneManagerState->mCurrentScene->Release();
+        Hidden::gSceneManagerState->mCurrentScene->Deserialize(Hidden::gSceneManagerState->mSceneState, true);
+        Hidden::gSceneManagerState->mSceneState.clear();
+    }
+}
+#endif

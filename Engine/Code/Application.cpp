@@ -155,10 +155,21 @@ void Application::Impl::Editor()
 /// run application
 bool Application::Impl::Run(float deltaTime)
 {
+#ifdef EDITOR
+    if (mPreviousState == State::Stopped && mState == State::Running)
+    {
+        SceneManager::CaptureSnapshot();
+    }
+    else if (mPreviousState == State::Stopping && mState == State::Stopped)
+    {
+        SceneManager::RestoreSnapshot();
+    }
+#endif
+
     if (mPreviousState != mState)
     {
-        SceneManager::OnState(mPreviousState, mState);
         mPreviousState = mState;
+        SceneManager::OnState(mState);
     }
 
 #ifndef EDITOR
