@@ -313,6 +313,7 @@
     <ClInclude Include="..\..\Include\lDefs.h" />
     <ClInclude Include="..\..\Include\lDrawPrimitive.h" />
     <ClInclude Include="..\..\Include\lEditor.h" />
+    <ClInclude Include="..\..\Include\lEditorContent.h" />
     <ClInclude Include="..\..\Include\lEditorLog.h" />
     <ClInclude Include="..\..\Include\lEditorPreferences.h" />
     <ClInclude Include="..\..\Include\lEditorScene.h" />
@@ -357,6 +358,7 @@
     <ClCompile Include="..\..\Code\Component.cpp" />
     <ClCompile Include="..\..\Code\DebugLog.cpp" />
     <ClCompile Include="..\..\Code\Editor.cpp" />
+    <ClCompile Include="..\..\Code\EditorContent.cpp" />
     <ClCompile Include="..\..\Code\EditorLog.cpp" />
     <ClCompile Include="..\..\Code\EditorPreferences.cpp" />
     <ClCompile Include="..\..\Code\EditorScene.cpp" />

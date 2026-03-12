@@ -48,8 +48,11 @@ namespace Lumen::Windows::NT10
         /// destroys engine
         ~EngineDX12() override;
 
+        /// set configuration
+        bool Config(const Object &config) override;
+
         /// initialization and management
-        bool Initialize(const Object &config) override;
+        bool Initialize() override;
 
 #ifdef EDITOR
         /// check if initialized
@@ -228,8 +231,30 @@ namespace Lumen::Windows::NT10
         }
     }
 
+    /// set configuration
+    bool EngineDX12::Config(const Object &config)
+    {
+        if (config.Type() != Windows::Config::Type())
+        {
+#ifdef TYPEINFO
+            DebugLog::Error("Config engine, unknown config type: {}", config.Type().mName);
+#else
+            DebugLog::Error("Config engine, unknown config hash type: 0x{:08X}", config.Type());
+#endif
+            return false;
+        }
+
+        // call set configuration
+        if (!EngineWindows::Config(config))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     /// initialize the Direct3D resources required to run
-    bool EngineDX12::Initialize(const Object &config)
+    bool EngineDX12::Initialize()
     {
 #ifdef EDITOR
         // make sure we have the required assets for the editor
@@ -244,17 +269,7 @@ namespace Lumen::Windows::NT10
         mMainScale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
 #endif
 
-        if (config.Type() != Windows::Config::Type())
-        {
-#ifdef TYPEINFO
-            DebugLog::Error("Initialize engine, unknown config type: {}", config.Type().mName);
-#else
-            DebugLog::Error("Initialize engine, unknown config hash type: 0x{:08X}", config.Type());
-#endif
-            return false;
-        }
-
-        const auto &initializeConfig = static_cast<const Windows::Config &>(config);
+        HWND window = EngineWindows::GetWindow();
 #ifdef EDITOR
         /// get cached settings
         Engine::Settings settings = GetSettings();
@@ -262,13 +277,13 @@ namespace Lumen::Windows::NT10
         mSceneHeight = settings.height;
 #else
         RECT rc;
-        GetClientRect(initializeConfig.mWindow, &rc);
+        GetClientRect(window, &rc);
         OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
         mSceneWidth = rc.right - rc.left;
         mSceneHeight = rc.bottom - rc.top;
 #endif
         mSceneNeedsResize = false;
-        mDeviceResources->SetWindow(initializeConfig.mWindow, mSceneWidth, mSceneHeight);
+        mDeviceResources->SetWindow(window, mSceneWidth, mSceneHeight);
 
         mDeviceResources->CreateDeviceResources();
         CreateDeviceDependentResources();
@@ -317,7 +332,7 @@ namespace Lumen::Windows::NT10
         }
 
         // Setup Platform/Renderer backends
-        ImGui_ImplWin32_Init(initializeConfig.mWindow);
+        ImGui_ImplWin32_Init(window);
 
         // for backbuffer count
         DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -363,7 +378,7 @@ namespace Lumen::Windows::NT10
 #endif
 
         // call base initialize
-        if (!EngineWindows::Initialize(config))
+        if (!EngineWindows::Initialize())
         {
             return false;
         }
@@ -371,7 +386,7 @@ namespace Lumen::Windows::NT10
 #ifdef EDITOR
         // trigger initial window size changed to setup ImGui
         RECT rc;
-        GetClientRect(initializeConfig.mWindow, &rc);
+        GetClientRect(window, &rc);
         OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
 #endif
 

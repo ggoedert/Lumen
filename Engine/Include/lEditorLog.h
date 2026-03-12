@@ -25,8 +25,11 @@ namespace Lumen
         /// creates a smart pointer version of the editor log
         static EditorLogPtr MakePtr(const std::string &logFilename);
 
+        /// editor log dialog name
+        static const char *Name();
+
         /// run editor log
-        void Run(const char *title);
+        void Run();
 
         /// add message to editor log
         void AddMessage(DebugLog::LogLevel level, std::string_view message);

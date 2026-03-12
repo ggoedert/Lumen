@@ -29,8 +29,11 @@ namespace Lumen
         /// get owner
         EngineWeakPtr GetOwner() { return mOwner; }
 
+        /// set configuration
+        virtual bool Config(const Object &config) = 0;
+
         /// initialization and management
-        virtual bool Initialize(const Object &config) = 0;
+        virtual bool Initialize() = 0;
 
 #ifdef EDITOR
         /// check if initialized

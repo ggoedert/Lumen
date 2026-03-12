@@ -8,6 +8,7 @@
 #include "lEditor.h"
 #include "lEditorPreferences.h"
 #include "lEditorScene.h"
+#include "lEditorContent.h"
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
@@ -35,6 +36,9 @@ public:
 
         /// scene window visibility
         bool scene = true;
+
+        /// content window visibility
+        bool content = true;
 
         /// log window visibility
         bool log = true;
@@ -92,6 +96,9 @@ private:
     /// app scene
     EditorScenePtr mEditorScene;
 
+    /// app content
+    EditorContentPtr mEditorContent;
+
     /// app log
     EditorLogPtr mEditorLog;
 };
@@ -110,6 +117,7 @@ Editor::Impl::Impl(const ApplicationWeakPtr &application) :
     {
         throw std::runtime_error("Editor::Impl::Impl no valid application or engine");
     }
+    mEditorContent = EditorContent::MakePtr();
     mEditorLog = EditorLog::MakePtr(engine->GetExecutableName() + ".log");
 }
 
@@ -160,8 +168,9 @@ void Editor::Impl::Initialize()
                 {
                     Serialized::Type inEditorSettings = in["Editor"];
                     mSettings.version = inEditorSettings.value("Version", mSettings.version);
-                    mSettings.scene = inEditorSettings.value("Scene", mSettings.scene);
-                    mSettings.log = inEditorSettings.value("Log", mSettings.log);
+                    mSettings.scene = inEditorSettings.value(EditorScene::Name(), mSettings.scene);
+                    mSettings.content = inEditorSettings.value(EditorContent::Name(), mSettings.content);
+                    mSettings.log = inEditorSettings.value(EditorLog::Name(), mSettings.log);
                     mSettings.theme = inEditorSettings.value("Theme", mSettings.theme);
                 }
 
@@ -203,8 +212,9 @@ void Editor::Impl::Shutdown()
 
             Serialized::Type outEditorSettings = {};
             outEditorSettings["Version"] = mSettings.version;
-            outEditorSettings["Scene"] = mEditorScene->Visible();
-            outEditorSettings["Log"] = mEditorLog->Visible();
+            outEditorSettings[EditorScene::Name()] = mEditorScene->Visible();
+            outEditorSettings[EditorContent::Name()] = mEditorContent->Visible();
+            outEditorSettings[EditorLog::Name()] = mEditorLog->Visible();
             outEditorSettings["Theme"] = mEditorPreferences->GetTheme();
             out["Editor"] = outEditorSettings;
         }
@@ -231,6 +241,7 @@ void Editor::Impl::FirstRun()
     // apply settings
     mEditorPreferences->Show(false);
     mEditorScene->Show(mSettings.scene);
+    mEditorContent->Show(mSettings.content);
     mEditorLog->Show(mSettings.log);
 
     // apply theme
@@ -267,9 +278,10 @@ void Editor::Impl::Run()
     }
 
     RunTopBar();
-    mEditorPreferences->Run("Preferences", engine);
-    mEditorScene->Run("Scene", engine);
-    mEditorLog->Run("Log");
+    mEditorPreferences->Run(engine);
+    mEditorScene->Run(engine);
+    mEditorContent->Run();
+    mEditorLog->Run();
     RunStatusBar();
 }
 
@@ -289,16 +301,18 @@ void Editor::Impl::ResetLayout()
     ImGui::DockBuilderSplitNode(mDockMainId, ImGuiDir_Down, 0.2f, &dockDownId, &mDockMainId);
 
     // dock the windows
-    ImGui::DockBuilderDockWindow("Scene", mDockMainId);
-    ImGui::DockBuilderDockWindow("Log", dockDownId);
+    ImGui::DockBuilderDockWindow(EditorScene::Name(), mDockMainId);
+    ImGui::DockBuilderDockWindow(EditorContent::Name(), dockDownId);
+    ImGui::DockBuilderDockWindow(EditorLog::Name(), dockDownId);
 
     ImGui::DockBuilderFinish(mDockMainId);
 
     mEditorPreferences->Show(false);
     mEditorScene->Show(true);
+    mEditorContent->Show(true);
     mEditorLog->Show(true);
 
-    ImGui::SetWindowFocus("Scene");
+    ImGui::SetWindowFocus(EditorScene::Name());
 }
 
 /// run top bar
@@ -324,10 +338,10 @@ void Editor::Impl::RunTopBar()
         }
         if (ImGui::BeginMenu("Edit"))
         {
-            if (ImGui::MenuItem("Preferences"))
+            if (ImGui::MenuItem(EditorPreferences::Name()))
             {
                 mEditorPreferences->Show(true);
-                ImGui::SetWindowFocus("Preferences");
+                ImGui::SetWindowFocus(EditorPreferences::Name());
             }
             ImGui::EndMenu();
         }
@@ -338,15 +352,20 @@ void Editor::Impl::RunTopBar()
                 ResetLayout();
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Scene"))
+            if (ImGui::MenuItem(EditorScene::Name()))
             {
                 mEditorScene->Show(true);
-                ImGui::SetWindowFocus("Scene");
+                ImGui::SetWindowFocus(EditorScene::Name());
             }
-            if (ImGui::MenuItem("Log"))
+            if (ImGui::MenuItem(EditorContent::Name()))
+            {
+                mEditorContent->Show(true);
+                ImGui::SetWindowFocus(EditorContent::Name());
+            }
+            if (ImGui::MenuItem(EditorLog::Name()))
             {
                 mEditorLog->Show(true);
-                ImGui::SetWindowFocus("Log");
+                ImGui::SetWindowFocus(EditorLog::Name());
             }
             ImGui::EndMenu();
         }

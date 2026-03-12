@@ -26,8 +26,11 @@ namespace Lumen
         /// creates a smart pointer version of the editor preferences
         static EditorPreferencesPtr MakePtr();
 
+        /// editor preferences dialog name
+        static const char *Name();
+
         /// run editor preferences
-        void Run(const char *title, Lumen::EnginePtr engine);
+        void Run(Lumen::EnginePtr engine);
 
         /// return editor preferences window visibility
         bool Visible();

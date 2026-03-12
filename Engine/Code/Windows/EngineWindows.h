@@ -44,8 +44,14 @@ namespace Lumen::Windows
         /// destroys engine
         ~EngineWindows() override;
 
+        /// set configuration
+        bool Config(const Object &config) override;
+
+        /// get window handle
+        HWND GetWindow();
+
         /// initialization and management
-        bool Initialize(const Object &config) override;
+        bool Initialize() override;
 
 #ifdef EDITOR
         /// get executable name

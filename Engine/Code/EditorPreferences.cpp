@@ -24,6 +24,12 @@ public:
     /// destructor
     ~Impl() {}
 
+    /// editor preferences dialog name
+    static const char *Name()
+    {
+        return sName;
+    }
+
     void ShowThemeSelector(const char *label, Lumen::EnginePtr engine)
     {
         const char *themeNames[] = { "System", "Light", "Dark" };
@@ -43,12 +49,12 @@ public:
     }
 
     /// run editor preferences
-    void Run(const char *title, Lumen::EnginePtr engine)
+    void Run(Lumen::EnginePtr engine)
     {
         if (mWindowOpen)
         {
             ImGui::SetNextWindowSize(ImVec2(500, 110), ImGuiCond_FirstUseEver);
-            if (!ImGui::Begin(title, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
+            if (!ImGui::Begin(sName, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
             {
                 ImGui::End();
                 return;
@@ -98,6 +104,9 @@ public:
     }
 
 private:
+    /// editor preferences dialog name
+    inline static const char *sName = "Preferences";
+
     /// window open
     bool mWindowOpen;
 
@@ -119,10 +128,16 @@ EditorPreferencesPtr EditorPreferences::MakePtr()
     return EditorPreferencesPtr(new EditorPreferences());
 }
 
-/// run editor preferences
-void EditorPreferences::Run(const char *title, Lumen::EnginePtr engine)
+/// editor preferences dialog name
+const char *EditorPreferences::Name()
 {
-    mImpl->Run(title, engine);
+    return Impl::Name();
+}
+
+/// run editor preferences
+void EditorPreferences::Run(Lumen::EnginePtr engine)
+{
+    mImpl->Run(engine);
 }
 
 /// return editor preferences window visibility

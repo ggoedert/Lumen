@@ -32,12 +32,18 @@ public:
         }
     }
 
+    /// editor log dialog name
+    static const char *Name()
+    {
+        return sName;
+    }
+
     /// run editor log
-    void Run(const char *title)
+    void Run()
     {
         if (mWindowOpen)
         {
-            if (!ImGui::Begin(title, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
+            if (!ImGui::Begin(sName, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
             {
                 ImGui::End();
                 return;
@@ -278,6 +284,9 @@ private:
         return false;
     }
 
+    /// editor log dialog name
+    inline static const char *sName = "Log";
+
     /// log file
     std::ofstream mLogFile;
 
@@ -320,10 +329,16 @@ EditorLogPtr EditorLog::MakePtr(const std::string &logFilename)
     return EditorLogPtr(new EditorLog(logFilename));
 }
 
-/// run editor log
-void EditorLog::Run(const char *title)
+/// editor log dialog name
+const char *EditorLog::Name()
 {
-    mImpl->Run(title);
+    return Impl::Name();
+}
+
+/// run editor log
+void EditorLog::Run()
+{
+    mImpl->Run();
 }
 
 /// add message to editor log

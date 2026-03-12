@@ -34,8 +34,14 @@ public:
     /// destroys engine
     ~Impl() = default;
 
+    /// set configuration
+    bool Config(const Object &config);
+
+    /// get window handle
+    HWND GetWindow();
+
     /// initialization and management
-    bool Initialize(const Object &config);
+    bool Initialize();
 
 #ifdef EDITOR
     /// get executable name
@@ -61,10 +67,10 @@ private:
     /// owner
     EngineWindows &mOwner;
 
-#ifdef EDITOR
     /// main window handle
     HWND mWindow = nullptr;
 
+#ifdef EDITOR
     /// cached settings
     Engine::Settings mSettings;
 
@@ -195,13 +201,22 @@ void EngineWindows::Impl::FileChangeCallback()
 }
 #endif
 
-/// initialization and management
-bool EngineWindows::Impl::Initialize(const Object &config)
+/// set configuration
+bool EngineWindows::Impl::Config(const Object &config)
 {
-#ifdef EDITOR
     mWindow = static_cast<const Windows::Config &>(config).mWindow;
-#endif
+    return true;
+}
 
+/// get window handle
+HWND EngineWindows::Impl::GetWindow()
+{
+    return mWindow;
+}
+
+/// initialization and management
+bool EngineWindows::Impl::Initialize()
+{
     try
     {
         static std::vector<Lumen::AssetManager::AssetChange> batch;
@@ -683,10 +698,22 @@ EngineWindows::EngineWindows() : mImpl(EngineWindows::Impl::MakeUniquePtr(*this)
 /// destroys engine
 EngineWindows::~EngineWindows() {}
 
-/// initialization and management
-bool EngineWindows::Initialize(const Object &config)
+/// set configuration
+bool EngineWindows::Config(const Object &config)
 {
-    return mImpl->Initialize(config);
+    return mImpl->Config(config);
+}
+
+/// get window handle
+HWND EngineWindows::GetWindow()
+{
+    return mImpl->GetWindow();
+}
+
+/// initialization and management
+bool EngineWindows::Initialize()
+{
+    return mImpl->Initialize();
 }
 
 #ifdef EDITOR

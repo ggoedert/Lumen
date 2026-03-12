@@ -24,12 +24,18 @@ public:
     /// destructor
     ~Impl() {}
 
+    /// editor scene dialog name
+    static const char *Name()
+    {
+        return sName;
+    }
+
     /// run editor scene
-    void Run(const char *title, Lumen::EnginePtr engine)
+    void Run(Lumen::EnginePtr engine)
     {
         if (mWindowOpen)
         {
-            if (!ImGui::Begin(title, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
+            if (!ImGui::Begin(sName, &mWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing))
             {
                 ImGui::End();
                 return;
@@ -75,6 +81,9 @@ public:
     }
 
 private:
+    /// editor log dialog name
+    inline static const char *sName = "Scene";
+
     /// window open
     bool mWindowOpen;
 };
@@ -93,10 +102,16 @@ EditorScenePtr EditorScene::MakePtr()
     return EditorScenePtr(new EditorScene());
 }
 
-/// run editor scene
-void EditorScene::Run(const char *title, Lumen::EnginePtr engine)
+/// editor scene dialog name
+const char *EditorScene::Name()
 {
-    mImpl->Run(title, engine);
+    return Impl::Name();
+}
+
+/// run editor scene
+void EditorScene::Run(Lumen::EnginePtr engine)
+{
+    mImpl->Run(engine);
 }
 
 /// return editor scene window visibility

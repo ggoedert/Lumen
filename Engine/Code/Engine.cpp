@@ -67,8 +67,9 @@ public:
 #endif
 
         // initialize application
+        mPlatform->Config(config);
         mApplication->Initialize(GetApplication());
-        if (!mPlatform->Initialize(config))
+        if (!mPlatform->Initialize())
         {
             return false;
         }

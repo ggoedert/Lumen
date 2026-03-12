@@ -56,6 +56,9 @@ Expected<AssetPtr> AssetManagerImpl::Import(HashType type, const std::filesystem
     // normalize the path
     std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
 
+    //@@REVIEW@@
+    //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
+
     // get asset infos that are on the path from all factories
     for (auto &priorityFactory : mAssetFactories)
     {
