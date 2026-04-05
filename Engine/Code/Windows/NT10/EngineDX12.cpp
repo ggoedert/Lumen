@@ -273,8 +273,8 @@ namespace Lumen::Windows::NT10
 #ifdef EDITOR
         /// get cached settings
         Engine::Settings settings = GetSettings();
-        mSceneWidth = settings.width;
-        mSceneHeight = settings.height;
+        mSceneWidth = settings.mWidth;
+        mSceneHeight = settings.mHeight;
 #else
         RECT rc;
         GetClientRect(window, &rc);
@@ -310,7 +310,7 @@ namespace Lumen::Windows::NT10
 
         // load ImGui settings
         std::string combinedImGuiIni;
-        for (const auto &line : settings.imGuiIni)
+        for (const auto &line : settings.mImGuiIni)
         {
             combinedImGuiIni += line;
             combinedImGuiIni += '\n';

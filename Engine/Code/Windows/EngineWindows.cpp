@@ -17,6 +17,34 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 using namespace Lumen::Windows;
 
+/// quick function to convert string to wstring
+std::wstring ToWString(const std::string &str)
+{
+    if (str.empty()) return {};
+
+    int sizeNeeded = MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        str.data(),
+        (int)str.size(),
+        nullptr,
+        0
+    );
+
+    std::wstring result(sizeNeeded, 0);
+
+    MultiByteToWideChar(
+        CP_UTF8,
+        0,
+        str.data(),
+        (int)str.size(),
+        result.data(),
+        sizeNeeded
+    );
+
+    return result;
+}
+
 /// windows procedure prototype
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -55,13 +83,13 @@ public:
 
     /// check if light theme is used
     bool IsLightTheme() const;
-#endif
 
     /// file change callback, static version
     static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped);
 
     /// file change callback
     void FileChangeCallback();
+#endif
 
 private:
     /// owner
@@ -77,6 +105,7 @@ private:
     static BYTE sBuffer[65536];
     static OVERLAPPED sOverlapped;
     static HANDLE sDirHandle;
+    static std::string sMonitorDir;
 #endif
 };
 
@@ -84,6 +113,7 @@ private:
 BYTE EngineWindows::Impl::sBuffer[65536];
 OVERLAPPED EngineWindows::Impl::sOverlapped;
 HANDLE EngineWindows::Impl::sDirHandle;
+std::string EngineWindows::Impl::sMonitorDir = "Assets";
 #endif
 
 /// simple windows events
@@ -148,7 +178,7 @@ void EngineWindows::Impl::FileChangeCallback()
     static DWORD sLastAction = -1;
     static double sLastTimer = -1.f;
     static std::string sLastFilename;
-    static std::vector<Lumen::AssetManager::AssetChange> batch;
+    static std::vector<Editor::AssetChange> batch;
 
     /// get elapsed milliseconds since last callback
     double timer = mOwner.GetElapsedTime();
@@ -165,19 +195,26 @@ void EngineWindows::Impl::FileChangeCallback()
 
         if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
         {
+            std::wstring wFullPath = ToWString(sMonitorDir) + L"\\" + wfilename;
+            WIN32_FILE_ATTRIBUTE_DATA attr;
+            Editor::AssetChange::Flags flags = Editor::AssetChange::Flag::None;
+            if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
+            {
+                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? Editor::AssetChange::Flag::Directory : Editor::AssetChange::Flag::File;
+            }
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, filename, "" });
+                batch.push_back({ Editor::AssetChange::Change::Added, flags, filename, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                batch.push_back({ Lumen::AssetManager::AssetChange::Type::Modified, filename, "" });
+                batch.push_back({ Editor::AssetChange::Change::Modified, flags, filename, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                batch.push_back({ Lumen::AssetManager::AssetChange::Type::Renamed, filename, sLastFilename });
+                batch.push_back({ Editor::AssetChange::Change::Renamed, flags, filename, sLastFilename });
                 break;
             case FILE_ACTION_REMOVED:
-                batch.push_back({ Lumen::AssetManager::AssetChange::Type::Removed, filename, "" });
+                batch.push_back({ Editor::AssetChange::Change::Removed, flags, filename, "" });
                 break;
             }
             sLastFilename = filename;
@@ -217,15 +254,17 @@ HWND EngineWindows::Impl::GetWindow()
 /// initialization and management
 bool EngineWindows::Impl::Initialize()
 {
+#ifdef EDITOR
     try
     {
-        static std::vector<Lumen::AssetManager::AssetChange> batch;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator("Assets"))
+        static std::vector<Editor::AssetChange> batch;
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(sMonitorDir))
         {
-            if (entry.is_regular_file())
+            if (entry.is_regular_file() || entry.is_directory())
             {
-                std::string filename = entry.path().lexically_relative("Assets").generic_string();
-                batch.push_back({ Lumen::AssetManager::AssetChange::Type::Added, entry.path().generic_string(), "" });
+                Editor::AssetChange::Flags flags = entry.is_directory() ? Editor::AssetChange::Flag::Directory : Editor::AssetChange::Flag::File;
+                std::string filename = entry.path().lexically_relative(sMonitorDir).generic_string();
+                batch.push_back({ Editor::AssetChange::Change::Added, flags, filename, "" });
             }
         }
         if (!batch.empty())
@@ -239,13 +278,11 @@ bool EngineWindows::Impl::Initialize()
     }
     catch (const std::exception &e)
     {
-        DebugLog::Error("Initialize engine, unable to process {} directory: {}", "Assets", e.what());
+        DebugLog::Error("Initialize engine, unable to process {} directory: {}", sMonitorDir, e.what());
     }
 
-#ifdef EDITOR
-    std::string monitorDir = "Assets";
     sDirHandle = CreateFileA(
-        monitorDir.c_str(),
+        sMonitorDir.c_str(),
         FILE_LIST_DIRECTORY,
         FILE_SHARE_READ |
         FILE_SHARE_WRITE |
@@ -278,7 +315,7 @@ bool EngineWindows::Impl::Initialize()
     }
     else
     {
-        Lumen::DebugLog::Error("Could not open directory to monitor: {}", monitorDir);
+        Lumen::DebugLog::Error("Could not open directory to monitor: {}", sMonitorDir);
     }
 #endif
 
@@ -304,11 +341,11 @@ Lumen::Engine::Settings EngineWindows::Impl::GetSettings() noexcept
     wp.length = sizeof(WINDOWPLACEMENT);
     if (GetWindowPlacement(mWindow, &wp))
     {
-        mSettings.posX = wp.rcNormalPosition.left;
-        mSettings.posY = wp.rcNormalPosition.top;
-        mSettings.width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-        mSettings.height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-        mSettings.isMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+        mSettings.mPosX = wp.rcNormalPosition.left;
+        mSettings.mPosY = wp.rcNormalPosition.top;
+        mSettings.mWidth = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+        mSettings.mHeight = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+        mSettings.mIsMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
     }
 
     // update cached layout ImGui settings
@@ -323,7 +360,7 @@ Lumen::Engine::Settings EngineWindows::Impl::GetSettings() noexcept
         }
         if (!imGuiIniSettings.empty())
         {
-            mSettings.imGuiIni = imGuiIniSettings;
+            mSettings.mImGuiIni = imGuiIniSettings;
         }
     }
 
@@ -340,11 +377,11 @@ void EngineWindows::Impl::SetSettings(Engine::Settings &settings) noexcept
     GetWindowPlacement(GetActiveWindow(), &wp);
 
     // set cached layout window settings
-    wp.rcNormalPosition.left = settings.posX;
-    wp.rcNormalPosition.top = settings.posY;
-    wp.rcNormalPosition.right = settings.posX + settings.width;
-    wp.rcNormalPosition.bottom = settings.posY + settings.height;
-    wp.showCmd = settings.isMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
+    wp.rcNormalPosition.left = settings.mPosX;
+    wp.rcNormalPosition.top = settings.mPosY;
+    wp.rcNormalPosition.right = settings.mPosX + settings.mWidth;
+    wp.rcNormalPosition.bottom = settings.mPosY + settings.mHeight;
+    wp.showCmd = settings.mIsMaximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL;
     SetWindowPlacement(GetActiveWindow(), &wp);
 
     // update the layout cache

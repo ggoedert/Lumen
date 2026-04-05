@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <any>
 #include <optional>
+#include <type_traits>
 
 /// enable type info in debug or editor builds
 #if !defined(NDEBUG) || defined(EDITOR)

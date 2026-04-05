@@ -19,6 +19,11 @@
 #define MATERIAL_ICONS_PAUSE  "\xee\x80\xb4" // E034
 #define MATERIAL_ICONS_STEP   "\xee\x81\x84" // E044
 
+#define MATERIAL_ICONS_FILE   "\xee\x89\x8d" // E24D
+#define MATERIAL_ICONS_FOLDER "\xee\x8b\x87" // E2C7
+#define MATERIAL_ICONS_ASSET  "\xee\xa7\xbe" // E9FE
+#define MATERIAL_ICONS_SCRIPT "\xee\xa8\xa8" // EA28
+
 namespace Lumen::ImGuiLib
 {
     extern ImFont *gMaterialIconsFont;

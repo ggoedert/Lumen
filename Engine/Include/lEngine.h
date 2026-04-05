@@ -10,7 +10,6 @@
 #include "lEvent.h"
 #include "lRenderCommand.h"
 #include "lFileSystem.h"
-#include "lAsset.h"
 #include "lApplication.h"
 #include "lMath.h"
 
@@ -26,9 +25,6 @@ namespace Lumen
     CLASS_PTR_DEF(Shader);
     CLASS_PTR_DEF(Mesh);
 
-    /// AssetChange struct forward declaration
-    namespace AssetManager { struct AssetChange; }
-
     /// Engine class
     class Engine : public std::enable_shared_from_this<Engine>
     {
@@ -39,12 +35,12 @@ namespace Lumen
 #ifdef EDITOR
         struct Settings
         {
-            int posX = 0;
-            int posY = 0;
-            int width = 0;
-            int height = 0;
-            bool isMaximized = true;
-            std::vector<std::string> imGuiIni;
+            int mPosX = 0;
+            int mPosY = 0;
+            int mWidth = 0;
+            int mHeight = 0;
+            bool mIsMaximized = true;
+            std::vector<std::string> mImGuiIni;
         };
 #endif
 
@@ -130,8 +126,10 @@ namespace Lumen
         /// get render texture id
         qword GetRenderTextureHandle(Id::Type texId);
 
+#ifdef EDITOR
         /// push a batch of items
-        void PushAssetChangeBatch(std::vector<Lumen::AssetManager::AssetChange> &&batch);
+        void PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch);
+#endif
 
     private:
         /// constructor

@@ -7,6 +7,7 @@
 
 #include "lDefs.h"
 #include "lMath.h"
+#include "lEditor.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -86,6 +87,9 @@ namespace Lumen
         virtual ~Application();
 
 #ifdef EDITOR
+        /// process asset changes
+        void ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue);
+
         /// run editor
         void Editor();
 #endif

@@ -74,12 +74,14 @@ public:
             return false;
         }
 
+#ifdef EDITOR
         // process initial detected files
-        std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+        std::list<std::vector<Editor::AssetChange>> batchQueue;
         if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
-            AssetManager::ProcessAssetChanges(std::move(batchQueue));
+            mApplication->ProcessAssetChanges(std::move(batchQueue));
         }
+#endif
 
         // success
         return true;
@@ -125,12 +127,14 @@ public:
     /// basic game loop
     bool Run()
     {
+#ifdef EDITOR
         // process file changes
-        std::list<std::vector<Lumen::AssetManager::AssetChange>> batchQueue;
+        std::list<std::vector<Editor::AssetChange>> batchQueue;
         if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
-            AssetManager::ProcessAssetChanges(std::move(batchQueue));
+            mApplication->ProcessAssetChanges(std::move(batchQueue));
         }
+#endif
 
         // run application
         if (mApplication)
@@ -244,11 +248,13 @@ public:
         return mPlatform->GetRenderTextureHandle(texId);
     }
 
+#ifdef EDITOR
     /// push a batch of items
-    void PushAssetChangeBatch(std::vector<Lumen::AssetManager::AssetChange> &&batch)
+    void PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch)
     {
         mAssetChangeBatches.PushBatch(std::move(batch));
     }
+#endif
 
 private:
     /// owner
@@ -260,8 +266,10 @@ private:
     // application
     ApplicationPtr mApplication;
 
+#ifdef EDITOR
     /// asset change batches
-    ConcurrentBatchQueue<AssetManager::AssetChange> mAssetChangeBatches;
+    ConcurrentBatchQueue<Editor::AssetChange> mAssetChangeBatches;
+#endif
 };
 
 
@@ -423,11 +431,13 @@ qword Engine::GetRenderTextureHandle(Id::Type texId)
     return mImpl->GetRenderTextureHandle(texId);
 }
 
+#ifdef EDITOR
 /// push a batch of items
-void Engine::PushAssetChangeBatch(std::vector<Lumen::AssetManager::AssetChange> &&batch)
+void Engine::PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch)
 {
     mImpl->PushAssetChangeBatch(std::move(batch));
 }
+#endif
 
 //==============================================================================================================================================================================
 

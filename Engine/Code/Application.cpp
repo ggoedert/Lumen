@@ -51,6 +51,9 @@ public:
 
 protected:
 #ifdef EDITOR
+    /// process asset changes
+    void ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue);
+
     /// run editor
     void Editor();
 #endif
@@ -139,6 +142,12 @@ void Application::Impl::Shutdown()
 }
 
 #ifdef EDITOR
+/// process asset changes
+void Application::Impl::ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+{
+    return mEditor->ProcessAssetChanges(std::move(batchQueue));
+}
+
 /// run editor
 void Application::Impl::Editor()
 {
@@ -192,6 +201,7 @@ bool Application::Impl::Run(float deltaTime)
     case State::Paused:
         mDeltaTime = 0.f;
         SceneManager::Run();
+        mState = State::Stepped;
         break;
     case State::Stepping:
         mDeltaTime = 1.f / 30.f;
@@ -358,6 +368,12 @@ void Application::Pause()
 void Application::Step()
 {
     mImpl->Step();
+}
+
+/// process asset changes
+void Application::ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+{
+    return mImpl->ProcessAssetChanges(std::move(batchQueue));
 }
 
 /// run editor

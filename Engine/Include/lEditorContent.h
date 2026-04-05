@@ -7,6 +7,7 @@
 #ifdef EDITOR
 
 #include "lDefs.h"
+#include "lEditor.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -27,6 +28,9 @@ namespace Lumen
 
         /// editor content dialog name
         static const char *Name();
+
+        /// process asset changes
+        void ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue);
 
         /// run editor content
         void Run();

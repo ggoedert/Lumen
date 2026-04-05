@@ -323,10 +323,12 @@
     <ClInclude Include="..\..\Include\lExpected.h" />
     <ClInclude Include="..\..\Include\lFileSystem.h" />
     <ClInclude Include="..\..\Include\lFileSystemResources.h" />
+    <ClInclude Include="..\..\Include\lFlags.h" />
     <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
     <ClInclude Include="..\..\Include\lEntity.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lImGuiLib.h" />
+    <ClInclude Include="..\..\Include\lNodeForest.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
     <ClInclude Include="..\..\Include\lGeometry.h" />

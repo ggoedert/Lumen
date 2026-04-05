@@ -12,6 +12,7 @@
 #include "lEditorLog.h"
 #include "lImGuiLib.h"
 #include "lEngine.h"
+#include "lAsset.h"
 
 #include <fstream>
 
@@ -64,6 +65,9 @@ public:
 
     /// editor first run
     void FirstRun();
+
+    /// process asset changes
+    void ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue);
 
     /// run editor
     void Run();
@@ -154,12 +158,12 @@ void Editor::Impl::Initialize()
                 if (in.contains("Engine") && in["Engine"].is_object())
                 {
                     Serialized::Type inEngineSettings = in["Engine"];
-                    engineSettings.posX = inEngineSettings.value("PosX", engineSettings.posX);
-                    engineSettings.posY = inEngineSettings.value("PosY", engineSettings.posY);
-                    engineSettings.width = inEngineSettings.value("Width", engineSettings.width);
-                    engineSettings.height = inEngineSettings.value("Height", engineSettings.height);
-                    engineSettings.isMaximized = inEngineSettings.value("Maximized", engineSettings.isMaximized);
-                    engineSettings.imGuiIni = inEngineSettings.value("ImGuiIni", engineSettings.imGuiIni);
+                    engineSettings.mPosX = inEngineSettings.value("PosX", engineSettings.mPosX);
+                    engineSettings.mPosY = inEngineSettings.value("PosY", engineSettings.mPosY);
+                    engineSettings.mWidth = inEngineSettings.value("Width", engineSettings.mWidth);
+                    engineSettings.mHeight = inEngineSettings.value("Height", engineSettings.mHeight);
+                    engineSettings.mIsMaximized = inEngineSettings.value("Maximized", engineSettings.mIsMaximized);
+                    engineSettings.mImGuiIni = inEngineSettings.value("ImGuiIni", engineSettings.mImGuiIni);
                 }
                 engine->SetSettings(engineSettings);
 
@@ -202,12 +206,12 @@ void Editor::Impl::Shutdown()
         {
             Engine::Settings engineSettings = engine->GetSettings();
             Serialized::Type outEngineSettings = {};
-            outEngineSettings["PosX"] = engineSettings.posX;
-            outEngineSettings["PosY"] = engineSettings.posY;
-            outEngineSettings["Width"] = engineSettings.width;
-            outEngineSettings["Height"] = engineSettings.height;
-            outEngineSettings["Maximized"] = engineSettings.isMaximized;
-            outEngineSettings["ImGuiIni"] = engineSettings.imGuiIni;
+            outEngineSettings["PosX"] = engineSettings.mPosX;
+            outEngineSettings["PosY"] = engineSettings.mPosY;
+            outEngineSettings["Width"] = engineSettings.mWidth;
+            outEngineSettings["Height"] = engineSettings.mHeight;
+            outEngineSettings["Maximized"] = engineSettings.mIsMaximized;
+            outEngineSettings["ImGuiIni"] = engineSettings.mImGuiIni;
             out["Engine"] = outEngineSettings;
 
             Serialized::Type outEditorSettings = {};
@@ -253,6 +257,12 @@ void Editor::Impl::FirstRun()
     }
     L_ASSERT(engine);
     mEditorPreferences->SetTheme(mSettings.theme, engine);
+}
+
+/// process asset changes
+void Editor::Impl::ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue)
+{
+    mEditorContent->ProcessAssetChanges(std::move(batchQueue));
 }
 
 /// run editor
@@ -402,8 +412,9 @@ void Editor::Impl::RunTopBar()
     if (auto application = mApplication.lock())
     {
         ImGui::SetCursorPosX(centerX);
-        bool started = (application->GetState() == Application::State::Running) || (application->GetState() == Application::State::Stepped);
-        bool paused = application->GetState() == Application::State::Paused;
+        Application::State state = application->GetState();
+        bool started = (state == Application::State::Running) || (state == Application::State::Stepped);
+        bool paused = state == Application::State::Paused;
         if (started)
         {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
@@ -499,6 +510,12 @@ void Editor::Shutdown()
 void Editor::FirstRun()
 {
     mImpl->FirstRun();
+}
+
+/// process asset changes
+void Editor::ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue)
+{
+    mImpl->ProcessAssetChanges(std::move(batchQueue));
 }
 
 /// run editor

@@ -105,32 +105,6 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
     Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
 }
 
-/// process asset changes
-void AssetManager::ProcessAssetChanges(std::list<std::vector<AssetChange>> &&batchQueue)
-{
-    for (auto batch : batchQueue)
-    {
-        for (auto item: batch)
-        {
-            switch (item.change)
-            {
-            case AssetChange::Type::Added:
-                Lumen::DebugLog::Info("Added: {}", item.name);
-                break;
-            case AssetChange::Type::Modified:
-                Lumen::DebugLog::Info("Modified: {}", item.name);
-                break;
-            case AssetChange::Type::Renamed:
-                Lumen::DebugLog::Info("Renamed: {} -> {}", item.oldName, item.name);
-                break;
-            case AssetChange::Type::Removed:
-                Lumen::DebugLog::Info("Removed: {}", item.name);
-                break;
-            }
-        }
-    }
-}
-
 /// import asset
 Expected<AssetPtr> AssetManager::Import(HashType type, const std::filesystem::path &path)
 {
