@@ -82,7 +82,7 @@ public:
             ImGui::TableNextColumn();
             ImGui::PushID(static_cast<int>(key));
             ImGuiTreeNodeFlags tree_flags = ImGuiTreeNodeFlags_None;
-            tree_flags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;// Standard opening mode as we are likely to want to add selection afterwards
+            tree_flags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick; // Standard opening mode as we are likely to want to add selection afterwards
             tree_flags |= ImGuiTreeNodeFlags_NavLeftJumpsToParent;  // Left arrow support
             tree_flags |= ImGuiTreeNodeFlags_SpanFullWidth;         // Span full width for easier mouse reach
             tree_flags |= ImGuiTreeNodeFlags_DrawLinesToNodes;      // Always draw hierarchy outlines
@@ -182,7 +182,7 @@ public:
             bool double_clicked = hovered && ImGui::IsMouseDoubleClicked(0);
 
             if (clicked) selected = i;
-            if (double_clicked) printf("Open asset: %s\n", asset.mName.c_str());
+            if (double_clicked) DebugLog::Info("Open asset: {}", asset.mName);
 
             // drag-drop source
             if (ImGui::BeginDragDropSource())
@@ -217,8 +217,8 @@ public:
             //if (asset.mColor == false)
             //    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 0.00f, 0.00f, 1.00f));
             ImGui::PushFont(NULL, icon_size);
-            float icon_width = ImGui::CalcTextSize(asset.mIcon).x;
-            ImGui::SetCursorScreenPos(ImVec2(cell_min.x + (cell_size - icon_width) / 2.f, cell_min.y));
+            ImVec2 icon_pos = ImVec2(cell_min.x + (cell_size - ImGui::CalcTextSize(asset.mIcon).x) / 2.f, cell_min.y);
+            ImGui::SetCursorScreenPos(icon_pos);
             ImGui::Text("%s", asset.mIcon);
             ImGui::PopFont();
             //if (asset.mColor == false)
@@ -226,29 +226,80 @@ public:
 
             // draw name (with optional rename)
             ImGui::SetCursorScreenPos(ImVec2(cell_min.x, cell_min.y + icon_size + 20.f));
-            //ImGui::PushTextWrapPos(cell_max.x - 1000.f);
-            float a = cell_max.x;
-            float b = ImGui::GetCursorPos().x;
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 100.f);
-            /*if (asset.mRenaming)
+            float icon_width = 90.0f;
+            std::string &label = asset.mName;
+
+            // calculate sizing for layout
+            float fullTextWidth = ImGui::CalcTextSize(label.c_str()).x;
+            float displayWidth = (fullTextWidth > icon_width) ? icon_width : fullTextWidth;
+
+            // this covers the area from the top of the icon to the bottom of the text
+            ImVec2 text_render_pos = ImGui::GetCursorScreenPos();
+            ImRect total_cell_bb(icon_pos, ImVec2(text_render_pos.x + icon_width, text_render_pos.y + ImGui::GetTextLineHeight()));
+
+            // center the cursor so the text/input box is aligned under the icon
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (icon_width - displayWidth) * 0.5f);
+
+            /*if (asset.mRenaming) @@REVIEW@@ renaming is currently broken, need to review this
             {
-                char buf[128];
-                strcpy_s(buf, asset.mName.c_str());
+                // rename mode with input box
+                char buf[256];
+                strcpy_s(buf, label.c_str());
+
+                ImGui::PushItemWidth(icon_width);
                 if (ImGui::InputText("##rename", buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue))
                 {
                     asset.mName = buf;
                     asset.mRenaming = false;
                 }
-            }
-            else*/
-            {
-                ImGui::TextWrapped("%s", asset.mName.c_str());
-                //if (hovered && ImGui::IsMouseClicked(1)) // right-click to rename
-                //    asset.mRenaming = true;
-            }
-            ImGui::PopTextWrapPos();
 
-            // Move cursor for next asset
+                // give focus to the box automatically when renaming starts
+                if (ImGui::IsItemVisible() && !ImGui::IsAnyItemActive())
+                    ImGui::SetKeyboardFocusHere(-1);
+
+                ImGui::PopItemWidth();
+            }
+            else
+            {*/
+                // display mode truncated with ...
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+                ImRect total_bb(pos, ImVec2(pos.x + icon_width, pos.y + ImGui::GetTextLineHeight()));
+
+                // render the ellipsis text 
+                ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(),
+                    total_bb.Min,
+                    total_bb.Max,
+                    total_bb.Max.x,
+                    label.c_str(),
+                    NULL,
+                    NULL);
+
+                // register the item size so the layout cursor advances properly
+                ImGui::ItemSize(total_bb.GetSize(), 0.0f);
+
+                // register the item ID and bounding box for interaction (hover/click)
+                if (ImGui::ItemAdd(total_bb, ImGui::GetID(label.c_str())))
+                {
+                    if (ImGui::IsItemHovered())
+                    {
+                        // right-click to trigger renaming @@REVIEW@@ renaming broken for now, need to review this
+                        /*if (ImGui::IsMouseClicked(1))
+                        {
+                            asset.mRenaming = true;
+                        }*/
+
+                        // show tooltip only if the text was actually truncated
+                        if (fullTextWidth > icon_width)
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::TextUnformatted(label.c_str());
+                            ImGui::EndTooltip();
+                        }
+                    }
+                }
+            //}
+
+            // move cursor for next asset
             col++;
             if (col >= max_columns)
             {
