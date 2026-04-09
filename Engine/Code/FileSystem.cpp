@@ -6,6 +6,7 @@
 
 #include "lFileSystem.h"
 #include "lStringMap.h"
+#include "lConcurrentBatchQueue.h"
 #include "lEngine.h"
 
 using namespace Lumen;
@@ -44,6 +45,11 @@ namespace Lumen::Hidden
         }
         return true;
     }
+
+#ifdef EDITOR
+    /// file batch queue
+    ConcurrentBatchQueue<FileSystem::FileChange> gFileBatchQueue;
+#endif
 }
 
 /// initialize file namespace
@@ -52,9 +58,6 @@ void FileSystem::Initialize(const EngineWeakPtr &engine)
     L_ASSERT(!Hidden::gFileState);
     Hidden::gFileState = std::make_unique<Hidden::FileState>();
     Hidden::gEngine = engine;
-
-//@@@    //clonar o esquema AssetChange/FileSystem::ProcessAssetChanges e fazer versao que vem para ca e outra que vai para o cliente, com o sistema de guid integrado
-
 }
 
 /// shutdown file namespace
@@ -95,9 +98,31 @@ void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, con
     Hidden::gFileState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
 }
 
-/// process file changes
-void FileSystem::ProcessFileChanges(std::list<std::vector<FileChange>> &&batchQueue)
+/// push file changes
+void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 {
+    Hidden::gFileBatchQueue.PushBatch(std::move(fileBatch));
+}
+
+/// process file changes
+void FileSystem::ProcessFileChanges()
+{
+    std::list<std::vector<FileChange>> fileBatchQueue;
+    if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
+    {
+        std::vector<AssetChange> assetBatch;
+        for (auto &batch : fileBatchQueue)
+        {
+            for (auto &fileChange : batch)
+            {
+                assetBatch.push_back({ fileChange.mChange, fileChange.mFlags, fileChange.mName, fileChange.mOldName });
+            }
+        }
+        if (auto engineLock = Hidden::gEngine.lock())
+        {
+            engineLock->ProcessAssetChanges(std::move(assetBatch));
+        }
+    }
 }
 
 /// generates a new file id

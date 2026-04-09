@@ -178,7 +178,7 @@ void EngineWindows::Impl::FileChangeCallback()
     static DWORD sLastAction = -1;
     static double sLastTimer = -1.f;
     static std::string sLastFilename;
-    static std::vector<FileSystem::AssetChange> batch;
+    static std::vector<FileSystem::FileChange> fileBatch;
 
     /// get elapsed milliseconds since last callback
     double timer = mOwner.GetElapsedTime();
@@ -197,24 +197,24 @@ void EngineWindows::Impl::FileChangeCallback()
         {
             std::wstring wFullPath = ToWString(sMonitorDir) + L"\\" + wfilename;
             WIN32_FILE_ATTRIBUTE_DATA attr;
-            FileSystem::AssetChange::Flags flags = FileSystem::AssetChange::Flag::None;
+            FileSystem::Flags flags = FileSystem::Flag::None;
             if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
             {
-                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::AssetChange::Flag::Directory : FileSystem::AssetChange::Flag::File;
+                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
             }
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                batch.push_back({ FileSystem::AssetChange::Change::Added, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, filename, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                batch.push_back({ FileSystem::AssetChange::Change::Modified, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Modified, flags, filename, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                batch.push_back({ FileSystem::AssetChange::Change::Renamed, flags, filename, sLastFilename });
+                fileBatch.push_back({ FileSystem::Change::Renamed, flags, filename, sLastFilename });
                 break;
             case FILE_ACTION_REMOVED:
-                batch.push_back({ FileSystem::AssetChange::Change::Removed, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Removed, flags, filename, "" });
                 break;
             }
             sLastFilename = filename;
@@ -227,12 +227,12 @@ void EngineWindows::Impl::FileChangeCallback()
         }
         info = (FILE_NOTIFY_INFORMATION *)(((BYTE *)info) + info->NextEntryOffset);
     }
-    if (!batch.empty())
+    if (!fileBatch.empty())
     {
         if (auto engine = mOwner.GetOwner().lock())
         {
-            engine->PushAssetChangeBatch(std::move(batch));
-            batch.clear();
+            FileSystem::PushFileChangeBatch(std::move(fileBatch));
+            fileBatch.clear();
         }
     }
 }
@@ -254,25 +254,24 @@ HWND EngineWindows::Impl::GetWindow()
 /// initialization and management
 bool EngineWindows::Impl::Initialize()
 {
-#ifdef EDITOR
     try
     {
-        static std::vector<FileSystem::AssetChange> batch;
+        static std::vector<FileSystem::FileChange> fileBatch;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(sMonitorDir))
         {
             if (entry.is_regular_file() || entry.is_directory())
             {
-                FileSystem::AssetChange::Flags flags = entry.is_directory() ? FileSystem::AssetChange::Flag::Directory : FileSystem::AssetChange::Flag::File;
+                FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
                 std::string filename = entry.path().lexically_relative(sMonitorDir).generic_string();
-                batch.push_back({ FileSystem::AssetChange::Change::Added, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, filename, "" });
             }
         }
-        if (!batch.empty())
+        if (!fileBatch.empty())
         {
             if (auto engine = mOwner.GetOwner().lock())
             {
-                engine->PushAssetChangeBatch(std::move(batch));
-                batch.clear();
+                FileSystem::PushFileChangeBatch(std::move(fileBatch));
+                fileBatch.clear();
             }
         }
     }
@@ -281,6 +280,7 @@ bool EngineWindows::Impl::Initialize()
         DebugLog::Error("Initialize engine, unable to process {} directory: {}", sMonitorDir, e.what());
     }
 
+#ifdef EDITOR
     sDirHandle = CreateFileA(
         sMonitorDir.c_str(),
         FILE_LIST_DIRECTORY,

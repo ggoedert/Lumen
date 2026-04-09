@@ -327,104 +327,101 @@ public:
     }
 
     /// process asset changes
-    void ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
+    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
     {
-        for (auto batch : batchQueue)
+        for (auto item : assetBatch)
         {
-            for (auto item : batch)
+            std::filesystem::path oldFilePath = item.mOldName;
+            std::filesystem::path filePath = item.mName;
+            bool isDirectory = item.mFlags.Has(FileSystem::Flag::Directory);
+            AssetTree::KeyType key;
+            auto eraseIt = mAssetTree.end();
+            switch (item.mChange)
             {
-                std::filesystem::path oldFilePath = item.mOldName;
-                std::filesystem::path filePath = item.mName;
-                bool isDirectory = item.mFlags.Has(FileSystem::AssetChange::Flag::Directory);
-                AssetTree::KeyType key;
-                auto eraseIt = mAssetTree.end();
-                switch (item.mChange)
+            case FileSystem::Change::Added:
+                key = mRootKey;
+                for (const auto &part : filePath.parent_path())
                 {
-                case FileSystem::AssetChange::Change::Added:
-                    key = mRootKey;
-                    for (const auto &part : filePath.parent_path())
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    if (partIt != mAssetTree.end())
                     {
-                        auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
-                        if (partIt != mAssetTree.end())
-                        {
-                            key = partIt->first;
-                        }
-                        else
-                        {
-                            key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
-                        }
+                        key = partIt->first;
                     }
-                    mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
-
-                    DebugLog::Info("Added: {}", item.mName);
-                    break;
-
-                case FileSystem::AssetChange::Change::Modified:
-                    DebugLog::Info("Modified: {}", item.mName);
-                    break;
-
-                case FileSystem::AssetChange::Change::Renamed:
-                    key = mRootKey;
-                    for (const auto &part : oldFilePath.parent_path())
+                    else
                     {
-                        auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
-                        if (partIt != mAssetTree.end())
-                        {
-                            key = partIt->first;
-                        }
-                        else
-                        {
-                            key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
-                        }
+                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
                     }
-                    eraseIt = mAssetTree.find_if([&](const auto &pair) {
-                        return pair.second.mParentKey == key && pair.second.mData.second == oldFilePath.filename().string(); });
-                    if (eraseIt != mAssetTree.end())
-                    {
-                        mAssetTree.erase(eraseIt->first);
-                    }
-
-                    key = mRootKey;
-                    for (const auto &part : filePath.parent_path())
-                    {
-                        auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
-                        if (partIt != mAssetTree.end())
-                        {
-                            key = partIt->first;
-                        }
-                        else
-                        {
-                            key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
-                        }
-                    }
-                    mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
-
-                    DebugLog::Info("Renamed: {} -> {}", item.mOldName, item.mName);
-                    break;
-
-                case FileSystem::AssetChange::Change::Removed:
-                    key = mRootKey;
-                    for (const auto &part : filePath.parent_path())
-                    {
-                        auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
-                        if (partIt != mAssetTree.end())
-                        {
-                            key = partIt->first;
-                        }
-                        else
-                        {
-                            key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
-                        }
-                    }
-                    eraseIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == filePath.filename().string(); });
-                    if (eraseIt != mAssetTree.end())
-                    {
-                        mAssetTree.erase(eraseIt->first);
-                    }
-
-                    DebugLog::Info("Removed: {}", item.mName);
-                    break;
                 }
+                mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
+
+                DebugLog::Info("Added: {}", item.mName);
+                break;
+
+            case FileSystem::Change::Modified:
+                DebugLog::Info("Modified: {}", item.mName);
+                break;
+
+            case FileSystem::Change::Renamed:
+                key = mRootKey;
+                for (const auto &part : oldFilePath.parent_path())
+                {
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    if (partIt != mAssetTree.end())
+                    {
+                        key = partIt->first;
+                    }
+                    else
+                    {
+                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                    }
+                }
+                eraseIt = mAssetTree.find_if([&](const auto &pair) {
+                    return pair.second.mParentKey == key && pair.second.mData.second == oldFilePath.filename().string(); });
+                if (eraseIt != mAssetTree.end())
+                {
+                    mAssetTree.erase(eraseIt->first);
+                }
+
+                key = mRootKey;
+                for (const auto &part : filePath.parent_path())
+                {
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    if (partIt != mAssetTree.end())
+                    {
+                        key = partIt->first;
+                    }
+                    else
+                    {
+                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                    }
+                }
+                mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
+
+                DebugLog::Info("Renamed: {} -> {}", item.mOldName, item.mName);
+                break;
+
+            case FileSystem::Change::Removed:
+                key = mRootKey;
+                for (const auto &part : filePath.parent_path())
+                {
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    if (partIt != mAssetTree.end())
+                    {
+                        key = partIt->first;
+                    }
+                    else
+                    {
+                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                    }
+                }
+                eraseIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == filePath.filename().string(); });
+                if (eraseIt != mAssetTree.end())
+                {
+                    mAssetTree.erase(eraseIt->first);
+                }
+
+                DebugLog::Info("Removed: {}", item.mName);
+                break;
             }
         }
     }
@@ -496,9 +493,9 @@ const char *EditorContent::Name()
 }
 
 /// process asset changes
-void EditorContent::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
+void EditorContent::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
 {
-    mImpl->ProcessAssetChanges(std::move(batchQueue));
+    mImpl->ProcessAssetChanges(std::move(assetBatch));
 }
 
 /// run editor content

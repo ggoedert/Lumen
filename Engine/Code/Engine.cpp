@@ -8,7 +8,6 @@
 #include "lSceneManager.h"
 #include "lFileSystemResources.h"
 #include "lBuiltinResources.h"
-#include "lConcurrentBatchQueue.h"
 
 #include "EnginePlatform.h"
 
@@ -74,14 +73,8 @@ public:
             return false;
         }
 
-#ifdef EDITOR
-        // process initial detected files
-        std::list<std::vector<FileSystem::AssetChange>> batchQueue;
-        if (mAssetChangeBatches.PopBatchQueue(batchQueue))
-        {
-            mApplication->ProcessAssetChanges(std::move(batchQueue));
-        }
-#endif
+        // process initial file changes
+        FileSystem::ProcessFileChanges();
 
         // success
         return true;
@@ -129,11 +122,7 @@ public:
     {
 #ifdef EDITOR
         // process file changes
-        std::list<std::vector<FileSystem::AssetChange>> batchQueue;
-        if (mAssetChangeBatches.PopBatchQueue(batchQueue))
-        {
-            mApplication->ProcessAssetChanges(std::move(batchQueue));
-        }
+        FileSystem::ProcessFileChanges();
 #endif
 
         // run application
@@ -248,13 +237,11 @@ public:
         return mPlatform->GetRenderTextureHandle(texId);
     }
 
-#ifdef EDITOR
     /// push a batch of items
-    void PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch)
+    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
     {
-        mAssetChangeBatches.PushBatch(std::move(batch));
+        mApplication->ProcessAssetChanges(std::move(assetBatch));
     }
-#endif
 
 private:
     /// owner
@@ -265,11 +252,6 @@ private:
 
     // application
     ApplicationPtr mApplication;
-
-#ifdef EDITOR
-    /// asset change batches
-    ConcurrentBatchQueue<FileSystem::AssetChange> mAssetChangeBatches;
-#endif
 };
 
 
@@ -431,13 +413,11 @@ qword Engine::GetRenderTextureHandle(Id::Type texId)
     return mImpl->GetRenderTextureHandle(texId);
 }
 
-#ifdef EDITOR
-/// push a batch of items
-void Engine::PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch)
+/// process asset changes
+void Engine::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
 {
-    mImpl->PushAssetChangeBatch(std::move(batch));
+    mImpl->ProcessAssetChanges(std::move(assetBatch));
 }
-#endif
 
 //==============================================================================================================================================================================
 

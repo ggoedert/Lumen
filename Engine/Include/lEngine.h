@@ -126,10 +126,8 @@ namespace Lumen
         /// get render texture id
         qword GetRenderTextureHandle(Id::Type texId);
 
-#ifdef EDITOR
-        /// push a batch of items
-        void PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch);
-#endif
+        /// process asset changes
+        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
 
     private:
         /// constructor

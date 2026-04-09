@@ -20,18 +20,21 @@ namespace Lumen
     /// FileSystem namespace
     namespace FileSystem
     {
+        /// file mode
+        enum class FileMode { Text, Binary };
+
+        /// change type
+        enum class Change { Added, Modified, Renamed, Removed };
+
+        /// change flag type
+        enum class Flag : byte { None = 0x0, File = 0x1, Directory = 0x2 };
+
+        /// change flags type
+        using Flags = Lumen::Flags<Flag>;
+
         /// FileChange struct
         struct FileChange
         {
-            /// change type
-            enum class Change { Added, Modified, Renamed, Removed };
-
-            /// flag enum
-            enum class Flag : byte { None = 0x0, File = 0x1, Directory = 0x2 };
-
-            /// flags type
-            using Flags = Flags<Flag>;
-
             /// change
             Change mChange;
 
@@ -49,15 +52,6 @@ namespace Lumen
         /// AssetChange struct
         struct AssetChange
         {
-            /// change type
-            enum class Change { Added, Modified, Renamed, Removed };
-
-            /// flag enum
-            enum class Flag : byte { None = 0x0, File = 0x1, Directory = 0x2 };
-
-            /// flags type
-            using Flags = Flags<Flag>;
-
             /// change
             Change mChange;
 
@@ -71,9 +65,6 @@ namespace Lumen
             std::string mOldName;
         };
 #endif
-
-        /// file mode
-        enum class FileMode { Text, Binary };
 
         /// initialize file namespace
         void Initialize(const EngineWeakPtr &engine);
@@ -90,8 +81,11 @@ namespace Lumen
         /// register a file system
         void RegisterFileSystem(const std::filesystem::path &mountPoint, const IFileSystemPtr &fileSystem);
 
+        /// push file changes
+        void PushFileChangeBatch(std::vector<FileChange> &&fileBatch);
+
         /// process file changes
-        void ProcessFileChanges(std::list<std::vector<FileChange>> &&batchQueue);
+        void ProcessFileChanges();
 
         /// generates a new file id
         Id::Type GenerateFileId();

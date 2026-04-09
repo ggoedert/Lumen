@@ -67,7 +67,7 @@ public:
     void FirstRun();
 
     /// process asset changes
-    void ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue);
+    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
 
     /// run editor
     void Run();
@@ -260,9 +260,9 @@ void Editor::Impl::FirstRun()
 }
 
 /// process asset changes
-void Editor::Impl::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
+void Editor::Impl::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
 {
-    mEditorContent->ProcessAssetChanges(std::move(batchQueue));
+    mEditorContent->ProcessAssetChanges(std::move(assetBatch));
 }
 
 /// run editor
@@ -513,9 +513,9 @@ void Editor::FirstRun()
 }
 
 /// process asset changes
-void Editor::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
+void Editor::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
 {
-    mImpl->ProcessAssetChanges(std::move(batchQueue));
+    mImpl->ProcessAssetChanges(std::move(assetBatch));
 }
 
 /// run editor

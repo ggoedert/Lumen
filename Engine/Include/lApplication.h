@@ -88,7 +88,7 @@ namespace Lumen
 
 #ifdef EDITOR
         /// process asset changes
-        void ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue);
+        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
 
         /// run editor
         void Editor();
