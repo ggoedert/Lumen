@@ -178,7 +178,7 @@ void EngineWindows::Impl::FileChangeCallback()
     static DWORD sLastAction = -1;
     static double sLastTimer = -1.f;
     static std::string sLastFilename;
-    static std::vector<Editor::AssetChange> batch;
+    static std::vector<FileSystem::AssetChange> batch;
 
     /// get elapsed milliseconds since last callback
     double timer = mOwner.GetElapsedTime();
@@ -197,24 +197,24 @@ void EngineWindows::Impl::FileChangeCallback()
         {
             std::wstring wFullPath = ToWString(sMonitorDir) + L"\\" + wfilename;
             WIN32_FILE_ATTRIBUTE_DATA attr;
-            Editor::AssetChange::Flags flags = Editor::AssetChange::Flag::None;
+            FileSystem::AssetChange::Flags flags = FileSystem::AssetChange::Flag::None;
             if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
             {
-                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? Editor::AssetChange::Flag::Directory : Editor::AssetChange::Flag::File;
+                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::AssetChange::Flag::Directory : FileSystem::AssetChange::Flag::File;
             }
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                batch.push_back({ Editor::AssetChange::Change::Added, flags, filename, "" });
+                batch.push_back({ FileSystem::AssetChange::Change::Added, flags, filename, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                batch.push_back({ Editor::AssetChange::Change::Modified, flags, filename, "" });
+                batch.push_back({ FileSystem::AssetChange::Change::Modified, flags, filename, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                batch.push_back({ Editor::AssetChange::Change::Renamed, flags, filename, sLastFilename });
+                batch.push_back({ FileSystem::AssetChange::Change::Renamed, flags, filename, sLastFilename });
                 break;
             case FILE_ACTION_REMOVED:
-                batch.push_back({ Editor::AssetChange::Change::Removed, flags, filename, "" });
+                batch.push_back({ FileSystem::AssetChange::Change::Removed, flags, filename, "" });
                 break;
             }
             sLastFilename = filename;
@@ -257,14 +257,14 @@ bool EngineWindows::Impl::Initialize()
 #ifdef EDITOR
     try
     {
-        static std::vector<Editor::AssetChange> batch;
+        static std::vector<FileSystem::AssetChange> batch;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(sMonitorDir))
         {
             if (entry.is_regular_file() || entry.is_directory())
             {
-                Editor::AssetChange::Flags flags = entry.is_directory() ? Editor::AssetChange::Flag::Directory : Editor::AssetChange::Flag::File;
+                FileSystem::AssetChange::Flags flags = entry.is_directory() ? FileSystem::AssetChange::Flag::Directory : FileSystem::AssetChange::Flag::File;
                 std::string filename = entry.path().lexically_relative(sMonitorDir).generic_string();
-                batch.push_back({ Editor::AssetChange::Change::Added, flags, filename, "" });
+                batch.push_back({ FileSystem::AssetChange::Change::Added, flags, filename, "" });
             }
         }
         if (!batch.empty())

@@ -6,6 +6,7 @@
 
 #include "lFileSystem.h"
 #include "lStringMap.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -27,6 +28,8 @@ namespace Lumen::Hidden
 
     static Id::Generator gFileIdGenerator;
 
+    static EngineWeakPtr gEngine;
+
     /// checks if a path starts with a prefix
     bool StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix)
     {
@@ -44,10 +47,14 @@ namespace Lumen::Hidden
 }
 
 /// initialize file namespace
-void FileSystem::Initialize()
+void FileSystem::Initialize(const EngineWeakPtr &engine)
 {
     L_ASSERT(!Hidden::gFileState);
     Hidden::gFileState = std::make_unique<Hidden::FileState>();
+    Hidden::gEngine = engine;
+
+//@@@    //clonar o esquema AssetChange/FileSystem::ProcessAssetChanges e fazer versao que vem para ca e outra que vai para o cliente, com o sistema de guid integrado
+
 }
 
 /// shutdown file namespace
@@ -86,6 +93,11 @@ void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, con
 {
     L_ASSERT(Hidden::gFileState);
     Hidden::gFileState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
+}
+
+/// process file changes
+void FileSystem::ProcessFileChanges(std::list<std::vector<FileChange>> &&batchQueue)
+{
 }
 
 /// generates a new file id

@@ -128,7 +128,7 @@ namespace Lumen
 
 #ifdef EDITOR
         /// push a batch of items
-        void PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch);
+        void PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch);
 #endif
 
     private:

@@ -52,7 +52,7 @@ public:
 protected:
 #ifdef EDITOR
     /// process asset changes
-    void ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue);
+    void ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue);
 
     /// run editor
     void Editor();
@@ -143,7 +143,7 @@ void Application::Impl::Shutdown()
 
 #ifdef EDITOR
 /// process asset changes
-void Application::Impl::ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+void Application::Impl::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
 {
     return mEditor->ProcessAssetChanges(std::move(batchQueue));
 }
@@ -371,7 +371,7 @@ void Application::Step()
 }
 
 /// process asset changes
-void Application::ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+void Application::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
 {
     return mImpl->ProcessAssetChanges(std::move(batchQueue));
 }

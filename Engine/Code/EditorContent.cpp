@@ -327,7 +327,7 @@ public:
     }
 
     /// process asset changes
-    void ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+    void ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
     {
         for (auto batch : batchQueue)
         {
@@ -335,12 +335,12 @@ public:
             {
                 std::filesystem::path oldFilePath = item.mOldName;
                 std::filesystem::path filePath = item.mName;
-                bool isDirectory = item.mFlags.Has(Editor::AssetChange::Flag::Directory);
+                bool isDirectory = item.mFlags.Has(FileSystem::AssetChange::Flag::Directory);
                 AssetTree::KeyType key;
                 auto eraseIt = mAssetTree.end();
                 switch (item.mChange)
                 {
-                case Editor::AssetChange::Change::Added:
+                case FileSystem::AssetChange::Change::Added:
                     key = mRootKey;
                     for (const auto &part : filePath.parent_path())
                     {
@@ -359,11 +359,11 @@ public:
                     DebugLog::Info("Added: {}", item.mName);
                     break;
 
-                case Editor::AssetChange::Change::Modified:
+                case FileSystem::AssetChange::Change::Modified:
                     DebugLog::Info("Modified: {}", item.mName);
                     break;
 
-                case Editor::AssetChange::Change::Renamed:
+                case FileSystem::AssetChange::Change::Renamed:
                     key = mRootKey;
                     for (const auto &part : oldFilePath.parent_path())
                     {
@@ -402,7 +402,7 @@ public:
                     DebugLog::Info("Renamed: {} -> {}", item.mOldName, item.mName);
                     break;
 
-                case Editor::AssetChange::Change::Removed:
+                case FileSystem::AssetChange::Change::Removed:
                     key = mRootKey;
                     for (const auto &part : filePath.parent_path())
                     {
@@ -496,7 +496,7 @@ const char *EditorContent::Name()
 }
 
 /// process asset changes
-void EditorContent::ProcessAssetChanges(std::list<std::vector<Editor::AssetChange>> &&batchQueue)
+void EditorContent::ProcessAssetChanges(std::list<std::vector<FileSystem::AssetChange>> &&batchQueue)
 {
     mImpl->ProcessAssetChanges(std::move(batchQueue));
 }

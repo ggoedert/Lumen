@@ -7,22 +7,76 @@
 
 #include "lDefs.h"
 #include "lId.h"
+#include "lFlags.h"
 
 #include <filesystem>
 
 /// Lumen namespace
 namespace Lumen
 {
+    CLASS_WEAK_PTR_DEF(Engine);
     CLASS_PTR_DEF(IFileSystem);
 
     /// FileSystem namespace
     namespace FileSystem
     {
+        /// FileChange struct
+        struct FileChange
+        {
+            /// change type
+            enum class Change { Added, Modified, Renamed, Removed };
+
+            /// flag enum
+            enum class Flag : byte { None = 0x0, File = 0x1, Directory = 0x2 };
+
+            /// flags type
+            using Flags = Flags<Flag>;
+
+            /// change
+            Change mChange;
+
+            /// flags
+            Flags mFlags;
+
+            /// name
+            std::string mName;
+
+            /// old name
+            std::string mOldName;
+        };
+
+#ifdef EDITOR
+        /// AssetChange struct
+        struct AssetChange
+        {
+            /// change type
+            enum class Change { Added, Modified, Renamed, Removed };
+
+            /// flag enum
+            enum class Flag : byte { None = 0x0, File = 0x1, Directory = 0x2 };
+
+            /// flags type
+            using Flags = Flags<Flag>;
+
+            /// change
+            Change mChange;
+
+            /// flags
+            Flags mFlags;
+
+            /// name
+            std::string mName;
+
+            /// old name
+            std::string mOldName;
+        };
+#endif
+
         /// file mode
         enum class FileMode { Text, Binary };
 
         /// initialize file namespace
-        void Initialize();
+        void Initialize(const EngineWeakPtr &engine);
 
         /// shutdown file namespace
         void Shutdown();
@@ -35,6 +89,9 @@ namespace Lumen
 
         /// register a file system
         void RegisterFileSystem(const std::filesystem::path &mountPoint, const IFileSystemPtr &fileSystem);
+
+        /// process file changes
+        void ProcessFileChanges(std::list<std::vector<FileChange>> &&batchQueue);
 
         /// generates a new file id
         Id::Type GenerateFileId();

@@ -50,7 +50,7 @@ public:
         AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
         AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
 
-        FileSystem::Initialize();
+        FileSystem::Initialize(mOwner);
         SceneManager::Initialize();
 
         if (!mApplication)
@@ -76,7 +76,7 @@ public:
 
 #ifdef EDITOR
         // process initial detected files
-        std::list<std::vector<Editor::AssetChange>> batchQueue;
+        std::list<std::vector<FileSystem::AssetChange>> batchQueue;
         if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
             mApplication->ProcessAssetChanges(std::move(batchQueue));
@@ -129,7 +129,7 @@ public:
     {
 #ifdef EDITOR
         // process file changes
-        std::list<std::vector<Editor::AssetChange>> batchQueue;
+        std::list<std::vector<FileSystem::AssetChange>> batchQueue;
         if (mAssetChangeBatches.PopBatchQueue(batchQueue))
         {
             mApplication->ProcessAssetChanges(std::move(batchQueue));
@@ -250,7 +250,7 @@ public:
 
 #ifdef EDITOR
     /// push a batch of items
-    void PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch)
+    void PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch)
     {
         mAssetChangeBatches.PushBatch(std::move(batch));
     }
@@ -268,7 +268,7 @@ private:
 
 #ifdef EDITOR
     /// asset change batches
-    ConcurrentBatchQueue<Editor::AssetChange> mAssetChangeBatches;
+    ConcurrentBatchQueue<FileSystem::AssetChange> mAssetChangeBatches;
 #endif
 };
 
@@ -433,7 +433,7 @@ qword Engine::GetRenderTextureHandle(Id::Type texId)
 
 #ifdef EDITOR
 /// push a batch of items
-void Engine::PushAssetChangeBatch(std::vector<Editor::AssetChange> &&batch)
+void Engine::PushAssetChangeBatch(std::vector<FileSystem::AssetChange> &&batch)
 {
     mImpl->PushAssetChangeBatch(std::move(batch));
 }
