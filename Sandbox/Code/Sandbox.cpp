@@ -62,10 +62,4 @@ void Sandbox::Open()
     {
         Shutdown();
     }
-    else
-    {
-        Lumen::Serialized::Type out;
-        mMainScene->Serialize(out, false);
-        std::ofstream("Assets\\serializer_test.txt") << out.dump(4);
-    }
 }

@@ -6,9 +6,9 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lUUID.h"
 
 #include <nlohmann/json.hpp>
-#include <variant>
 
 /// Lumen namespace
 namespace Lumen
@@ -104,13 +104,16 @@ namespace Lumen
         {
             if (packed)
             {
-                for (size_t i = 1; i < in.size(); i += 2)
+                if (in.is_array())
                 {
-                    const auto &obj = in[i - 1];
-                    if (obj.is_number_unsigned() && obj.get<Hash>() == keyTokenPacked)
+                    for (size_t i = 1; i < in.size(); i += 2)
                     {
-                        value = in[i];
-                        return true;
+                        const auto &obj = in[i - 1];
+                        if (obj.is_number_unsigned() && obj.get<Hash>() == keyTokenPacked)
+                        {
+                            value = in[i];
+                            return true;
+                        }
                     }
                 }
             }
@@ -119,6 +122,58 @@ namespace Lumen
                 if (in.contains(keyToken))
                 {
                     value = in[keyToken];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// serialize UUID
+        inline void SerializeUUID(Type &out, bool packed, const std::string &key, const Hash &keyPacked, const UUID &uuid)
+        {
+            if (packed)
+            {
+                const uint8_t *ptr = uuid.GetBytes();
+                out.push_back(keyPacked);
+                out.push_back(Type::binary({ ptr, ptr + 16 }));
+            }
+            else
+            {
+                out[key] = uuid.ToString();
+            }
+        }
+
+        /// deserialize UUID
+        inline bool DeserializeUUID(const Type &in, bool packed, std::string keyToken, Hash keyTokenPacked, UUID &uuid)
+        {
+            if (packed)
+            {
+                if (in.is_array())
+                {
+                    for (size_t i = 1; i < in.size(); i += 2)
+                    {
+                        const auto &obj = in[i - 1];
+                        if (obj.is_number_unsigned() && obj.get<Hash>() == keyTokenPacked)
+                        {
+                            const auto &value = in[i];
+                            if (value.is_binary())
+                            {
+                                const auto &binary = value.get_binary();
+                                if (binary.size() == 16)
+                                {
+                                    uuid.SetBytes(binary.data());
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (in.contains(keyToken) && in[keyToken].is_string())
+                {
+                    uuid = UUID::FromString(in[keyToken].get<std::string>());
                     return true;
                 }
             }

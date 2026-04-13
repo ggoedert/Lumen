@@ -27,7 +27,7 @@ class Editor::Impl
 
 public:
     /// settings version
-    inline static constexpr dword sSettingsVersion = 0x0001;
+    inline static constexpr dword SettingsVersion = 0x0001;
 
     /// editor settings
     struct Settings
@@ -179,10 +179,10 @@ void Editor::Impl::Initialize()
                 }
 
                 // versioning conversion
-                if (mSettings.version != sSettingsVersion)
+                if (mSettings.version != SettingsVersion)
                 {
-                    Lumen::DebugLog::Warning("Editor::Impl::Initialize Settings needs conversion: 0x{:08X} to 0x{:08X}", mSettings.version, sSettingsVersion);
-                    mSettings.version = sSettingsVersion;
+                    Lumen::DebugLog::Warning("Editor::Impl::Initialize Settings needs conversion: 0x{:08X} to 0x{:08X}", mSettings.version, SettingsVersion);
+                    mSettings.version = SettingsVersion;
                 }
             }
         }

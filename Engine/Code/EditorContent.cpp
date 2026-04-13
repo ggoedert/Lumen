@@ -33,7 +33,8 @@ public:
     /// constructs editor
     explicit Impl() : mWindowOpen(true)
     {
-        mVisibleKey = mRootKey = mAssetTree.insert(AssetTree::NoKey, std::pair<bool, std::string>{ true, "Assets" })->first;
+        mVisibleKey = AssetTree::NoKey;
+        mRootKey = mAssetTree.insert(AssetTree::NoKey, std::pair<bool, std::string>{ true, "." })->first;
     }
 
     /// destructor
@@ -64,7 +65,12 @@ public:
 
             if (ImGui::BeginTable("##bg", 1, ImGuiTableFlags_RowBg))
             {
-                DrawTree(mRootKey);
+                auto nodeIt = mAssetTree.find(mRootKey);
+                if (nodeIt != mAssetTree.end())
+                {
+                    for (AssetTree::KeyType &childKey : nodeIt->second.mChildKeys)
+                        DrawTree(childKey);
+                }
                 ImGui::EndTable();
             }
         }

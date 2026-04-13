@@ -30,7 +30,7 @@ namespace Lumen
         bool Exists(const std::filesystem::path &path) override;
 
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path, const FileSystem::FileMode mode) override;
+        Id::Type Open(const std::filesystem::path &path) override;
 
         /// closes a file handle
         void Close(const Id::Type handle) override;
@@ -38,8 +38,11 @@ namespace Lumen
         /// reads bytes from a file handle
         size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size) override;
 
-        /// reads a line from a file handle
-        std::vector<std::string> ReadLines(const Id::Type handle, const int lines = -1) override;
+        /// reads lines from a file handle
+        std::string ReadLines(const Id::Type handle, const int lines = -1) override;
+
+        /// writes lines to a file handle
+        bool WriteLines(const Id::Type handle, const std::string &lines) override;
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle) override;

@@ -5,21 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-// platform specific includes
-#ifdef _WIN32
-#include <sal.h>
-#else
-#define _In_reads_(s)
-#endif
-#if defined(__SSE__) || defined(_M_X64) || defined(_M_IX86)
-#define SIMDSSE
-#include <xmmintrin.h>
-#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
-#define SIMDNEON
-#include <arm_neon.h>
-#else
-#define SIMDSCALAR
-#endif
+#include "lDefs.h"
 
 #include <type_traits>
 #include <cstring>
@@ -42,7 +28,7 @@ namespace Lumen::Math
     struct Quaternion;
 
     /// SIMD Vector
-#if defined(SIMDSSE)
+#if defined(SIMDSSE2)
     using SIMDVECTOR = __m128;
 #elif defined(SIMDNEON)
     using SIMDVECTOR = float32x4_t;

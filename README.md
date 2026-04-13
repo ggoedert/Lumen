@@ -2,6 +2,8 @@
 
 **Lumen** is an experimental game engine built around a component-based architecture for flexible scene management. It currently targets the Windows NT 10 family with DirectX support, with future plans for cross-platform portability.
 
+**Project Home:** [github.com/ggoedert/Lumen](https://github.com/ggoedert/Lumen)
+
 ## Disclaimer
 
 This is a personal, work-in-progress project developed for fun and experimentation. It’s provided *as is*, without any guarantees of completeness, stability, or fitness for a particular purpose. Use it at your own risk—and feel free to explore, learn, or build upon it.

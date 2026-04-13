@@ -157,18 +157,18 @@ public:
         Lumen::DebugLog::Info("Material::Impl::Load {}", path.string());
 
         // read the material
-        auto [materialData, packed] = FileSystem::ReadSerializedData(path);
-        if (materialData.empty())
+        Serialized::Type data;
+        bool packed;
+        if (!FileSystem::ReadSerializedData(path, data, packed))
         {
             Lumen::DebugLog::Error("Unable to read the material");
             return false;
         }
 
-        // parse the material
+        // deserialize the material
         try
         {
-            const Serialized::Type in = Serialized::Type::parse(materialData);
-            Deserialize(in, packed);
+            Deserialize(data, packed);
         }
         catch (const std::exception &e)
         {

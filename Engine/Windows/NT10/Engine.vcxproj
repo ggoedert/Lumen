@@ -328,6 +328,7 @@
     <ClInclude Include="..\..\Include\lEntity.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lImGuiLib.h" />
+    <ClInclude Include="..\..\Include\lMetaFile.h" />
     <ClInclude Include="..\..\Include\lNodeForest.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
@@ -345,6 +346,7 @@
     <ClInclude Include="..\..\Include\lTransform.h" />
     <ClInclude Include="..\..\Include\lEventDispatcher.h" />
     <ClInclude Include="..\..\Include\lUniqueByteArray.h" />
+    <ClInclude Include="..\..\Include\lUUID.h" />
     <ClInclude Include="..\..\Include\Windows\lEngineWindows.h" />
     <ClInclude Include="..\..\Include\Windows\lFramework.h" />
     <ClInclude Include="..\..\Include\Windows\lImGuiLibWindows.h" />

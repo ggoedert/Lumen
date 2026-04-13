@@ -195,7 +195,7 @@ void EngineWindows::Impl::FileChangeCallback()
 
         if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
         {
-            std::wstring wFullPath = ToWString(sMonitorDir) + L"\\" + wfilename;
+            std::wstring wFullPath = ToWString(sMonitorDir) + L"/" + wfilename;
             WIN32_FILE_ATTRIBUTE_DATA attr;
             FileSystem::Flags flags = FileSystem::Flag::None;
             if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
@@ -205,16 +205,16 @@ void EngineWindows::Impl::FileChangeCallback()
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                fileBatch.push_back({ FileSystem::Change::Added, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, sMonitorDir + "/" + filename, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                fileBatch.push_back({ FileSystem::Change::Modified, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Modified, flags, sMonitorDir + "/" + filename, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                fileBatch.push_back({ FileSystem::Change::Renamed, flags, filename, sLastFilename });
+                fileBatch.push_back({ FileSystem::Change::Renamed, flags, sMonitorDir + "/" + filename, sMonitorDir + "/" + sLastFilename });
                 break;
             case FILE_ACTION_REMOVED:
-                fileBatch.push_back({ FileSystem::Change::Removed, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Removed, flags, sMonitorDir + "/" + filename, "" });
                 break;
             }
             sLastFilename = filename;
@@ -263,7 +263,7 @@ bool EngineWindows::Impl::Initialize()
             {
                 FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
                 std::string filename = entry.path().lexically_relative(sMonitorDir).generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, flags, filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, sMonitorDir + "/" + filename, "" });
             }
         }
         if (!fileBatch.empty())

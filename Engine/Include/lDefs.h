@@ -21,6 +21,22 @@
 #include <optional>
 #include <type_traits>
 
+/// sse platform specific includes
+#ifdef _WIN32
+#include <sal.h>
+#else
+#define _In_reads_(s)
+#endif
+#if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#define SIMDSSE2
+#include <emmintrin.h>
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+#define SIMDNEON
+#include <arm_neon.h>
+#else
+#define SIMDSCALAR
+#endif
+
 /// enable type info in debug or editor builds
 #if !defined(NDEBUG) || defined(EDITOR)
 #define TYPEINFO

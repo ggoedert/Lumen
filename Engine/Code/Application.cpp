@@ -83,7 +83,7 @@ protected:
 
 private:
     /// default background color
-    static constexpr Math::Vector4 cDefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
+    static constexpr Math::Vector4 DefaultBackgroundColor { 1.f, 0.8f, 0.f, 1.f };
 
     /// engine pointer
     EngineWeakPtr mEngine;
@@ -280,7 +280,7 @@ const Math::Vector4 &Application::Impl::BackgroundColor() const
             return std::static_pointer_cast<Camera>(cameraPtr)->GetBackgroundColor();
         }
     }
-    return cDefaultBackgroundColor;
+    return DefaultBackgroundColor;
 }
 
 //==============================================================================================================================================================================

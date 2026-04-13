@@ -8,6 +8,7 @@
 #include "lDefs.h"
 #include "lId.h"
 #include "lFlags.h"
+#include "lSerializedData.h"
 
 #include <filesystem>
 
@@ -20,9 +21,6 @@ namespace Lumen
     /// FileSystem namespace
     namespace FileSystem
     {
-        /// file mode
-        enum class FileMode { Text, Binary };
-
         /// change type
         enum class Change { Added, Modified, Renamed, Removed };
 
@@ -90,8 +88,11 @@ namespace Lumen
         /// generates a new file id
         Id::Type GenerateFileId();
 
-        /// reads serialized data from a path
-        std::pair<std::string, bool> ReadSerializedData(const std::filesystem::path &path);
+        /// read serialized data from a path
+        bool ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data, bool &packed);
+
+        /// write serialized data to a path
+        bool WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data, bool packed);
 
         /// checks if a path is packed
         bool IsPacked(const std::filesystem::path &path);
@@ -100,7 +101,7 @@ namespace Lumen
         bool Exists(const std::filesystem::path &path);
 
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path, const FileMode mode);
+        Id::Type Open(const std::filesystem::path &path);
 
         /// closes a file handle
         void Close(const Id::Type handle);
@@ -108,8 +109,11 @@ namespace Lumen
         /// reads bytes from a file handle
         size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size);
 
-        /// reads a line from a file handle
-        std::vector<std::string> ReadLines(const Id::Type handle, int lineCount = -1);
+        /// reads lines from a file handle
+        std::string ReadLines(const Id::Type handle, int lineCount = -1);
+
+        /// writes lines to a file handle
+        bool WriteLines(const Id::Type handle, const std::string &lines);
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle);
@@ -137,7 +141,7 @@ namespace Lumen
         virtual bool Exists(const std::filesystem::path &path) = 0;
 
         /// opens a file on the specified path
-        virtual Id::Type Open(const std::filesystem::path &path, const FileSystem::FileMode mode) = 0;
+        virtual Id::Type Open(const std::filesystem::path &path) = 0;
 
         /// closes a file handle
         virtual void Close(const Id::Type handle) = 0;
@@ -145,8 +149,11 @@ namespace Lumen
         /// reads bytes from a file handle
         virtual size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size) = 0;
 
-        /// reads a line from a file handle
-        virtual std::vector<std::string> ReadLines(const Id::Type handle, int lineCount = -1) = 0;
+        /// reads lines from a file handle
+        virtual std::string ReadLines(const Id::Type handle, int lineCount = -1) = 0;
+
+        /// writes lines to a file handle
+        virtual bool WriteLines(const Id::Type handle, const std::string &lines) = 0;
 
         /// gets the current position in the file by handle
         virtual size_t Tell(const Id::Type handle) = 0;

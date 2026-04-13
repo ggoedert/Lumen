@@ -43,22 +43,16 @@ public:
     }
 
     /// opens a file on the specified path
-    Id::Type Open(const std::filesystem::path &path, const FileSystem::FileMode mode)
+    Id::Type Open(const std::filesystem::path &path)
     {
         std::filesystem::path fullPath = mPath / path;
-        if (mode == FileSystem::FileMode::Text)
+        std::fstream file(fullPath, std::ios::in | std::ios::out | std::ios::app);
+        file.seekg(0, std::ios::beg);
+        if (file.is_open())
         {
-            std::ifstream file(fullPath);
-            if (file.is_open())
-            {
-                Id::Type fileId = FileSystem::GenerateFileId();
-                mOpenFiles.emplace(fileId, std::move(file));
-                return fileId;
-            }
-        }
-        else
-        {
-            //@REVEW@ !dome!
+            Id::Type fileId = FileSystem::GenerateFileId();
+            mOpenFiles.emplace(fileId, std::move(file));
+            return fileId;
         }
         return Id::Invalid;
     }
@@ -75,35 +69,49 @@ public:
         return 0;
     }
 
-    /// reads a line from a file handle
-    std::vector<std::string> ReadLines(const Id::Type handle, int lineCount = -1)
+    /// reads lines from a file handle
+    std::string ReadLines(const Id::Type handle, int lineCount = -1)
     {
-        std::vector<std::string> lines;
+        std::string serializedData;
 
         auto it = mOpenFiles.find(handle);
         if (it == mOpenFiles.end())
         {
-            return lines;
+            return serializedData;
         }
-        std::ifstream &file = it->second;
+        std::fstream &file = it->second;
 
         std::string line;
         if (lineCount == -1)
         {
             while (std::getline(file, line))
             {
-                lines.push_back(std::move(line));
+                serializedData += std::move(line);
             }
         }
         else
         {
             while (std::getline(file, line) && lineCount--)
             {
-                lines.push_back(std::move(line));
+                serializedData += std::move(line);
             }
         }
-            
-        return lines;
+
+        return serializedData;
+    }
+
+    /// writes lines to a file handle
+    bool WriteLines(const Id::Type handle, const std::string &lines)
+    {
+        auto it = mOpenFiles.find(handle);
+        if (it == mOpenFiles.end())
+        {
+            return false;
+        }
+        std::fstream &file = it->second;
+
+        file << lines;
+        return true;
     }
 
     /// gets the current position in the file by handle
@@ -128,7 +136,7 @@ private:
     const std::filesystem::path mPath;
 
     /// open files
-    std::unordered_map<Id::Type, std::ifstream> mOpenFiles;
+    std::unordered_map<Id::Type, std::fstream> mOpenFiles;
 
 };
 
@@ -163,9 +171,9 @@ bool FolderFileSystem::Exists(const std::filesystem::path &path)
 }
 
 /// opens a file on the specified path
-Id::Type FolderFileSystem::Open(const std::filesystem::path &path, const FileSystem::FileMode mode)
+Id::Type FolderFileSystem::Open(const std::filesystem::path &path)
 {
-    return mImpl->Open(path, mode);
+    return mImpl->Open(path);
 }
 
 /// closes a file handle
@@ -180,10 +188,16 @@ size_t FolderFileSystem::ReadBytes(const Id::Type handle, const void *buffer, co
     return mImpl->ReadBytes(handle, buffer, size);
 }
 
-/// reads a line from a file handle
-std::vector<std::string> FolderFileSystem::ReadLines(const Id::Type handle, const int lines)
+/// reads lines from a file handle
+std::string FolderFileSystem::ReadLines(const Id::Type handle, const int lines)
 {
     return mImpl->ReadLines(handle, lines);
+}
+
+/// writes lines to a file handle
+bool FolderFileSystem::WriteLines(const Id::Type handle, const std::string &lines)
+{
+    return mImpl->WriteLines(handle, lines);
 }
 
 /// gets the current position in the file by handle

@@ -11,6 +11,8 @@
 
 using namespace Lumen;
 
+constexpr std::chrono::milliseconds MetaDelay { 500 };
+
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
@@ -21,15 +23,20 @@ namespace Lumen::Hidden
         /// default constructor
         explicit FileState() = default;
 
+        /// engine pointer
+        EngineWeakPtr mEngine;
+
+        /// file id generator
+        Id::Generator mFileIdGenerator;
+
+        /// file change mapFileChange
+        std::multimap<std::chrono::system_clock::time_point, FileSystem::AssetChange> mAssetChangeMap;
+
         /// file systems
         StringMap<IFileSystemPtr> mFileSystems;
     };
 
     static std::unique_ptr<FileState> gFileState;
-
-    static Id::Generator gFileIdGenerator;
-
-    static EngineWeakPtr gEngine;
 
     /// checks if a path starts with a prefix
     bool StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix)
@@ -57,7 +64,7 @@ void FileSystem::Initialize(const EngineWeakPtr &engine)
 {
     L_ASSERT(!Hidden::gFileState);
     Hidden::gFileState = std::make_unique<Hidden::FileState>();
-    Hidden::gEngine = engine;
+    Hidden::gFileState->mEngine = engine;
 }
 
 /// shutdown file namespace
@@ -107,18 +114,104 @@ void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 /// process file changes
 void FileSystem::ProcessFileChanges()
 {
+    using clock = std::chrono::system_clock;
+    using time_point = clock::time_point;
+    using ms = std::chrono::milliseconds;
+
+    auto now = clock::now();
+    auto &map = Hidden::gFileState->mAssetChangeMap;
+    std::vector<AssetChange> assetBatch;
+
     std::list<std::vector<FileChange>> fileBatchQueue;
+    bool dotest = false;
     if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
-        std::vector<AssetChange> assetBatch;
         for (auto &batch : fileBatchQueue)
         {
             for (auto &fileChange : batch)
             {
-                assetBatch.push_back({ fileChange.mChange, fileChange.mFlags, fileChange.mName, fileChange.mOldName });
+                // determine meta and base file existence
+                auto ext = std::filesystem::path(fileChange.mName).extension().string();
+                bool isMeta = (ext.size() == 5) &&
+                    std::equal(ext.begin(), ext.end(), ".meta", [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); });
+                bool hasMeta = isMeta;
+                bool hasBase = !isMeta;
+                if (isMeta)
+                {
+                    hasBase = std::filesystem::exists(std::filesystem::path(fileChange.mName.substr(0, fileChange.mName.size() - 5)));
+                }
+                else
+                {
+                    hasMeta = std::filesystem::exists(std::filesystem::path(fileChange.mName + ".meta"));
+                }
+
+                if (!isMeta)
+                {
+                    if (hasBase)
+                    {
+                        AssetChange assetChange;
+                        switch (fileChange.mChange)
+                        {
+                        case FileSystem::Change::Added:
+                            assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mName, "" };
+                            if (hasMeta)
+                            {
+                                Lumen::DebugLog::Detail("Added file with meta file, {}, metafile exists", assetChange.mName);
+                                assetBatch.push_back(assetChange);
+                            }
+                            else
+                            {
+                                dotest = true;
+                                map.emplace(clock::now() + MetaDelay, assetChange);
+                            }
+                            break;
+                        case FileSystem::Change::Modified:
+                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mName, "" });
+                            break;
+                        case FileSystem::Change::Renamed:
+                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mName, fileChange.mOldName });
+                            break;
+                        case FileSystem::Change::Removed:
+                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mName, "" });
+                            break;
+                        }
+                    }
+                }
             }
         }
-        if (auto engineLock = Hidden::gEngine.lock())
+    }
+
+    if (dotest)
+    {
+        // CREATE THE Assets/serializer_test.txt
+    }
+
+    for (auto it = map.begin(); it != map.end(); )
+    {
+        auto &[processTime, assetChange] = *it;
+
+        if (std::filesystem::exists(std::filesystem::path(assetChange.mName + ".meta")))
+        {
+            Lumen::DebugLog::Detail("Added file with meta file, {}, metafile late arrival", assetChange.mName);
+            assetBatch.push_back(assetChange);
+            it = map.erase(it);
+        }
+        else if (processTime <= now)
+        {
+            // CREATE THE METAFILE
+            Lumen::DebugLog::Detail("Added file without meta file, {}, created metafile", assetChange.mName);
+            assetBatch.push_back(assetChange);
+            it = map.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    if (!assetBatch.empty())
+    {
+        if (auto engineLock = Hidden::gFileState->mEngine.lock())
         {
             engineLock->ProcessAssetChanges(std::move(assetBatch));
         }
@@ -128,37 +221,62 @@ void FileSystem::ProcessFileChanges()
 /// generates a new file id
 Id::Type FileSystem::GenerateFileId()
 {
-    return Hidden::gFileIdGenerator.Next();
+    return Hidden::gFileState->mFileIdGenerator.Next();
 }
 
-/// reads serialized data from a path
-std::pair<std::string, bool> FileSystem::ReadSerializedData(const std::filesystem::path &path)
+/// read serialized data from a path
+bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data, bool &packed)
 {
-    std::string serializedData;
-    bool packed = FileSystem::IsPacked(path);
+    packed = FileSystem::IsPacked(path);
     if (packed)
     {
         Lumen::DebugLog::Error("Packed serialized data loading not implemented yet, {}", path.string());
     }
     else
     {
-        Id::Type file = FileSystem::Open(path, FileSystem::FileMode::Text);
+        Id::Type file = FileSystem::Open(path);
         if (file != Id::Invalid)
         {
-            std::vector<std::string> lines = FileSystem::ReadLines(file);
-            for (const auto &line : lines)
-            {
-                serializedData += line;
-            }
+            data = Serialized::Type::parse(FileSystem::ReadLines(file));
             FileSystem::Close(file);
+            return true;
         }
         else
         {
             Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
         }
     }
-    //packed = true; //@REVIEW@ testing!
-    return { serializedData, packed };
+    return false;
+}
+
+/// write serialized data to a path
+bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data, bool packed)
+{
+    if (FileSystem::IsPacked(path) != packed)
+    {
+        Lumen::DebugLog::Error("Packed flag does not match file system type for path {}, packed flag: {}, file system packed: {}", path.string(), packed, !packed);
+        return false;
+    }
+
+    if (packed)
+    {
+        Lumen::DebugLog::Error("Packed serialized data saving not implemented yet, {}", path.string());
+    }
+    else
+    {
+        Id::Type file = FileSystem::Open(path);
+        if (file != Id::Invalid)
+        {
+            FileSystem::WriteLines(file, data.dump(4));
+            FileSystem::Close(file);
+            return true;
+        }
+        else
+        {
+            Lumen::DebugLog::Error("Unable to open scene file for writing, {}", path.string());
+        }
+    }
+    return false;
 }
 
 /// checks if a path is packed
@@ -192,7 +310,7 @@ bool FileSystem::Exists(const std::filesystem::path &path)
 }
 
 /// opens a file on the specified path
-Id::Type FileSystem::Open(const std::filesystem::path &path, const FileSystem::FileMode mode)
+Id::Type FileSystem::Open(const std::filesystem::path &path)
 {
     L_ASSERT(Hidden::gFileState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
@@ -200,7 +318,7 @@ Id::Type FileSystem::Open(const std::filesystem::path &path, const FileSystem::F
         if (Hidden::StartsWith(path, mountPoint))
         {
             std::filesystem::path relativePath = path.lexically_relative(mountPoint);
-            return fileSystem->Open(relativePath.string(), mode);
+            return fileSystem->Open(relativePath.string());
         }
     }
     Lumen::DebugLog::Error("No registered file system for path {}", path.string());
@@ -237,8 +355,8 @@ size_t FileSystem::ReadBytes(const Id::Type handle, const void *buffer, const si
     return 0;
 }
 
-/// reads a line from a file handle
-std::vector<std::string> FileSystem::ReadLines(const Id::Type handle, int lineCount)
+/// reads lines from a file handle
+std::string FileSystem::ReadLines(const Id::Type handle, int lineCount)
 {
     L_ASSERT(Hidden::gFileState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
@@ -250,6 +368,21 @@ std::vector<std::string> FileSystem::ReadLines(const Id::Type handle, int lineCo
     }
     Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
     return {};
+}
+
+/// writes lines to a file handle
+bool FileSystem::WriteLines(const Id::Type handle, const std::string &lines)
+{
+    L_ASSERT(Hidden::gFileState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    {
+        if (fileSystem->HandlesFileId(handle))
+        {
+            return fileSystem->WriteLines(handle, lines);
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
+    return false;
 }
 
 /// gets the current position in the file by handle

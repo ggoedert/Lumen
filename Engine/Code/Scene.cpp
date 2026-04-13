@@ -82,21 +82,16 @@ public:
     /// save scene
     bool Save() const
     {
-        /*
-        Lumen::DebugLog::Info("Scene::Save {}", outFile.string());
-        Serialized::Type out;
-        Serialize(out, false);
-        std::ofstream file(outFile);
-        if (!file.is_open())
-        {
-            Lumen::DebugLog::Error("Unable to open scene file for writing, {}", outFile.string());
-            return false;
-        }
-        file << out.dump(4);
-        file.close();
-        return true;
-        */
-        return true;
+        const std::filesystem::path &path = mOwner.Path();
+        Lumen::DebugLog::Info("Scene::Save {}", path.string());
+
+        // serialize the scene
+        Serialized::Type data;
+        bool packed = FileSystem::IsPacked(path);
+        Serialize(data, packed);
+
+        // write the scene
+        return FileSystem::WriteSerializedData(path, data, packed);
     }
 
     /// load scene
@@ -106,18 +101,18 @@ public:
         Lumen::DebugLog::Info("Scene::Load {}", path.string());
 
         // read the scene
-        auto [mainScene, packed] = FileSystem::ReadSerializedData(path);
-        if (mainScene.empty())
+        Serialized::Type data;
+        bool packed;
+        if (!FileSystem::ReadSerializedData(path, data, packed))
         {
             Lumen::DebugLog::Error("Unable to read the scene");
             return false;
         }
 
-        // parse the scene
+        // deserialize the scene
         try
         {
-            const Serialized::Type in = Serialized::Type::parse(mainScene);
-            Deserialize(in, packed);
+            Deserialize(data, packed);
         }
         catch (const std::exception &e)
         {
