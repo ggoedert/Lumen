@@ -30,13 +30,16 @@ namespace Lumen
         bool Exists(const std::filesystem::path &path) override;
 
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path) override;
+        Id::Type Open(const std::filesystem::path &path, bool binary) override;
 
         /// closes a file handle
         void Close(const Id::Type handle) override;
 
         /// reads bytes from a file handle
-        size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size) override;
+        size_t ReadBytes(const Id::Type handle, void *buffer, const size_t size = SIZE_MAX) override;
+
+        /// writes bytes to a file handle
+        bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size) override;
 
         /// reads lines from a file handle
         std::string ReadLines(const Id::Type handle, const int lines = -1) override;

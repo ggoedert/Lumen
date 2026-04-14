@@ -87,11 +87,10 @@ public:
 
         // serialize the scene
         Serialized::Type data;
-        bool packed = FileSystem::IsPacked(path);
-        Serialize(data, packed);
+        Serialize(data, FileSystem::IsPacked(path));
 
         // write the scene
-        return FileSystem::WriteSerializedData(path, data, packed);
+        return FileSystem::WriteSerializedData(path, data);
     }
 
     /// load scene
@@ -102,8 +101,7 @@ public:
 
         // read the scene
         Serialized::Type data;
-        bool packed;
-        if (!FileSystem::ReadSerializedData(path, data, packed))
+        if (!FileSystem::ReadSerializedData(path, data))
         {
             Lumen::DebugLog::Error("Unable to read the scene");
             return false;
@@ -112,7 +110,7 @@ public:
         // deserialize the scene
         try
         {
-            Deserialize(data, packed);
+            Deserialize(data, FileSystem::IsPacked(path));
         }
         catch (const std::exception &e)
         {

@@ -89,10 +89,10 @@ namespace Lumen
         Id::Type GenerateFileId();
 
         /// read serialized data from a path
-        bool ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data, bool &packed);
+        bool ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data);
 
         /// write serialized data to a path
-        bool WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data, bool packed);
+        bool WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data);
 
         /// checks if a path is packed
         bool IsPacked(const std::filesystem::path &path);
@@ -101,13 +101,16 @@ namespace Lumen
         bool Exists(const std::filesystem::path &path);
 
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path);
+        Id::Type Open(const std::filesystem::path &path, bool binary);
 
         /// closes a file handle
         void Close(const Id::Type handle);
 
         /// reads bytes from a file handle
-        size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size);
+        size_t ReadBytes(const Id::Type handle, void *buffer, const size_t size = SIZE_MAX);
+
+        /// writes bytes to a file handle
+        bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size);
 
         /// reads lines from a file handle
         std::string ReadLines(const Id::Type handle, int lineCount = -1);
@@ -141,13 +144,16 @@ namespace Lumen
         virtual bool Exists(const std::filesystem::path &path) = 0;
 
         /// opens a file on the specified path
-        virtual Id::Type Open(const std::filesystem::path &path) = 0;
+        virtual Id::Type Open(const std::filesystem::path &path, bool binary) = 0;
 
         /// closes a file handle
         virtual void Close(const Id::Type handle) = 0;
 
         /// reads bytes from a file handle
-        virtual size_t ReadBytes(const Id::Type handle, const void *buffer, const size_t size) = 0;
+        virtual size_t ReadBytes(const Id::Type handle, void *buffer, const size_t size = SIZE_MAX) = 0;
+
+        /// writes bytes to a file handle
+        virtual bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size) = 0;
 
         /// reads lines from a file handle
         virtual std::string ReadLines(const Id::Type handle, int lineCount = -1) = 0;

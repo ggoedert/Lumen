@@ -158,8 +158,7 @@ public:
 
         // read the material
         Serialized::Type data;
-        bool packed;
-        if (!FileSystem::ReadSerializedData(path, data, packed))
+        if (!FileSystem::ReadSerializedData(path, data))
         {
             Lumen::DebugLog::Error("Unable to read the material");
             return false;
@@ -168,7 +167,7 @@ public:
         // deserialize the material
         try
         {
-            Deserialize(data, packed);
+            Deserialize(data, FileSystem::IsPacked(path));
         }
         catch (const std::exception &e)
         {
