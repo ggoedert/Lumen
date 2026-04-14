@@ -225,58 +225,64 @@ Id::Type FileSystem::GenerateFileId()
 }
 
 /// read serialized data from a path
-bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data, bool &packed)
+bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data)
 {
-    packed = FileSystem::IsPacked(path);
-    if (packed)
+    bool binary = FileSystem::IsPacked(path);
+    Id::Type file = FileSystem::Open(path, binary);
+    if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Packed serialized data loading not implemented yet, {}", path.string());
-    }
-    else
-    {
-        Id::Type file = FileSystem::Open(path);
-        if (file != Id::Invalid)
-        {
-            data = Serialized::Type::parse(FileSystem::ReadLines(file));
-            FileSystem::Close(file);
-            return true;
-        }
-        else
-        {
-            Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
-        }
-    }
-    return false;
-}
-
-/// write serialized data to a path
-bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data, bool packed)
-{
-    if (FileSystem::IsPacked(path) != packed)
-    {
-        Lumen::DebugLog::Error("Packed flag does not match file system type for path {}, packed flag: {}, file system packed: {}", path.string(), packed, !packed);
+        Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
         return false;
     }
 
-    if (packed)
+    if (binary)
     {
-        Lumen::DebugLog::Error("Packed serialized data saving not implemented yet, {}", path.string());
+        size_t fileSize = FileSystem::Size(file);
+        std::vector<uint8_t> v(fileSize);
+        if (FileSystem::ReadBytes(file, v.data(), fileSize) == fileSize)
+        {
+            try
+            {
+                data = Serialized::Type::from_cbor(v);
+            }
+            catch (const std::exception &e)
+            {
+                Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", path.string(), e.what());
+                return false;
+            }
+        }
     }
     else
     {
-        Id::Type file = FileSystem::Open(path);
-        if (file != Id::Invalid)
-        {
-            FileSystem::WriteLines(file, data.dump(4));
-            FileSystem::Close(file);
-            return true;
-        }
-        else
-        {
-            Lumen::DebugLog::Error("Unable to open scene file for writing, {}", path.string());
-        }
+        data = Serialized::Type::parse(FileSystem::ReadLines(file));
     }
-    return false;
+    FileSystem::Close(file);
+    return true;
+}
+
+/// write serialized data to a path
+bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data)
+{
+    bool binary = FileSystem::IsPacked(path);
+    Id::Type file = FileSystem::Open(path, binary);
+    if (file == Id::Invalid)
+    {
+        Lumen::DebugLog::Error("Unable to open scene file for writing, {}", path.string());
+        return false;
+    }
+
+    if (binary)
+    {
+        std::vector<uint8_t> serData = Serialized::Type::to_cbor(data);
+        FileSystem::WriteBytes(file, serData.data(), serData.size());
+    }
+    else
+    {
+        FileSystem::WriteLines(file, data.dump(4));
+    }
+
+    FileSystem::Close(file);
+    return true;
 }
 
 /// checks if a path is packed
@@ -310,7 +316,7 @@ bool FileSystem::Exists(const std::filesystem::path &path)
 }
 
 /// opens a file on the specified path
-Id::Type FileSystem::Open(const std::filesystem::path &path)
+Id::Type FileSystem::Open(const std::filesystem::path &path, bool binary)
 {
     L_ASSERT(Hidden::gFileState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
@@ -318,7 +324,7 @@ Id::Type FileSystem::Open(const std::filesystem::path &path)
         if (Hidden::StartsWith(path, mountPoint))
         {
             std::filesystem::path relativePath = path.lexically_relative(mountPoint);
-            return fileSystem->Open(relativePath.string());
+            return fileSystem->Open(relativePath.string(), binary);
         }
     }
     Lumen::DebugLog::Error("No registered file system for path {}", path.string());
@@ -341,7 +347,7 @@ void FileSystem::Close(const Id::Type handle)
 }
 
 /// reads bytes from a file handle
-size_t FileSystem::ReadBytes(const Id::Type handle, const void *buffer, const size_t size)
+size_t FileSystem::ReadBytes(const Id::Type handle, void *buffer, const size_t size)
 {
     L_ASSERT(Hidden::gFileState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
@@ -353,6 +359,21 @@ size_t FileSystem::ReadBytes(const Id::Type handle, const void *buffer, const si
     }
     Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
     return 0;
+}
+
+/// writes bytes to a file handle
+bool FileSystem::WriteBytes(const Id::Type handle, const void *buffer, const size_t size)
+{
+    L_ASSERT(Hidden::gFileState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    {
+        if (fileSystem->HandlesFileId(handle))
+        {
+            return fileSystem->WriteBytes(handle, buffer, size);
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
+    return false;
 }
 
 /// reads lines from a file handle
