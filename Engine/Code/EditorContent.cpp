@@ -106,7 +106,7 @@ public:
                 mVisibleKey = key;
             if (node_open)
             {
-                for (AssetTree::KeyType& childKey : nodeIt->second.mChildKeys)
+                for (AssetTree::KeyType &childKey : nodeIt->second.mChildKeys)
                     DrawTree(childKey);
                 ImGui::TreePop();
             }
@@ -122,7 +122,7 @@ public:
         auto visibleNodeIt = mAssetTree.find(mVisibleKey);
         if (visibleNodeIt != mAssetTree.end())
         {
-            for (AssetTree::KeyType& childKey : visibleNodeIt->second.mChildKeys)
+            for (AssetTree::KeyType &childKey : visibleNodeIt->second.mChildKeys)
             {
                 auto childIt = mAssetTree.find(childKey);
                 if (childIt != mAssetTree.end())
@@ -267,42 +267,42 @@ public:
             }
             else
             {*/
-                // display mode truncated with ...
-                ImVec2 pos = ImGui::GetCursorScreenPos();
-                ImRect total_bb(pos, ImVec2(pos.x + icon_width, pos.y + ImGui::GetTextLineHeight()));
+            // display mode truncated with ...
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            ImRect total_bb(pos, ImVec2(pos.x + icon_width, pos.y + ImGui::GetTextLineHeight()));
 
-                // render the ellipsis text 
-                ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(),
-                    total_bb.Min,
-                    total_bb.Max,
-                    total_bb.Max.x,
-                    label.c_str(),
-                    NULL,
-                    NULL);
+            // render the ellipsis text 
+            ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(),
+                total_bb.Min,
+                total_bb.Max,
+                total_bb.Max.x,
+                label.c_str(),
+                NULL,
+                NULL);
 
-                // register the item size so the layout cursor advances properly
-                ImGui::ItemSize(total_bb.GetSize(), 0.0f);
+            // register the item size so the layout cursor advances properly
+            ImGui::ItemSize(total_bb.GetSize(), 0.0f);
 
-                // register the item ID and bounding box for interaction (hover/click)
-                if (ImGui::ItemAdd(total_bb, ImGui::GetID(label.c_str())))
+            // register the item ID and bounding box for interaction (hover/click)
+            if (ImGui::ItemAdd(total_bb, ImGui::GetID(label.c_str())))
+            {
+                if (ImGui::IsItemHovered())
                 {
-                    if (ImGui::IsItemHovered())
+                    // right-click to trigger renaming @@REVIEW@@ renaming broken for now, need to review this
+                    /*if (ImGui::IsMouseClicked(1))
                     {
-                        // right-click to trigger renaming @@REVIEW@@ renaming broken for now, need to review this
-                        /*if (ImGui::IsMouseClicked(1))
-                        {
-                            asset.mRenaming = true;
-                        }*/
+                        asset.mRenaming = true;
+                    }*/
 
-                        // show tooltip only if the text was actually truncated
-                        if (fullTextWidth > icon_width)
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::TextUnformatted(label.c_str());
-                            ImGui::EndTooltip();
-                        }
+                    // show tooltip only if the text was actually truncated
+                    if (fullTextWidth > icon_width)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::TextUnformatted(label.c_str());
+                        ImGui::EndTooltip();
                     }
                 }
+            }
             //}
 
             // move cursor for next asset
@@ -394,8 +394,10 @@ public:
                         key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
                     }
                 }
-                eraseIt = mAssetTree.find_if([&](const auto &pair) {
-                    return pair.second.mParentKey == key && pair.second.mData.second == oldFilePath.filename().string(); });
+                eraseIt = mAssetTree.find_if([&](const auto &pair)
+                {
+                    return pair.second.mParentKey == key && pair.second.mData.second == oldFilePath.filename().string();
+                });
                 if (eraseIt != mAssetTree.end())
                 {
                     mAssetTree.erase(eraseIt->first);
