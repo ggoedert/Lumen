@@ -15,22 +15,22 @@
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_PTR_DEF(MetaFile);
-    CLASS_WEAK_PTR_DEF(MetaFile);
+    CLASS_PTR_DEF(Metafile);
+    CLASS_WEAK_PTR_DEF(Metafile);
 
-    /// MetaFile class
-    class MetaFile : public Object
+    /// Metafile class
+    class Metafile : public Object
     {
-        CLASS_NO_DEFAULT_CTOR(MetaFile);
-        CLASS_NO_COPY_MOVE(MetaFile);
+        CLASS_NO_DEFAULT_CTOR(Metafile);
+        CLASS_NO_COPY_MOVE(Metafile);
         OBJECT_TYPEINFO;
 
     public:
         /// destructor
-        ~MetaFile() override;
+        ~Metafile() override;
 
         /// creates a smart pointer version of the metafile
-        static MetaFilePtr MakePtr(const std::filesystem::path &path);
+        static MetafilePtr MakePtr(const std::filesystem::path &path);
 
         /// register metafile name / path
         static void Register(std::string_view name, std::string_view path);
@@ -52,7 +52,7 @@ namespace Lumen
 
     private:
         /// constructor
-        explicit MetaFile(const std::filesystem::path &path);
+        explicit Metafile(const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

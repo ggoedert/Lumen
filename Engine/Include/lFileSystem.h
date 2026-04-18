@@ -112,11 +112,17 @@ namespace Lumen
         /// writes bytes to a file handle
         bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size);
 
-        /// reads lines from a file handle
-        std::string ReadLines(const Id::Type handle, int lineCount = -1);
+        /// reads text from a file handle
+        std::string ReadText(const Id::Type handle, int lineCount = -1);
 
-        /// writes lines to a file handle
-        bool WriteLines(const Id::Type handle, const std::string &lines);
+        /// writes text to a file handle
+        bool WriteText(const Id::Type handle, const std::string &text);
+
+        /// reads metafile record from a file handle
+        bool ReadMetafileRecord(const Id::Type handle, Serialized::Type &record);
+
+        /// writes metafile record to a file handle
+        bool WriteMetafileRecord(const Id::Type handle, const Serialized::Type &record);
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle);
@@ -155,11 +161,11 @@ namespace Lumen
         /// writes bytes to a file handle
         virtual bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size) = 0;
 
-        /// reads lines from a file handle
-        virtual std::string ReadLines(const Id::Type handle, int lineCount = -1) = 0;
+        /// reads text from a file handle
+        virtual std::string ReadText(const Id::Type handle, int lineCount = -1) = 0;
 
-        /// writes lines to a file handle
-        virtual bool WriteLines(const Id::Type handle, const std::string &lines) = 0;
+        /// writes text to a file handle
+        virtual bool WriteText(const Id::Type handle, const std::string &text) = 0;
 
         /// gets the current position in the file by handle
         virtual size_t Tell(const Id::Type handle) = 0;

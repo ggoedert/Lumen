@@ -74,7 +74,7 @@ public:
         {
             return false;
         }
-        std::fstream &file = it->second;
+        std::fstream &file = it->second.mFileStream;
         file.read(static_cast<char *>(const_cast<void *>(buffer)), size);
         return file.gcount();
     }
@@ -87,13 +87,13 @@ public:
         {
             return false;
         }
-        std::fstream &file = it->second;
+        std::fstream &file = it->second.mFileStream;
         file.write(static_cast<const char *>(buffer), size);
         return true;
     }
 
-    /// reads lines from a file handle
-    std::string ReadLines(const Id::Type handle, int lineCount = -1)
+    /// reads text from a file handle
+    std::string ReadText(const Id::Type handle, int lineCount)
     {
         std::string serializedData;
 
@@ -102,7 +102,7 @@ public:
         {
             return serializedData;
         }
-        std::fstream &file = it->second;
+        std::fstream &file = it->second.mFileStream;
 
         std::string line;
         if (lineCount == -1)
@@ -123,17 +123,17 @@ public:
         return serializedData;
     }
 
-    /// writes lines to a file handle
-    bool WriteLines(const Id::Type handle, const std::string &lines)
+    /// writes text to a file handle
+    bool WriteText(const Id::Type handle, const std::string &text)
     {
         auto it = mOpenFiles.find(handle);
         if (it == mOpenFiles.end())
         {
             return false;
         }
-        std::fstream &file = it->second;
+        std::fstream &file = it->second.mFileStream;
 
-        file << lines;
+        file << text;
         return true;
     }
 
@@ -145,7 +145,7 @@ public:
         {
             return 0;
         }
-        return static_cast<size_t>(it->second.tellg());
+        return static_cast<size_t>(it->second.mFileStream.tellg());
     }
 
     /// seeks to a position in the file by handle
@@ -156,7 +156,7 @@ public:
         {
             return;
         }
-        it->second.seekg(static_cast<std::streamoff>(position), std::ios::beg);
+        it->second.mFileStream.seekg(static_cast<std::streamoff>(position), std::ios::beg);
     }
 
     /// gets the size of the file by handle
@@ -167,7 +167,7 @@ public:
         {
             return static_cast<size_t>(-1);
         }
-        std::fstream &file = it->second;
+        std::fstream &file = it->second.mFileStream;
 
         // get file size by seeking to the end and back
         const std::streampos current = file.tellg();
@@ -179,12 +179,18 @@ public:
     }
 
 private:
+    /// file state struct
+    struct FileState
+    {
+        /// file stream
+        std::fstream mFileStream;
+    };
+
     /// path
     const std::filesystem::path mPath;
 
     /// open files
-    std::unordered_map<Id::Type, std::fstream> mOpenFiles;
-
+    std::unordered_map<Id::Type, FileState> mOpenFiles;
 };
 
 //==============================================================================================================================================================================
@@ -241,16 +247,16 @@ bool FolderFileSystem::WriteBytes(const Id::Type handle, const void *buffer, con
     return mImpl->WriteBytes(handle, buffer, size);
 }
 
-/// reads lines from a file handle
-std::string FolderFileSystem::ReadLines(const Id::Type handle, const int lines)
+/// reads text from a file handle
+std::string FolderFileSystem::ReadText(const Id::Type handle, const int lineCount)
 {
-    return mImpl->ReadLines(handle, lines);
+    return mImpl->ReadText(handle, lineCount);
 }
 
-/// writes lines to a file handle
-bool FolderFileSystem::WriteLines(const Id::Type handle, const std::string &lines)
+/// writes text to a file handle
+bool FolderFileSystem::WriteText(const Id::Type handle, const std::string &text)
 {
-    return mImpl->WriteLines(handle, lines);
+    return mImpl->WriteText(handle, text);
 }
 
 /// gets the current position in the file by handle

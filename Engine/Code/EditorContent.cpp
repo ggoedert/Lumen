@@ -34,7 +34,7 @@ public:
     explicit Impl() : mWindowOpen(true)
     {
         mVisibleKey = AssetTree::NoKey;
-        mRootKey = mAssetTree.insert(AssetTree::NoKey, std::pair<bool, std::string>{ true, "." })->first;
+        mAssetTree.insert(AssetTree::NoKey, std::pair<bool, std::string>{ true, "." });
     }
 
     /// destructor
@@ -65,7 +65,7 @@ public:
 
             if (ImGui::BeginTable("##bg", 1, ImGuiTableFlags_RowBg))
             {
-                auto nodeIt = mAssetTree.find(mRootKey);
+                auto nodeIt = mAssetTree.find(mAssetTree.roots().front());
                 if (nodeIt != mAssetTree.end())
                 {
                     for (AssetTree::KeyType &childKey : nodeIt->second.mChildKeys)
@@ -345,7 +345,7 @@ public:
             switch (item.mChange)
             {
             case FileSystem::Change::Added:
-                key = mRootKey;
+                key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
                     auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
@@ -358,7 +358,20 @@ public:
                         key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
                     }
                 }
-                mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
+                if (!isDirectory)
+                {
+                    mAssetTree.insert(key, std::pair<bool, std::string>{ false, filePath.filename().string() });
+                }
+                else
+                {
+                    // some items might be added out of order, so directories might be added after their contents
+                    std::string fileName = filePath.filename().string();
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == fileName; });
+                    if (partIt == mAssetTree.end())
+                    {
+                        mAssetTree.insert(key, std::pair<bool, std::string>{ true, fileName });
+                    }
+                }
 
                 DebugLog::Info("Added: {}", item.mName);
                 break;
@@ -368,7 +381,7 @@ public:
                 break;
 
             case FileSystem::Change::Renamed:
-                key = mRootKey;
+                key = mAssetTree.roots().front();
                 for (const auto &part : oldFilePath.parent_path())
                 {
                     auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
@@ -388,7 +401,7 @@ public:
                     mAssetTree.erase(eraseIt->first);
                 }
 
-                key = mRootKey;
+                key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
                     auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
@@ -407,7 +420,7 @@ public:
                 break;
 
             case FileSystem::Change::Removed:
-                key = mRootKey;
+                key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
                     auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
@@ -467,9 +480,6 @@ private:
 
     /// asset node tree
     AssetTree mAssetTree;
-
-    /// root node key
-    AssetTree::KeyType mRootKey = AssetTree::NoKey;
 
     /// currently visible node key
     AssetTree::KeyType mVisibleKey = AssetTree::NoKey;

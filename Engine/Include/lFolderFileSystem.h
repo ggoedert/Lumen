@@ -41,11 +41,11 @@ namespace Lumen
         /// writes bytes to a file handle
         bool WriteBytes(const Id::Type handle, const void *buffer, const size_t size) override;
 
-        /// reads lines from a file handle
-        std::string ReadLines(const Id::Type handle, const int lines = -1) override;
+        /// reads text from a file handle
+        std::string ReadText(const Id::Type handle, const int lineCount = -1) override;
 
-        /// writes lines to a file handle
-        bool WriteLines(const Id::Type handle, const std::string &lines) override;
+        /// writes text to a file handle
+        bool WriteText(const Id::Type handle, const std::string &text) override;
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle) override;

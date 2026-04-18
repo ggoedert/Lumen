@@ -242,7 +242,7 @@
     <ClInclude Include="..\..\Include\lUUID.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\lMetaFile.h">
+    <ClInclude Include="..\..\Include\lMetafile.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
   </ItemGroup>

@@ -328,7 +328,7 @@
     <ClInclude Include="..\..\Include\lEntity.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lImGuiLib.h" />
-    <ClInclude Include="..\..\Include\lMetaFile.h" />
+    <ClInclude Include="..\..\Include\lMetafile.h" />
     <ClInclude Include="..\..\Include\lNodeForest.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
