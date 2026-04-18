@@ -80,10 +80,6 @@ namespace Lumen
                 L_ASSERT(parentIt != mNodes.end());
                 parentIt->second.mChildKeys.push_back(mLastKey);
             }
-            else
-            {
-                mRoots.push_back(mLastKey);
-            }
 
             return nodeIt;
         }
@@ -104,10 +100,6 @@ namespace Lumen
                 {
                     std::erase(parentIt->second.mChildKeys, key);
                 }
-            }
-            else
-            {
-                std::erase(mRoots, key);
             }
 
             // collect subtree keys and erase from mNodes
@@ -162,17 +154,11 @@ namespace Lumen
             return it;
         }
 
-        /// returns the list of root node keys
-        [[nodiscard]] const std::vector<KeyType> &roots() const noexcept { return mRoots; }
-
     private:
         /// nodes
         std::unordered_map<KeyType, Node> mNodes;
 
         /// last key used
         KeyType mLastKey = NoKey;
-
-        /// root nodes keys
-        std::vector<KeyType> mRoots;
     };
 }

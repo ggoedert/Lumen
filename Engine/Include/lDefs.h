@@ -52,10 +52,12 @@ namespace Lumen
     using qword = uint64_t;
 
     using Hash = dword;
+    using HashToken = std::array<char, 6>;
 
     constexpr Hash HASH_PRIME = static_cast<Hash>(0x01000193);
     constexpr Hash HASH_OFFSET = static_cast<Hash>(0x811C9DC5);
     constexpr Hash HASH_INVALID = static_cast<Hash>(0xFFFFFFFF);
+    constexpr HashToken HASH_TOKEN_INVALID = { '/', '/', '/', '/', '/', 'w' };
 
     /// hash (FNV-1a) range of a string evaluated at compile time
     constexpr Hash HashStringRange(const char *string, size_t begin, size_t end)
@@ -135,18 +137,13 @@ namespace Lumen
 #endif
 
     /// return the shared Base64 table for encoding function, hopefully optimized away by the compiler if not used
-    inline const char *GetBase64Table()
-    {
-        static const char table[] =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        return table;
-    }
+    consteval const char *GetBase64Table() { return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; }
 
-    /// encode the 4 byte Hash into an 6 character Base64 string
-    constexpr std::string Base64EncodeHash(const Hash hash)
+    /// encode the 4 byte Hash into an 6 character Base64 array
+    constexpr HashToken Base64EncodeHash(const Hash hash)
     {
-        char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        char token[6];
+        const char *table = GetBase64Table();
+        HashToken token;
 
         // encode first 3 bytes -> 4 chars
         Hash val24 = hash >> 8;
@@ -160,12 +157,16 @@ namespace Lumen
         token[4] = table[(val24 >> 6) & 0x3F];
         token[5] = table[val24 & 0x3F];
 
-        // create string of length 6
-        return std::string(token, 6);
+        // return encoded token
+        return token;
     }
 
-    /// decode the 8 character Base64 string into a 4 byte Hash
-    constexpr Hash Base64DecodeHash(const std::string &token)
+    /// convert string to 6 character array, returns empty array if string is not 6 characters
+    constexpr HashToken StringToHashToken(const std::string &s) {
+        return s.size() == 6 ? HashToken { s[0], s[1], s[2], s[3], s[4], s[5] } : HASH_TOKEN_INVALID; }
+
+    /// decode the 6 character Base64 array into a 4 byte Hash
+    constexpr Hash Base64DecodeHash(const HashToken &token)
     {
         if (token.size() != 6) return HASH_INVALID;
 
@@ -191,6 +192,9 @@ namespace Lumen
 
         return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
     }
+
+    /// convert 6 character array to string
+    constexpr std::string HashTokenToString(const HashToken &a) { return std::string(a.data(), 6); }
 
     /// encode bytes into a Base64 string
     inline std::string Base64EncodeBytes(const std::vector<byte> &bytes)

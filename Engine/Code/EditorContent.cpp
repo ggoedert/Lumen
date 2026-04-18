@@ -358,7 +358,20 @@ public:
                         key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
                     }
                 }
-                mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
+                if (!isDirectory)
+                {
+                    mAssetTree.insert(key, std::pair<bool, std::string>{ false, filePath.filename().string() });
+                }
+                else
+                {
+                    // some items might be added out of order, so directories might be added after their contents
+                    std::string fileName = filePath.filename().string();
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == fileName; });
+                    if (partIt == mAssetTree.end())
+                    {
+                        mAssetTree.insert(key, std::pair<bool, std::string>{ true, fileName });
+                    }
+                }
 
                 DebugLog::Info("Added: {}", item.mName);
                 break;

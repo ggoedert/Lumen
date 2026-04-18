@@ -16,12 +16,13 @@ constexpr std::chrono::milliseconds MetaDelay { 500 };
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
-    struct FileState
+    /// file sytem state struct
+    struct FileSytemState
     {
-        CLASS_NO_COPY_MOVE(FileState);
+        CLASS_NO_COPY_MOVE(FileSytemState);
 
         /// default constructor
-        explicit FileState() = default;
+        explicit FileSytemState() = default;
 
         /// engine pointer
         EngineWeakPtr mEngine;
@@ -36,7 +37,8 @@ namespace Lumen::Hidden
         StringMap<IFileSystemPtr> mFileSystems;
     };
 
-    static std::unique_ptr<FileState> gFileState;
+    /// global file state
+    static std::unique_ptr<FileSytemState> gFileSytemState;
 
     /// checks if a path starts with a prefix
     bool StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix)
@@ -59,19 +61,59 @@ namespace Lumen::Hidden
 #endif
 }
 
+class HandleStreamBuf : public std::streambuf
+{
+public:
+    /// adjust buffer size based on your performance needs
+    explicit HandleStreamBuf(Id::Type handle, size_t bufferSize = 4096) : mHandler(handle), mBuffer(bufferSize)
+    {
+        // set the get area to be empty initially
+        setg(mBuffer.data(), mBuffer.data(), mBuffer.data());
+    }
+
+protected:
+    /// called when the stream needs more bytes
+    int_type underflow() override
+    {
+        if (gptr() < egptr())
+        {
+            return traits_type::to_int_type(*gptr());
+        }
+
+        // read bytes
+        size_t bytesRead = FileSystem::ReadBytes(mHandler, mBuffer.data(), mBuffer.size());
+
+        if (bytesRead == 0)
+        {
+            return traits_type::eof();
+        }
+
+        // reset the buffer pointers
+        setg(mBuffer.data(), mBuffer.data(), mBuffer.data() + bytesRead);
+        return traits_type::to_int_type(*gptr());
+    }
+
+private:
+    /// file handle
+    Id::Type mHandler;
+
+    /// internal buffer for reading
+    std::vector<char> mBuffer;
+};
+
 /// initialize file namespace
 void FileSystem::Initialize(const EngineWeakPtr &engine)
 {
-    L_ASSERT(!Hidden::gFileState);
-    Hidden::gFileState = std::make_unique<Hidden::FileState>();
-    Hidden::gFileState->mEngine = engine;
+    L_ASSERT(!Hidden::gFileSytemState);
+    Hidden::gFileSytemState = std::make_unique<Hidden::FileSytemState>();
+    Hidden::gFileSytemState->mEngine = engine;
 }
 
 /// shutdown file namespace
 void FileSystem::Shutdown()
 {
-    L_ASSERT(Hidden::gFileState);
-    Hidden::gFileState.reset();
+    L_ASSERT(Hidden::gFileSytemState);
+    Hidden::gFileSytemState.reset();
 }
 
 /// normalize a directory path
@@ -101,8 +143,8 @@ const std::filesystem::path FileSystem::NormalizeFilePath(const std::filesystem:
 /// register file system
 void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, const IFileSystemPtr &fileSystem)
 {
-    L_ASSERT(Hidden::gFileState);
-    Hidden::gFileState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
+    L_ASSERT(Hidden::gFileSytemState);
+    Hidden::gFileSytemState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
 }
 
 /// push file changes
@@ -119,7 +161,7 @@ void FileSystem::ProcessFileChanges()
     using ms = std::chrono::milliseconds;
 
     auto now = clock::now();
-    auto &map = Hidden::gFileState->mAssetChangeMap;
+    auto &map = Hidden::gFileSytemState->mAssetChangeMap;
     std::vector<AssetChange> assetBatch;
 
     std::list<std::vector<FileChange>> fileBatchQueue;
@@ -156,7 +198,7 @@ void FileSystem::ProcessFileChanges()
                             assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mName, "" };
                             if (hasMeta)
                             {
-                                Lumen::DebugLog::Detail("Added file with meta file, {}, metafile exists", assetChange.mName);
+                                Lumen::DebugLog::Detail("Added file with metafile, {}, metafile exists", assetChange.mName);
                                 assetBatch.push_back(assetChange);
                             }
                             else
@@ -192,14 +234,14 @@ void FileSystem::ProcessFileChanges()
 
         if (std::filesystem::exists(std::filesystem::path(assetChange.mName + ".meta")))
         {
-            Lumen::DebugLog::Detail("Added file with meta file, {}, metafile late arrival", assetChange.mName);
+            Lumen::DebugLog::Detail("Added file with metafile, {}, metafile late arrival", assetChange.mName);
             assetBatch.push_back(assetChange);
             it = map.erase(it);
         }
         else if (processTime <= now)
         {
             // CREATE THE METAFILE
-            Lumen::DebugLog::Detail("Added file without meta file, {}, created metafile", assetChange.mName);
+            Lumen::DebugLog::Detail("Added file without metafile, {}, created metafile", assetChange.mName);
             assetBatch.push_back(assetChange);
             it = map.erase(it);
         }
@@ -211,7 +253,7 @@ void FileSystem::ProcessFileChanges()
 
     if (!assetBatch.empty())
     {
-        if (auto engineLock = Hidden::gFileState->mEngine.lock())
+        if (auto engineLock = Hidden::gFileSytemState->mEngine.lock())
         {
             engineLock->ProcessAssetChanges(std::move(assetBatch));
         }
@@ -221,7 +263,7 @@ void FileSystem::ProcessFileChanges()
 /// generates a new file id
 Id::Type FileSystem::GenerateFileId()
 {
-    return Hidden::gFileState->mFileIdGenerator.Next();
+    return Hidden::gFileSytemState->mFileIdGenerator.Next();
 }
 
 /// read serialized data from a path
@@ -254,7 +296,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
     }
     else
     {
-        data = Serialized::Type::parse(FileSystem::ReadLines(file));
+        data = Serialized::Type::parse(FileSystem::ReadText(file));
     }
     FileSystem::Close(file);
     return true;
@@ -278,7 +320,7 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
     }
     else
     {
-        FileSystem::WriteLines(file, data.dump(4));
+        FileSystem::WriteText(file, data.dump(4));
     }
 
     FileSystem::Close(file);
@@ -288,8 +330,8 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
 /// checks if a path is packed
 bool FileSystem::IsPacked(const std::filesystem::path &path)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (Hidden::StartsWith(path, mountPoint))
         {
@@ -303,8 +345,8 @@ bool FileSystem::IsPacked(const std::filesystem::path &path)
 /// check if a file exists
 bool FileSystem::Exists(const std::filesystem::path &path)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (Hidden::StartsWith(path, mountPoint))
         {
@@ -318,8 +360,8 @@ bool FileSystem::Exists(const std::filesystem::path &path)
 /// opens a file on the specified path
 Id::Type FileSystem::Open(const std::filesystem::path &path, bool binary)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (Hidden::StartsWith(path, mountPoint))
         {
@@ -334,8 +376,8 @@ Id::Type FileSystem::Open(const std::filesystem::path &path, bool binary)
 /// closes a file handle
 void FileSystem::Close(const Id::Type handle)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
@@ -349,8 +391,8 @@ void FileSystem::Close(const Id::Type handle)
 /// reads bytes from a file handle
 size_t FileSystem::ReadBytes(const Id::Type handle, void *buffer, const size_t size)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
@@ -364,8 +406,8 @@ size_t FileSystem::ReadBytes(const Id::Type handle, void *buffer, const size_t s
 /// writes bytes to a file handle
 bool FileSystem::WriteBytes(const Id::Type handle, const void *buffer, const size_t size)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
@@ -376,30 +418,92 @@ bool FileSystem::WriteBytes(const Id::Type handle, const void *buffer, const siz
     return false;
 }
 
-/// reads lines from a file handle
-std::string FileSystem::ReadLines(const Id::Type handle, int lineCount)
+/// reads text from a file handle
+std::string FileSystem::ReadText(const Id::Type handle, int lineCount)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
-            return fileSystem->ReadLines(handle, lineCount);
+            return fileSystem->ReadText(handle, lineCount);
         }
     }
     Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
     return {};
 }
 
-/// writes lines to a file handle
-bool FileSystem::WriteLines(const Id::Type handle, const std::string &lines)
+/// writes text to a file handle
+bool FileSystem::WriteText(const Id::Type handle, const std::string &text)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
-            return fileSystem->WriteLines(handle, lines);
+            return fileSystem->WriteText(handle, text);
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
+    return false;
+}
+
+/// reads metafile record from a file handle
+bool FileSystem::ReadMetafileRecord(const Id::Type handle, Serialized::Type &record)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (fileSystem->HandlesFileId(handle))
+        {
+            if (fileSystem->Packed())
+            {
+//??                std::vector<uint8_t> serData = Serialized::Type::to_cbor(record);
+//??                return fileSystem->WriteBytes(handle, serData.data(), serData.size());
+                size_t fileSize = FileSystem::Size(handle);
+                std::vector<uint8_t> v(fileSize);
+                if (FileSystem::ReadBytes(handle, v.data(), fileSize) == fileSize)
+                {
+                    try
+                    {
+                        record = Serialized::Type::from_cbor(v);
+                    }
+                    catch (const std::exception &e)
+                    {
+                        Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", "unknown"/*path.string()*/, e.what());
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+//??                return fileSystem->WriteText(handle, record.dump(4));
+                record = Serialized::Type::parse(FileSystem::ReadText(handle));
+            }
+            return true;
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
+    return false;
+}
+
+/// writes metafile record to a file handle
+bool FileSystem::WriteMetafileRecord(const Id::Type handle, const Serialized::Type &record)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (fileSystem->HandlesFileId(handle))
+        {
+            if (fileSystem->Packed())
+            {
+                std::vector<uint8_t> serData = Serialized::Type::to_cbor(record);
+                return fileSystem->WriteBytes(handle, serData.data(), serData.size());
+            }
+            else
+            {
+                return fileSystem->WriteText(handle, record.dump(4));
+            }
         }
     }
     Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
@@ -409,8 +513,8 @@ bool FileSystem::WriteLines(const Id::Type handle, const std::string &lines)
 /// gets the current position in the file by handle
 size_t FileSystem::Tell(const Id::Type handle)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
@@ -424,8 +528,8 @@ size_t FileSystem::Tell(const Id::Type handle)
 /// seeks to a position in the file by handle
 void FileSystem::Seek(const Id::Type handle, const size_t position)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
@@ -439,8 +543,8 @@ void FileSystem::Seek(const Id::Type handle, const size_t position)
 /// gets the size of the file by handle
 size_t FileSystem::Size(const Id::Type handle)
 {
-    L_ASSERT(Hidden::gFileState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileState->mFileSystems)
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
         if (fileSystem->HandlesFileId(handle))
         {
