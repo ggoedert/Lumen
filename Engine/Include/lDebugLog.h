@@ -5,8 +5,10 @@
 //==============================================================================================================================================================================
 #pragma once
 
+/// \cond
 #include <functional>
 #include <format>
+/// \endcond
 
 /// Lumen DebugLog namespace
 namespace Lumen::DebugLog

@@ -9,7 +9,9 @@
 #include "lImGuiLib.h"
 #include "lNodeForest.h"
 
+/// \cond
 #include <filesystem>
+/// \endcond
 
 using namespace Lumen;
 

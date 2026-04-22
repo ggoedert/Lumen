@@ -7,7 +7,9 @@
 #include "lDebugLog.h"
 #include "lEngine.h"
 
+/// \cond
 #include <deque>
+/// \endcond
 
 using namespace Lumen;
 

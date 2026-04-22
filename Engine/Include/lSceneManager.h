@@ -8,7 +8,9 @@
 #include "lApplication.h"
 #include "lScene.h"
 
+/// \cond
 #include <functional>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

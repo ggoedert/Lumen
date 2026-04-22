@@ -7,7 +7,9 @@
 
 #include "lEngine.h"
 
+/// \cond
 #include <Windows.h>
+/// \endcond
 
 /// Lumen Windows namespace
 namespace Lumen::Windows

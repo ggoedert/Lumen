@@ -7,7 +7,9 @@
 
 #include "lDefs.h"
 
+/// \cond
 #include <mutex>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

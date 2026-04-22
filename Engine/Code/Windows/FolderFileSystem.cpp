@@ -6,8 +6,10 @@
 
 #include "lFolderFileSystem.h"
 
+/// \cond
 #include <fstream>
 #include <unordered_map>
+/// \endcond
 
 using namespace Lumen;
 

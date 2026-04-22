@@ -10,7 +10,9 @@
 #include "lFlags.h"
 #include "lSerializedData.h"
 
+/// \cond
 #include <filesystem>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

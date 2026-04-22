@@ -6,7 +6,9 @@
 
 #include "lMath.h"
 
+/// \cond
 #include <cmath>
+/// \endcond
 
 using namespace Lumen;
 

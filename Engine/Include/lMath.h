@@ -7,8 +7,10 @@
 
 #include "lDefs.h"
 
+/// \cond
 #include <type_traits>
 #include <cstring>
+/// \endcond
 
 /// Lumen Math namespace
 namespace Lumen::Math

@@ -5,9 +5,11 @@
 //==============================================================================================================================================================================
 #pragma once
 
+/// \cond
 #include <unordered_map>
 #include <string>
 #include <string_view>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

@@ -8,7 +8,9 @@
 #include "lDefs.h"
 #include "lUUID.h"
 
+/// \cond
 #include <nlohmann/json.hpp>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

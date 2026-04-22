@@ -7,8 +7,10 @@
 
 #include "lDefs.h"
 
+/// \cond
 #include <random>
 #include <charconv>
+/// \endcond
 
 /// Lumen namespace
 namespace Lumen

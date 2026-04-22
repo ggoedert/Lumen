@@ -7,6 +7,7 @@
 
 #include "lDebugLog.h"
 
+/// \cond
 #include <string_view>
 #include <string>
 #include <cstdint>
@@ -20,6 +21,7 @@
 #include <any>
 #include <optional>
 #include <type_traits>
+/// \endcond
 
 /// sse platform specific includes
 #ifdef _WIN32

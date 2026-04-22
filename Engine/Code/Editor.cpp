@@ -14,7 +14,9 @@
 #include "lEngine.h"
 #include "lAsset.h"
 
+/// \cond
 #include <fstream>
+/// \endcond
 
 using namespace Lumen;
 
