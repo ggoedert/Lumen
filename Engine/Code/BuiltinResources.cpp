@@ -12,10 +12,10 @@
 
 using namespace Lumen;
 
-CLASS_PTR_DEF(AssetInfo);
+CLASS_PTR_DEF(AssetInfoOld);
 
-/// AssetInfo class
-class AssetInfo
+/// AssetInfoOld class
+class AssetInfoOld
 {
 public:
 
@@ -30,15 +30,15 @@ public:
 };
 
 /// SphereMeshInfo class
-class SphereMeshInfo : public AssetInfo
+class SphereMeshInfo : public AssetInfoOld
 {
 public:
     /// creates a smart pointer version of the sphere mesh info
-    static AssetInfoPtr MakePtr()
+    static AssetInfoOldPtr MakePtr()
     {
         auto ptr = new SphereMeshInfo();
         Mesh::Register(ptr->Name(), ptr->Path());
-        return AssetInfoPtr(ptr);
+        return AssetInfoOldPtr(ptr);
     }
 
     /// get name
@@ -71,15 +71,15 @@ private:
 };
 
 /// CheckerGrayTextureInfo class
-class CheckerGrayTextureInfo : public AssetInfo
+class CheckerGrayTextureInfo : public AssetInfoOld
 {
 public:
     /// creates a smart pointer version of the checker gray texture info
-    static AssetInfoPtr MakePtr()
+    static AssetInfoOldPtr MakePtr()
     {
         auto ptr = new CheckerGrayTextureInfo();
         Texture::Register(ptr->Name(), ptr->Path());
-        return AssetInfoPtr(ptr);
+        return AssetInfoOldPtr(ptr);
     }
 
     /// get name
@@ -138,15 +138,15 @@ private:
 };
 
 /// SimpleDiffuseShaderInfo class
-class SimpleDiffuseShaderInfo : public AssetInfo
+class SimpleDiffuseShaderInfo : public AssetInfoOld
 {
 public:
     /// creates a smart pointer version of the simple diffuse shader info
-    static AssetInfoPtr MakePtr()
+    static AssetInfoOldPtr MakePtr()
     {
         auto ptr = new SimpleDiffuseShaderInfo();
         Shader::Register(ptr->Name(), ptr->Path());
-        return AssetInfoPtr(ptr);
+        return AssetInfoOldPtr(ptr);
     }
 
     /// get name
@@ -235,18 +235,18 @@ public:
 
 private:
     /// asset infos
-    std::vector<AssetInfoPtr> mAssetInfos;
+    std::vector<AssetInfoOldPtr> mAssetInfos;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs default resources
-BuiltinResources::BuiltinResources(float priority) : AssetFactory(priority), mImpl(BuiltinResources::Impl::MakeUniquePtr(priority)) {}
+BuiltinResources::BuiltinResources(float priority) : AssetFactoryOld(priority), mImpl(BuiltinResources::Impl::MakeUniquePtr(priority)) {}
 
 /// creates a smart pointer version of the default resources
-AssetFactoryPtr BuiltinResources::MakePtr(float priority)
+AssetFactoryOldPtr BuiltinResources::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new BuiltinResources(priority));
+    return AssetFactoryOldPtr(new BuiltinResources(priority));
 }
 
 /// check if asset exists

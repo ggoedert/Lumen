@@ -6,6 +6,7 @@
 
 #include "lAssetManager.h"
 #include "lEngineWindows.h"
+#include "lFolderFileSystem.h"
 
 #include "EngineWindows.h"
 
@@ -71,6 +72,9 @@ public:
     /// initialization and management
     bool Initialize();
 
+    /// create a file system for the assets
+    Lumen::IFileSystemPtr AssetsFileSystem() const;
+
 #ifdef EDITOR
     /// get executable name
     std::string GetExecutableName() const;
@@ -97,6 +101,9 @@ private:
 
     /// main window handle
     HWND mWindow = nullptr;
+
+    /// assets file system
+    IFileSystemPtr mAssetsFileSystem;
 
 #ifdef EDITOR
     /// cached settings
@@ -131,6 +138,11 @@ void CALLBACK EngineWindows::Impl::StaticFileChangeCallback(DWORD errorCode, DWO
     if (errorCode == ERROR_SUCCESS)
     {
         reinterpret_cast<EngineWindows::Impl *>(overlapped->hEvent)->FileChangeCallback();
+    }
+    else if (errorCode == ERROR_OPERATION_ABORTED)
+    {
+        // operation canceled, possibly change of focus
+        return;
     }
     else
     {
@@ -241,6 +253,9 @@ void EngineWindows::Impl::FileChangeCallback()
 /// set configuration
 bool EngineWindows::Impl::Config(const Object &config)
 {
+    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr(sMonitorDir);
+    mAssetsFileSystem->Initialize();
+
     mWindow = static_cast<const Windows::Config &>(config).mWindow;
     return true;
 }
@@ -254,32 +269,6 @@ HWND EngineWindows::Impl::GetWindow()
 /// initialization and management
 bool EngineWindows::Impl::Initialize()
 {
-    try
-    {
-        static std::vector<FileSystem::FileChange> fileBatch;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(sMonitorDir))
-        {
-            if (entry.is_regular_file() || entry.is_directory())
-            {
-                FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
-                std::string filename = entry.path().lexically_relative(sMonitorDir).generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, flags, sMonitorDir + "/" + filename, "" });
-            }
-        }
-        if (!fileBatch.empty())
-        {
-            if (auto engine = mOwner.GetOwner().lock())
-            {
-                FileSystem::PushFileChangeBatch(std::move(fileBatch));
-                fileBatch.clear();
-            }
-        }
-    }
-    catch (const std::exception &e)
-    {
-        DebugLog::Error("Initialize engine, unable to process {} directory: {}", sMonitorDir, e.what());
-    }
-
 #ifdef EDITOR
     sDirHandle = CreateFileA(
         sMonitorDir.c_str(),
@@ -304,7 +293,7 @@ bool EngineWindows::Impl::Initialize()
             sDirHandle,
             sBuffer,
             sizeof(sBuffer),
-            TRUE, // recursive
+            FALSE, // recursive
             FILE_NOTIFY_CHANGE_FILE_NAME |
             FILE_NOTIFY_CHANGE_DIR_NAME |
             FILE_NOTIFY_CHANGE_LAST_WRITE,
@@ -320,6 +309,12 @@ bool EngineWindows::Impl::Initialize()
 #endif
 
     return true;
+}
+
+/// create a file system for the assets
+Lumen::IFileSystemPtr EngineWindows::Impl::AssetsFileSystem() const
+{
+    return mAssetsFileSystem;
 }
 
 #ifdef EDITOR
@@ -751,6 +746,12 @@ HWND EngineWindows::GetWindow()
 bool EngineWindows::Initialize()
 {
     return mImpl->Initialize();
+}
+
+/// create a file system for the assets
+Lumen::IFileSystemPtr EngineWindows::AssetsFileSystem() const
+{
+    return mImpl->AssetsFileSystem();
 }
 
 #ifdef EDITOR

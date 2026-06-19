@@ -87,12 +87,6 @@ namespace Lumen::Windows::NT10
         // get fullscreen size
         void GetFullscreenSize(int &width, int &height) const noexcept override;
 
-        /// create a file system for the assets
-        IFileSystemPtr AssetsFileSystem() const override
-        {
-            return FolderFileSystem::MakePtr("Assets");
-        }
-
         /// post event
         void PostEvent(EventUniquePtr event) override;
 

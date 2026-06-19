@@ -6,6 +6,7 @@
 
 #include "lExpected.h"
 #include "lMaterial.h"
+#include "lFileSystem.h"
 #include "lFileSystemResources.h"
 
 using namespace Lumen;
@@ -32,9 +33,7 @@ public:
     /// import asset
     [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
     {
-        //*WIP* FIXME temp code, we need to generalize this
-        bool isMaterial = path.extension() == ".mat";
-        if (isMaterial)
+        if (type == Material::Type())
         {
             auto materialExpected = Material::MakePtr(path);
             if (!materialExpected)
@@ -54,12 +53,12 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs folder resources
-FileSystemResources::FileSystemResources(float priority) : AssetFactory(priority), mImpl(FileSystemResources::Impl::MakeUniquePtr()) {}
+FileSystemResources::FileSystemResources(float priority) : AssetFactoryOld(priority), mImpl(FileSystemResources::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the folder resources
-AssetFactoryPtr FileSystemResources::MakePtr(float priority)
+AssetFactoryOldPtr FileSystemResources::MakePtr(float priority)
 {
-    return AssetFactoryPtr(new FileSystemResources(priority));
+    return AssetFactoryOldPtr(new FileSystemResources(priority));
 }
 
 /// check if asset exists

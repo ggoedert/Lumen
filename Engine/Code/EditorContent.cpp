@@ -22,8 +22,15 @@ class EditorContent::Impl
     CLASS_PTR_UNIQUEMAKER(Impl);
 
 public:
+    /// asset tree node
+    struct AssetTreeNode
+    {
+        std::string mFilename;
+        bool mIsFolder;
+    };
+
     /// asset tree
-    using AssetTree = NodeForest<std::pair<bool, std::string>>;
+    using AssetTree = NodeForest<AssetTreeNode>;
 
     /// asset struct
     struct Asset
@@ -36,7 +43,7 @@ public:
     explicit Impl() : mWindowOpen(true)
     {
         mVisibleKey = AssetTree::NoKey;
-        mAssetTree.insert(AssetTree::NoKey, std::pair<bool, std::string>{ true, "." });
+        mAssetTree.insert(AssetTree::NoKey, AssetTreeNode { ".", true });
     }
 
     /// destructor
@@ -84,7 +91,7 @@ public:
     void DrawTree(AssetTree::KeyType key)
     {
         auto nodeIt = mAssetTree.find(key);
-        if (nodeIt != mAssetTree.end() && nodeIt->second.mData.first)
+        if (nodeIt != mAssetTree.end() && nodeIt->second.mData.mIsFolder)
         {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -97,13 +104,13 @@ public:
             if (key == mVisibleKey)
                 tree_flags |= ImGuiTreeNodeFlags_Selected;
             /* commented out, we dont draw leaf nodes in the tree, we only draw folders, so this is not needed
-            if (!nodeIt->second.mData.first)
+            if (!nodeIt->second.mData.mIsFolder)
                 tree_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
             */
             if (nodeIt->second.mParentKey == AssetTree::NoKey)
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
             // we should not use the name as ID because they are not unique, so we use the UID as ID and display the name only in the label
-            bool node_open = ImGui::TreeNodeEx("", tree_flags, "%s", nodeIt->second.mData.second.c_str());
+            bool node_open = ImGui::TreeNodeEx("", tree_flags, "%s", nodeIt->second.mData.mFilename.c_str());
             if (ImGui::IsItemFocused())
                 mVisibleKey = key;
             if (node_open)
@@ -131,21 +138,21 @@ public:
                 {
                     // @@REVIEW@@ we should not rely on the name to determine the type, we should store the type in the data, but for now this is just a test
                     AssetTree::Node &child = childIt->second;
-                    if (child.mData.first)
+                    if (child.mData.mIsFolder)
                     {
-                        assets.push_back({ MATERIAL_ICONS_FOLDER, child.mData.second });
+                        assets.push_back({ MATERIAL_ICONS_FOLDER, child.mData.mFilename });
                     }
-                    else if (std::string(child.mData.second).ends_with("0"))
+                    else if (std::string(child.mData.mFilename).ends_with("0"))
                     {
-                        assets.push_back({ MATERIAL_ICONS_ASSET, child.mData.second });
+                        assets.push_back({ MATERIAL_ICONS_ASSET, child.mData.mFilename });
                     }
-                    else if (std::string(child.mData.second).ends_with("1"))
+                    else if (std::string(child.mData.mFilename).ends_with("1"))
                     {
-                        assets.push_back({ MATERIAL_ICONS_SCRIPT, child.mData.second });
+                        assets.push_back({ MATERIAL_ICONS_SCRIPT, child.mData.mFilename });
                     }
                     else
                     {
-                        assets.push_back({ MATERIAL_ICONS_FILE, child.mData.second });
+                        assets.push_back({ MATERIAL_ICONS_FILE, child.mData.mFilename });
                     }
                 }
             }
@@ -350,28 +357,28 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
                     }
                 }
                 if (!isDirectory)
                 {
-                    mAssetTree.insert(key, std::pair<bool, std::string>{ false, filePath.filename().string() });
+                    mAssetTree.insert(key, AssetTreeNode { filePath.filename().string(), false });
                 }
                 else
                 {
                     // some items might be added out of order, so directories might be added after their contents
                     std::string fileName = filePath.filename().string();
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == fileName; });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == fileName; });
                     if (partIt == mAssetTree.end())
                     {
-                        mAssetTree.insert(key, std::pair<bool, std::string>{ true, fileName });
+                        mAssetTree.insert(key, AssetTreeNode { fileName, true });
                     }
                 }
 
@@ -386,19 +393,19 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : oldFilePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
                     }
                 }
                 eraseIt = mAssetTree.find_if([&](const auto &pair)
                 {
-                    return pair.second.mParentKey == key && pair.second.mData.second == oldFilePath.filename().string();
+                    return pair.second.mParentKey == key && pair.second.mData.mFilename == oldFilePath.filename().string();
                 });
                 if (eraseIt != mAssetTree.end())
                 {
@@ -408,17 +415,17 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
                     }
                 }
-                mAssetTree.insert(key, std::pair<bool, std::string>{ isDirectory, filePath.filename().string() });
+                mAssetTree.insert(key, AssetTreeNode { filePath.filename().string(), isDirectory });
 
                 DebugLog::Info("Renamed: {} -> {}", item.mOldName, item.mName);
                 break;
@@ -427,17 +434,17 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, std::pair<bool, std::string>{ true, part.string() })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
                     }
                 }
-                eraseIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.second == filePath.filename().string(); });
+                eraseIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == filePath.filename().string(); });
                 if (eraseIt != mAssetTree.end())
                 {
                     mAssetTree.erase(eraseIt->first);

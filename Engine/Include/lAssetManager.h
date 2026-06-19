@@ -6,25 +6,39 @@
 #pragma once
 
 #include "lDefs.h"
-#include "lExpected.h"
 #include "lAsset.h"
-#include "lEngine.h"
+#include "lAssetInfo.h"
 
 /// Lumen namespace
 namespace Lumen
 {
-    CLASS_WEAK_PTR_DEF(Engine);
-    CLASS_PTR_DEF(AssetFactory);
-
-    /// AssetFactory class
-    class AssetFactory
+    /// AssetManager namespace
+    namespace AssetManager
     {
-        CLASS_NO_DEFAULT_CTOR(AssetFactory);
-        CLASS_NO_COPY_MOVE(AssetFactory);
+        /// initialize asset manager namespace
+        void Initialize(/*const EngineWeakPtr &engine*/);
+
+        /// shutdown asset manager namespace
+        void Shutdown();
+
+        /// get asset infos from a path
+        bool GetAssetInfos(const std::string &path, std::vector<AssetInfoPtr> &assetInfos);
+    };
+
+    CLASS_WEAK_PTR_DEF(Engine);
+    CLASS_PTR_DEF(AssetFactoryOld);
+
+    // DEPRECATED, this is the old asset manager interface, we should move to the new one as soon as possible, but for now we keep it around for testing and reference
+
+    /// AssetFactoryOld class
+    class AssetFactoryOld
+    {
+        CLASS_NO_DEFAULT_CTOR(AssetFactoryOld);
+        CLASS_NO_COPY_MOVE(AssetFactoryOld);
 
     public:
         /// constructs an assets factory implementation with priority
-        explicit AssetFactory(float priority) : mPriority(priority) {}
+        explicit AssetFactoryOld(float priority) : mPriority(priority) {}
 
         /// gets priority
         [[nodiscard]] float Priority() const noexcept { return mPriority; }
@@ -40,8 +54,8 @@ namespace Lumen
         float mPriority;
     };
 
-    /// AssetManager namespace
-    namespace AssetManager
+    /// AssetManagerOld namespace
+    namespace AssetManagerOld
     {
         /// initialize asset manager namespace
         void Initialize(const EngineWeakPtr &engine);
@@ -50,7 +64,7 @@ namespace Lumen
         void Shutdown();
 
         /// register an asset factory
-        void RegisterFactory(const AssetFactoryPtr &assetFactory);
+        void RegisterFactory(const AssetFactoryOldPtr &assetFactory);
 
         /// import asset
         Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);

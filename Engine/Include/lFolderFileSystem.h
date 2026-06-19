@@ -20,17 +20,23 @@ namespace Lumen
         /// creates a smart pointer version of the folder file system
         static IFileSystemPtr MakePtr(const std::filesystem::path &path);
 
+        /// initialize file system
+        void Initialize() override;
+
         /// whether this file system is packed
         bool Packed() const override;
 
         /// whether this file system handles the specified file handle
-        bool HandlesFileId(Id::Type handle) override;
+        bool Handles(Id::Type handle) override;
 
         /// check if a file exists
         bool Exists(const std::filesystem::path &path) override;
 
+        /// list files in a directory
+        std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) override;
+
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path, bool binary) override;
+        Id::Type Open(const std::filesystem::path &path, bool write, bool binary) override;
 
         /// closes a file handle
         void Close(const Id::Type handle) override;

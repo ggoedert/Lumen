@@ -11,7 +11,7 @@
 
 using namespace Lumen;
 
-constexpr std::chrono::milliseconds MetaDelay { 500 };
+constexpr std::chrono::milliseconds InfoDelay { 500 };
 
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
@@ -165,29 +165,31 @@ void FileSystem::ProcessFileChanges()
     std::vector<AssetChange> assetBatch;
 
     std::list<std::vector<FileChange>> fileBatchQueue;
-    bool dotest = false;
+    int dotest = 0; //?WIP? this is just to test the late arrival of info, we should have a better way to test this
+                    // but for now we can just create a file and then create the info after a delay,
+                    // and see if the system correctly processes the asset change when the info arrives
     if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
         for (auto &batch : fileBatchQueue)
         {
             for (auto &fileChange : batch)
             {
-                // determine meta and base file existence
+                // determine info and base file existence
                 auto ext = std::filesystem::path(fileChange.mName).extension().string();
-                bool isMeta = (ext.size() == 5) &&
-                    std::equal(ext.begin(), ext.end(), ".meta", [](unsigned char a, unsigned char b) { return std::tolower(a) == std::tolower(b); });
-                bool hasMeta = isMeta;
-                bool hasBase = !isMeta;
-                if (isMeta)
+                bool isInfo = (ext.size() == 5) &&
+                    std::equal(ext.begin() + 1, ext.end(), "info", [](unsigned char a, unsigned char b) { return std::tolower(a) == b; });
+                bool hasInfo = isInfo;
+                bool hasBase = !isInfo;
+                if (isInfo)
                 {
-                    hasBase = std::filesystem::exists(std::filesystem::path(fileChange.mName.substr(0, fileChange.mName.size() - 5)));
+                    hasBase = Exists(std::filesystem::path(fileChange.mName.substr(0, fileChange.mName.size() - 5)));
                 }
                 else
                 {
-                    hasMeta = std::filesystem::exists(std::filesystem::path(fileChange.mName + ".meta"));
+                    hasInfo = Exists(std::filesystem::path(fileChange.mName + ".info"));
                 }
 
-                if (!isMeta)
+                if (!isInfo)
                 {
                     if (hasBase)
                     {
@@ -196,15 +198,18 @@ void FileSystem::ProcessFileChanges()
                         {
                         case FileSystem::Change::Added:
                             assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mName, "" };
-                            if (hasMeta)
+                            if (hasInfo)
                             {
-                                Lumen::DebugLog::Detail("Added file with metafile, {}, metafile exists", assetChange.mName);
+                                Lumen::DebugLog::Detail("Added file with infofile, {}, infofile exists", assetChange.mName);
                                 assetBatch.push_back(assetChange);
                             }
                             else
                             {
-                                dotest = true;
-                                map.emplace(clock::now() + MetaDelay, assetChange);
+                                if (dotest == 0)
+                                {
+                                    dotest = 1;
+                                }
+                                map.emplace(clock::now() + InfoDelay, assetChange);
                             }
                             break;
                         case FileSystem::Change::Modified:
@@ -223,8 +228,9 @@ void FileSystem::ProcessFileChanges()
         }
     }
 
-    if (dotest)
+    if (dotest == 1)
     {
+        dotest = 2;
         // CREATE THE Assets/serializer_test.txt
     }
 
@@ -232,16 +238,16 @@ void FileSystem::ProcessFileChanges()
     {
         auto &[processTime, assetChange] = *it;
 
-        if (std::filesystem::exists(std::filesystem::path(assetChange.mName + ".meta")))
+        if (Exists(std::filesystem::path(assetChange.mName + ".info")))
         {
-            Lumen::DebugLog::Detail("Added file with metafile, {}, metafile late arrival", assetChange.mName);
+            Lumen::DebugLog::Detail("Added file with infofile, {}, infofile late arrival", assetChange.mName);
             assetBatch.push_back(assetChange);
             it = map.erase(it);
         }
         else if (processTime <= now)
         {
-            // CREATE THE METAFILE
-            Lumen::DebugLog::Detail("Added file without metafile, {}, created metafile", assetChange.mName);
+            // CREATE THE INFOFILE
+            Lumen::DebugLog::Detail("Added file without infofile, {}, created infofile", assetChange.mName);
             assetBatch.push_back(assetChange);
             it = map.erase(it);
         }
@@ -270,7 +276,7 @@ Id::Type FileSystem::GenerateFileId()
 bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialized::Type &data)
 {
     bool binary = FileSystem::IsPacked(path);
-    Id::Type file = FileSystem::Open(path, binary);
+    Id::Type file = FileSystem::Open(path, false, binary);
     if (file == Id::Invalid)
     {
         Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
@@ -306,7 +312,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
 bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data)
 {
     bool binary = FileSystem::IsPacked(path);
-    Id::Type file = FileSystem::Open(path, binary);
+    Id::Type file = FileSystem::Open(path, true, binary);
     if (file == Id::Invalid)
     {
         Lumen::DebugLog::Error("Unable to open scene file for writing, {}", path.string());
@@ -357,8 +363,25 @@ bool FileSystem::Exists(const std::filesystem::path &path)
     return false;
 }
 
+/// list files in a directory
+std::vector<FileSystem::FileEntry> FileSystem::ListFiles(const std::filesystem::path &path)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    std::vector<FileEntry> files;
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (Hidden::StartsWith(path, mountPoint))
+        {
+            std::filesystem::path relativePath = path.lexically_relative(mountPoint);
+            std::vector<FileEntry> mountFiles = fileSystem->ListFiles(relativePath);
+            files.insert(files.end(), mountFiles.begin(), mountFiles.end());
+        }
+    }
+    return files;
+}
+
 /// opens a file on the specified path
-Id::Type FileSystem::Open(const std::filesystem::path &path, bool binary)
+Id::Type FileSystem::Open(const std::filesystem::path &path, bool write, bool binary)
 {
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
@@ -366,7 +389,7 @@ Id::Type FileSystem::Open(const std::filesystem::path &path, bool binary)
         if (Hidden::StartsWith(path, mountPoint))
         {
             std::filesystem::path relativePath = path.lexically_relative(mountPoint);
-            return fileSystem->Open(relativePath.string(), binary);
+            return fileSystem->Open(relativePath.string(), write, binary);
         }
     }
     Lumen::DebugLog::Error("No registered file system for path {}", path.string());
@@ -379,7 +402,7 @@ void FileSystem::Close(const Id::Type handle)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             fileSystem->Close(handle);
             return;
@@ -394,7 +417,7 @@ size_t FileSystem::ReadBytes(const Id::Type handle, void *buffer, const size_t s
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->ReadBytes(handle, buffer, size);
         }
@@ -409,7 +432,7 @@ bool FileSystem::WriteBytes(const Id::Type handle, const void *buffer, const siz
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->WriteBytes(handle, buffer, size);
         }
@@ -424,7 +447,7 @@ std::string FileSystem::ReadText(const Id::Type handle, int lineCount)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->ReadText(handle, lineCount);
         }
@@ -439,7 +462,7 @@ bool FileSystem::WriteText(const Id::Type handle, const std::string &text)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->WriteText(handle, text);
         }
@@ -448,13 +471,13 @@ bool FileSystem::WriteText(const Id::Type handle, const std::string &text)
     return false;
 }
 
-/// reads metafile record from a file handle
-bool FileSystem::ReadMetafileRecord(const Id::Type handle, Serialized::Type &record)
+/// reads infofile record from a file handle
+bool FileSystem::ReadInfofileRecord(const Id::Type handle, Serialized::Type &record)
 {
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             if (fileSystem->Packed())
             {
@@ -487,13 +510,13 @@ bool FileSystem::ReadMetafileRecord(const Id::Type handle, Serialized::Type &rec
     return false;
 }
 
-/// writes metafile record to a file handle
-bool FileSystem::WriteMetafileRecord(const Id::Type handle, const Serialized::Type &record)
+/// writes intofile record to a file handle
+bool FileSystem::WriteInfofileRecord(const Id::Type handle, const Serialized::Type &record)
 {
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             if (fileSystem->Packed())
             {
@@ -516,7 +539,7 @@ size_t FileSystem::Tell(const Id::Type handle)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->Tell(handle);
         }
@@ -531,7 +554,7 @@ void FileSystem::Seek(const Id::Type handle, const size_t position)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             fileSystem->Seek(handle, position);
             return;
@@ -546,7 +569,7 @@ size_t FileSystem::Size(const Id::Type handle)
     L_ASSERT(Hidden::gFileSytemState);
     for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
     {
-        if (fileSystem->HandlesFileId(handle))
+        if (fileSystem->Handles(handle))
         {
             return fileSystem->Size(handle);
         }

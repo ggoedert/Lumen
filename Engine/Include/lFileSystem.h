@@ -32,6 +32,16 @@ namespace Lumen
         /// change flags type
         using Flags = Lumen::Flags<Flag>;
 
+        /// FileEntry struct
+        struct FileEntry
+        {
+            /// flags
+            Flags mFlags;
+
+            /// name
+            std::string mName;
+        };
+
         /// FileChange struct
         struct FileChange
         {
@@ -102,8 +112,11 @@ namespace Lumen
         /// check if a file exists
         bool Exists(const std::filesystem::path &path);
 
+        /// list files in a directory
+        std::vector<FileEntry> ListFiles(const std::filesystem::path &path);
+
         /// opens a file on the specified path
-        Id::Type Open(const std::filesystem::path &path, bool binary);
+        Id::Type Open(const std::filesystem::path &path, bool write, bool binary);
 
         /// closes a file handle
         void Close(const Id::Type handle);
@@ -120,11 +133,11 @@ namespace Lumen
         /// writes text to a file handle
         bool WriteText(const Id::Type handle, const std::string &text);
 
-        /// reads metafile record from a file handle
-        bool ReadMetafileRecord(const Id::Type handle, Serialized::Type &record);
+        /// reads infofile record from a file handle
+        bool ReadInfofileRecord(const Id::Type handle, Serialized::Type &record);
 
-        /// writes metafile record to a file handle
-        bool WriteMetafileRecord(const Id::Type handle, const Serialized::Type &record);
+        /// writes infofile record to a file handle
+        bool WriteInfofileRecord(const Id::Type handle, const Serialized::Type &record);
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle);
@@ -142,17 +155,23 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(IFileSystem);
 
     public:
+        /// initialize file system
+        virtual void Initialize() = 0;
+
         /// whether this file system is packed
         virtual bool Packed() const = 0;
 
         /// whether this file system handles the specified file handle
-        virtual bool HandlesFileId(Id::Type handle) = 0;
+        virtual bool Handles(Id::Type handle) = 0;
 
         /// check if a file exists
         virtual bool Exists(const std::filesystem::path &path) = 0;
 
+        /// list files in a directory
+        virtual std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) = 0;
+
         /// opens a file on the specified path
-        virtual Id::Type Open(const std::filesystem::path &path, bool binary) = 0;
+        virtual Id::Type Open(const std::filesystem::path &path, bool write, bool binary) = 0;
 
         /// closes a file handle
         virtual void Close(const Id::Type handle) = 0;
