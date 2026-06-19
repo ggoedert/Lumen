@@ -8,6 +8,12 @@
 
 using namespace Lumen;
 
+const std::string Serialized::cUUIDToken = std::string("UUID");
+const Hash        Serialized::cUUIDTokenPacked = HashString(Serialized::cUUIDToken.c_str());
+
+const std::string Serialized::cTypeToken = std::string("Type");
+const Hash        Serialized::cTypeTokenPacked = HashString(Serialized::cTypeToken.c_str());
+
 const std::string Serialized::cTransformToken = std::string("Transform");
 const Hash        Serialized::cTransformTokenPacked = HashString(Serialized::cTransformToken.c_str());
 

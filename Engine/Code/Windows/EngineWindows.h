@@ -53,6 +53,9 @@ namespace Lumen::Windows
         /// initialization and management
         bool Initialize() override;
 
+        /// create a file system for the assets
+        IFileSystemPtr AssetsFileSystem() const override;
+
 #ifdef EDITOR
         /// get executable name
         std::string GetExecutableName() const override;

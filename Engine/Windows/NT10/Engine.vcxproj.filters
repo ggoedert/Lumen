@@ -242,8 +242,11 @@
     <ClInclude Include="..\..\Include\lUUID.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\lMetafile.h">
+    <ClInclude Include="..\..\Include\lHash.h">
       <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\lAssetInfo.h">
+      <Filter>Header Files\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -363,6 +366,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\EditorContent.cpp">
       <Filter>Source Files\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\AssetInfo.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

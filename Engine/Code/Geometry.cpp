@@ -39,7 +39,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load mesh resource, no path in mesh asset"));
         }
-        Expected<AssetPtr> meshExp = AssetManager::Import(Mesh::Type(), path);
+        Expected<AssetPtr> meshExp = AssetManagerOld::Import(Mesh::Type(), path);
         if (!meshExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load mesh resource, {}", meshExp.Error()));

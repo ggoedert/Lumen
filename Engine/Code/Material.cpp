@@ -96,7 +96,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderName.get<std::string_view>(), shaderPathExp.Error()));
         }
-        Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderPathExp.Value());
+        Expected<AssetPtr> shaderExp = AssetManagerOld::Import(Shader::Type(), shaderPathExp.Value());
         if (!shaderExp.HasValue())
         {
             throw std::runtime_error(shaderExp.Error());
@@ -115,7 +115,7 @@ public:
                     Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
 
                     // load texture
-                    Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), path);
+                    Expected<AssetPtr> textureExp = AssetManagerOld::Import(Texture::Type(), path);
                     if (!textureExp.HasValue())
                     {
                         throw std::runtime_error(std::format("Unable to load texture resource {}, {}", path.get<std::string>(), textureExp.Error()));

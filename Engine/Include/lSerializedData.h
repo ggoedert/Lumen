@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lDefs.h"
+#include "lHash.h"
 #include "lUUID.h"
 
 /// \cond
@@ -20,6 +20,18 @@ namespace Lumen
     {
         /// serialized type alias
         using Type = nlohmann::basic_json<nlohmann::ordered_map>;
+
+        /// UUID token
+        extern const std::string cUUIDToken;
+
+        /// UUID token packed
+        extern const Hash cUUIDTokenPacked;
+
+        /// type token
+        extern const std::string cTypeToken;
+
+        /// type token packed
+        extern const Hash cTypeTokenPacked;
 
         /// transform token
         extern const std::string cTransformToken;
@@ -135,13 +147,13 @@ namespace Lumen
         {
             if (packed)
             {
-                const uint8_t *ptr = uuid.GetBytes();
+                const byte *ptr = reinterpret_cast<const byte *>(&uuid);
                 out.push_back(keyPacked);
-                out.push_back(Type::binary({ ptr, ptr + 16 }));
+                out.push_back(Type::binary({ ptr, ptr + 8 }));
             }
             else
             {
-                out[key] = uuid.ToString();
+                out[key] = UUIDToString(uuid);
             }
         }
 
@@ -161,9 +173,9 @@ namespace Lumen
                             if (value.is_binary())
                             {
                                 const auto &binary = value.get_binary();
-                                if (binary.size() == 16)
+                                if (binary.size() == 8)
                                 {
-                                    uuid.SetBytes(binary.data());
+                                    uuid = *reinterpret_cast<const UUID *>(binary.data());
                                     return true;
                                 }
                             }
@@ -175,7 +187,7 @@ namespace Lumen
             {
                 if (in.contains(keyToken) && in[keyToken].is_string())
                 {
-                    uuid = UUID::FromString(in[keyToken].get<std::string>());
+                    uuid = UUIDFromString(in[keyToken].get<std::string>());
                     return true;
                 }
             }

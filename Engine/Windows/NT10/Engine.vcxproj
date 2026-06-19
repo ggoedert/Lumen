@@ -302,6 +302,7 @@
     <ClInclude Include="..\..\Code\Windows\NT10\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Code\Windows\StepTimer.h" />
     <ClInclude Include="..\..\Include\lAsset.h" />
+    <ClInclude Include="..\..\Include\lAssetInfo.h" />
     <ClInclude Include="..\..\Include\lAssetManager.h" />
     <ClInclude Include="..\..\Include\lBuiltinResources.h" />
     <ClInclude Include="..\..\Include\lApplication.h" />
@@ -326,9 +327,9 @@
     <ClInclude Include="..\..\Include\lFlags.h" />
     <ClInclude Include="..\..\Include\lFolderFileSystem.h" />
     <ClInclude Include="..\..\Include\lEntity.h" />
+    <ClInclude Include="..\..\Include\lHash.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lImGuiLib.h" />
-    <ClInclude Include="..\..\Include\lMetafile.h" />
     <ClInclude Include="..\..\Include\lNodeForest.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
@@ -355,6 +356,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Code\Application.cpp" />
     <ClCompile Include="..\..\Code\Asset.cpp" />
+    <ClCompile Include="..\..\Code\AssetInfo.cpp" />
     <ClCompile Include="..\..\Code\AssetManager.cpp" />
     <ClCompile Include="..\..\Code\Behavior.cpp" />
     <ClCompile Include="..\..\Code\BuiltinResources.cpp" />

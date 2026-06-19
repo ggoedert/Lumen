@@ -45,7 +45,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load material resource, no path in material asset"));
         }
-        Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), path);
+        Expected<AssetPtr> materialExp = AssetManagerOld::Import(Material::Type(), path);
         if (!materialExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));

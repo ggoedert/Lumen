@@ -11,6 +11,10 @@
 
 #include "EnginePlatform.h"
 
+/// \cond
+#include <random>
+/// \endcond
+
 using namespace Lumen;
 
 /// Engine::Impl class
@@ -44,10 +48,10 @@ public:
     /// initialization and management
     bool Initialize(const Object &config)
     {
-        //AssetManager::Initialize(shared_from_this());
-        AssetManager::Initialize(mOwner);
-        AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
-        AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
+        //AssetManagerOld::Initialize(shared_from_this());
+        AssetManagerOld::Initialize(mOwner);
+        AssetManagerOld::RegisterFactory(FileSystemResources::MakePtr(1.0f));
+        AssetManagerOld::RegisterFactory(BuiltinResources::MakePtr(0.1f));
 
         FileSystem::Initialize(mOwner);
         SceneManager::Initialize();
@@ -98,7 +102,7 @@ public:
         SceneManager::Shutdown();
         FileSystem::Shutdown();
 
-        AssetManager::Shutdown();
+        AssetManagerOld::Shutdown();
 
         mPlatform->Shutdown();
     }
@@ -240,7 +244,10 @@ public:
     /// push a batch of items
     void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
     {
-        mApplication->ProcessAssetChanges(std::move(assetBatch));
+        std::vector<FileSystem::AssetChange> assetBatchCopy = assetBatch;
+//?WIP? AssetsFileSystem()->ProcessAssetChanges(std::move(assetBatch));
+//?WIP? FileSystem::ProcessAssetChanges(std::move(assetBatch));
+        mApplication->ProcessAssetChanges(std::move(assetBatchCopy));
     }
 
 private:
@@ -483,4 +490,35 @@ HashType Lumen::ClassType(const char *currentFunction)
     Hidden::RegisterTypeHash(hash, name);
     return HashType(hash, name);
 }
+
+/// decode the hash type to a string, typeinfo version
+const char *Lumen::DecodeType(Hash type)
+{
+    auto &registry = Hidden::GetTypeHashRegistry();
+    auto it = registry.find(type);
+    if (it != registry.end())
+    {
+        return it->second.c_str();
+    }
+    return "UnknownType";
+}
 #endif
+
+/// fast static generator
+UUID Lumen::UUIDGenerate()
+{
+    // use thread-local RNG
+    thread_local std::random_device rd;
+    thread_local std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<UUID> dis;
+    return dis(gen);
+}
+
+/// serialize to string
+std::string Lumen::UUIDToString(const UUID id)
+{
+    std::string result(12, '\0');
+    const Hash *hashes = reinterpret_cast<const Hash *>(&id);
+    std::snprintf(result.data(), 13, "%.*s%.*s", 6, HashTokenFromHash(hashes[0]).data(), 6, HashTokenFromHash(hashes[1]).data());
+    return result;
+}

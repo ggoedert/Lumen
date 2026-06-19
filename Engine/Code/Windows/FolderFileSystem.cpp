@@ -25,6 +25,25 @@ public:
     /// constructs a folder file system implementation
     explicit Impl(const std::filesystem::path &path) : mPath(path) {}
 
+    /// initialize file system
+    void Initialize()
+    {
+        std::vector<FileSystem::FileChange> fileBatch;
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(mPath))
+        {
+            if (entry.is_regular_file() || entry.is_directory())
+            {
+                FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
+                std::string filename = entry.path().lexically_relative(mPath).generic_string();
+                fileBatch.push_back({ FileSystem::Change::Added, flags, (mPath / filename).string(), "" });
+            }
+        }
+        if (!fileBatch.empty())
+        {
+            FileSystem::PushFileChangeBatch(std::move(fileBatch));
+        }
+    }
+
     /// whether this file system is packed
     bool Packed() const
     {
@@ -32,7 +51,7 @@ public:
     }
 
     /// whether this file system handles the specified file handle
-    bool HandlesFileId(Id::Type handle)
+    bool Handles(Id::Type handle)
     {
         return mOpenFiles.find(handle) != mOpenFiles.end();
     }
@@ -44,15 +63,43 @@ public:
         return std::filesystem::exists(fullPath);
     }
 
+    /// list files in a directory
+    std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
+    {
+        std::vector<FileSystem::FileEntry> files;
+        const std::filesystem::path relativePath = std::filesystem::path("Assets") / path;
+        for (const auto &entry : std::filesystem::directory_iterator(relativePath))
+        {
+            if (entry.is_regular_file())
+            {
+                files.push_back({ FileSystem::Flag::File, entry.path().filename().string() });
+            }
+            else if (entry.is_directory())
+            {
+                files.push_back({ FileSystem::Flag::Directory, entry.path().filename().string() });
+            }
+        }
+        return files;
+    }
+
     /// opens a file on the specified path
-    Id::Type Open(const std::filesystem::path &path, bool binary)
+    Id::Type Open(const std::filesystem::path &path, bool write, bool binary)
     {
         std::filesystem::path fullPath = mPath / path;
         if (!Exists(path))
         {
             std::ofstream file(fullPath, (binary ? std::ios::binary : (std::ios::openmode)0));
         }
-        std::fstream file(fullPath, std::ios::in | std::ios::out | (binary ? std::ios::binary : (std::ios::openmode)0));
+        std::ios::openmode mode = std::ios::in | std::ios::out;
+        if (write)
+        {
+            mode |= std::ios::trunc;
+        }
+        if (binary)
+        {
+            mode |= std::ios::binary;
+        }
+        std::fstream file(fullPath, mode);
         if (file.is_open())
         {
             Id::Type fileId = FileSystem::GenerateFileId();
@@ -207,6 +254,12 @@ IFileSystemPtr FolderFileSystem::MakePtr(const std::filesystem::path &path)
     return IFileSystemPtr(new FolderFileSystem(path));
 }
 
+/// initialize file system
+void FolderFileSystem::Initialize()
+{
+    return mImpl->Initialize();
+}
+
 /// whether this file system is packed
 bool FolderFileSystem::Packed() const
 {
@@ -214,9 +267,9 @@ bool FolderFileSystem::Packed() const
 }
 
 /// whether this file system handles the specified file handle
-bool FolderFileSystem::HandlesFileId(Id::Type handle)
+bool FolderFileSystem::Handles(Id::Type handle)
 {
-    return mImpl->HandlesFileId(handle);
+    return mImpl->Handles(handle);
 }
 
 /// check if a file exists
@@ -225,10 +278,16 @@ bool FolderFileSystem::Exists(const std::filesystem::path &path)
     return mImpl->Exists(path);
 }
 
-/// opens a file on the specified path
-Id::Type FolderFileSystem::Open(const std::filesystem::path &path, bool binary)
+/// list files in a directory
+std::vector<FileSystem::FileEntry> FolderFileSystem::ListFiles(const std::filesystem::path &path)
 {
-    return mImpl->Open(path, binary);
+    return mImpl->ListFiles(path);
+}
+
+/// opens a file on the specified path
+Id::Type FolderFileSystem::Open(const std::filesystem::path &path, bool write, bool binary)
+{
+    return mImpl->Open(path, write, binary);
 }
 
 /// closes a file handle

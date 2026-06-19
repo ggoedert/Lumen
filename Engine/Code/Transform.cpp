@@ -82,7 +82,7 @@ public:
             {
                 throw std::runtime_error(std::format("Unable to read Transform::Scale"));
             }
-            mPosition = Math::Vector3 { value.get<std::vector<float>>().data() };
+            mScale = Math::Vector3 { value.get<std::vector<float>>().data() };
         }
     }
 
