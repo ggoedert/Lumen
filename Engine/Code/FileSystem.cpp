@@ -7,7 +7,7 @@
 #include "lFileSystem.h"
 #include "lStringMap.h"
 #include "lConcurrentBatchQueue.h"
-#include "lEngine.h"
+#include "lAssetManager.h"
 
 using namespace Lumen;
 
@@ -23,9 +23,6 @@ namespace Lumen::Hidden
 
         /// default constructor
         explicit FileSytemState() = default;
-
-        /// engine pointer
-        EngineWeakPtr mEngine;
 
         /// file id generator
         Id::Generator mFileIdGenerator;
@@ -106,7 +103,6 @@ void FileSystem::Initialize(const EngineWeakPtr &engine)
 {
     L_ASSERT(!Hidden::gFileSytemState);
     Hidden::gFileSytemState = std::make_unique<Hidden::FileSytemState>();
-    Hidden::gFileSytemState->mEngine = engine;
 }
 
 /// shutdown file namespace
@@ -165,9 +161,6 @@ void FileSystem::ProcessFileChanges()
     std::vector<AssetChange> assetBatch;
 
     std::list<std::vector<FileChange>> fileBatchQueue;
-    int dotest = 0; //?WIP? this is just to test the late arrival of info, we should have a better way to test this
-                    // but for now we can just create a file and then create the info after a delay,
-                    // and see if the system correctly processes the asset change when the info arrives
     if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
         for (auto &batch : fileBatchQueue)
@@ -205,10 +198,6 @@ void FileSystem::ProcessFileChanges()
                             }
                             else
                             {
-                                if (dotest == 0)
-                                {
-                                    dotest = 1;
-                                }
                                 map.emplace(clock::now() + InfoDelay, assetChange);
                             }
                             break;
@@ -228,12 +217,6 @@ void FileSystem::ProcessFileChanges()
         }
     }
 
-    if (dotest == 1)
-    {
-        dotest = 2;
-        // CREATE THE Assets/serializer_test.txt
-    }
-
     for (auto it = map.begin(); it != map.end(); )
     {
         auto &[processTime, assetChange] = *it;
@@ -246,9 +229,11 @@ void FileSystem::ProcessFileChanges()
         }
         else if (processTime <= now)
         {
-            // CREATE THE INFOFILE
             Lumen::DebugLog::Detail("Added file without infofile, {}, created infofile", assetChange.mName);
-            assetBatch.push_back(assetChange);
+            if (AssetManager::CreateAssetInfo(assetChange.mName))
+            {
+                assetBatch.push_back(assetChange);
+            }
             it = map.erase(it);
         }
         else
@@ -259,10 +244,7 @@ void FileSystem::ProcessFileChanges()
 
     if (!assetBatch.empty())
     {
-        if (auto engineLock = Hidden::gFileSytemState->mEngine.lock())
-        {
-            engineLock->ProcessAssetChanges(std::move(assetBatch));
-        }
+        AssetManager::ProcessAssetChanges(std::move(assetBatch));
     }
 }
 
@@ -283,6 +265,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
         return false;
     }
 
+    bool result = true;
     if (binary)
     {
         size_t fileSize = FileSystem::Size(file);
@@ -296,16 +279,24 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
             catch (const std::exception &e)
             {
                 Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", path.string(), e.what());
-                return false;
+                result = false;
             }
         }
     }
     else
     {
-        data = Serialized::Type::parse(FileSystem::ReadText(file));
+        try
+        {
+            data = Serialized::Type::parse(FileSystem::ReadText(file));
+        }
+        catch (const std::exception &e)
+        {
+            Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", path.string(), e.what());
+            result = false;
+        }
     }
     FileSystem::Close(file);
-    return true;
+    return result;
 }
 
 /// write serialized data to a path

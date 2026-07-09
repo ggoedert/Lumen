@@ -48,6 +48,8 @@ public:
     /// initialization and management
     bool Initialize(const Object &config)
     {
+        AssetManager::Initialize(mOwner);
+
         //AssetManagerOld::Initialize(shared_from_this());
         AssetManagerOld::Initialize(mOwner);
         AssetManagerOld::RegisterFactory(FileSystemResources::MakePtr(1.0f));

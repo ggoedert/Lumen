@@ -5,7 +5,8 @@
 //==============================================================================================================================================================================
 
 #include "lAssetManager.h"
-#include "lFileSystem.h"
+#include "lAssetInfo.h"
+#include "lEngine.h"
 
 using namespace Lumen;
 
@@ -23,14 +24,43 @@ namespace Lumen::Hidden
 
     public:
         /// constructs an assets implementation with engine
-        explicit AssetManagerImpl(/*const EngineWeakPtr &engine) : mEngine(engine*/) {}
+        explicit AssetManagerImpl(const EngineWeakPtr &engine) : mEngine(engine) {}
 
         /// destroys assets
         ~AssetManagerImpl() = default;
 
+        /// create asset info
+        bool CreateAssetInfo(const std::string &path)
+        {
+            std::string infoFile = path + std::string(".info");
+            if (!FileSystem::Exists(infoFile))
+            {
+                auto assetInfoExpected = AssetInfo::MakePtr(infoFile);
+                if (!assetInfoExpected.HasValue())
+                {
+                    DebugLog::Error("Unable to make asset info for file: {}, error: {}", infoFile, assetInfoExpected.Error());
+                    return false;
+                }
+                auto &assetInfo = assetInfoExpected.Value();
+                assetInfo->Initialize();
+                assetInfo->Save();
+                DebugLog::Info("Create asset file in Assets folder: {}", infoFile);
+            }
+            return true;
+        }
+
+        /// process asset changes
+        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+        {
+            if (auto engineLock = mEngine.lock())
+            {
+                engineLock->ProcessAssetChanges(std::move(assetBatch));
+            }
+        }
+
     private:
         /// engine pointer
-        //EngineWeakPtr mEngine;
+        EngineWeakPtr mEngine;
     };
 
     /// global asset manager implementation pointer
@@ -40,10 +70,10 @@ namespace Lumen::Hidden
 //==============================================================================================================================================================================
 
 /// initialize assets namespace
-void Lumen::AssetManager::Initialize(/*const EngineWeakPtr &engine*/)
+void Lumen::AssetManager::Initialize(const EngineWeakPtr &engine)
 {
     L_ASSERT(!Hidden::gAssetManagerImpl);
-    Hidden::gAssetManagerImpl = Hidden::AssetManagerImpl::MakeUniquePtr(/*engine*/);
+    Hidden::gAssetManagerImpl = Hidden::AssetManagerImpl::MakeUniquePtr(engine);
 }
 
 /// shutdown assets namespace
@@ -53,48 +83,18 @@ void AssetManager::Shutdown()
     Hidden::gAssetManagerImpl.reset();
 }
 
-
-/// get asset infos from a path
-bool AssetManager::GetAssetInfos(const std::string &path, std::vector<AssetInfoPtr> &assetInfos)
+/// create asset info
+bool AssetManager::CreateAssetInfo(const std::string &path)
 {
-    DebugLog::Info("CHANGE AssetManager::GetAssetInfos to monitor path: {}", path);
+    L_ASSERT(Hidden::gAssetManagerImpl);
+    return Hidden::gAssetManagerImpl->CreateAssetInfo(path);
+}
 
-    if (!path.size() || !FileSystem::Exists("Assets" + path))
-    {
-        return false;
-    }
-    std::vector<FileSystem::FileEntry> files = FileSystem::ListFiles("Assets" + path);
-    for(const FileSystem::FileEntry &entry : files)
-    {
-        bool isInfo = false;
-        const std::string::size_type pointPos = entry.mName.find_last_of('.');
-        if (pointPos != std::string::npos)
-        {
-            isInfo = std::ranges::equal(std::string_view(entry.mName).substr(pointPos + 1), std::string_view("info"), [](char a, char b) { return std::tolower(a) == b; });
-        }
-        if (!isInfo)
-        {
-            std::string infoFile = "Assets" + entry.mName + std::string(".info");
-            auto assetInfoExpected = AssetInfo::MakePtr("Assets" + entry.mName);
-            if (!assetInfoExpected.HasValue())
-            {
-                throw std::runtime_error(std::format("Unable to make asset info for file: {}, error: {}", infoFile, assetInfoExpected.Error()));
-            }
-            auto &assetInfo = assetInfoExpected.Value();
-            if (!FileSystem::Exists(infoFile))
-            {
-                assetInfo->Initialize();
-                assetInfo->Save();
-                DebugLog::Info("Create asset file in Assets folder: {}", infoFile);
-            }
-            else
-            {
-                assetInfo->Load();
-            }
-            assetInfos.push_back(assetInfo);
-        }
-    }
-    return true;
+/// process asset changes
+void AssetManager::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+{
+    L_ASSERT(Hidden::gAssetManagerImpl);
+    Hidden::gAssetManagerImpl->ProcessAssetChanges(std::move(assetBatch));
 }
 
 // DEPRECATED, this is the old asset manager interface, we should move to the new one as soon as possible, but for now we keep it around for testing and reference

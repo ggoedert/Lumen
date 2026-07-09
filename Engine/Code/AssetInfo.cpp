@@ -88,7 +88,7 @@ public:
     /// save assetinfo
     bool Save() const
     {
-        std::string infoFile = mPath.string() + std::string(".info");
+        std::string infoFile = mPath.string();
         Lumen::DebugLog::Info("AssetInfo::Impl::Save {}", infoFile);
 
         // serialize the assetinfo
@@ -102,7 +102,7 @@ public:
     /// load assetinfo
     bool Load()
     {
-        std::string infoFile = mPath.string() + std::string(".info");
+        std::string infoFile = mPath.string();
         Lumen::DebugLog::Info("AssetInfo::Impl::Load {}", infoFile);
 
         // read the assetinfo

@@ -41,19 +41,11 @@ public:
         std::string mName;
     };
 
-#define TEST_VERSION 0
     /// constructs editor
     explicit Impl() : mWindowOpen(true)
     {
         mVisibleKey = AssetTree::NoKey;
-#if TEST_VERSION == 2
-        mAssetTree.insert(AssetTree::NoKey, AssetTreeNode { "", true });
-#elif TEST_VERSION == 1
-        mAssetTree.insert(AssetTree::NoKey, AssetTreeNode { "", true });
-//        AddAsset("Assets", true);
-#else //TEST_VERSION == 0
         mAssetTree.insert(AssetTree::NoKey, AssetTreeNode { ".", true });
-#endif
     }
 
     /// destructor
@@ -68,11 +60,6 @@ public:
     /// draw editor content
     void Draw()
     {
-#if TEST_VERSION == 2
-#elif TEST_VERSION == 1
-        UpdateAssets();
-#else //TEST_VERSION == 0
-#endif
         DrawTree();
         DrawAssetBrowser();
     }
@@ -355,76 +342,6 @@ public:
 
         ImGui::EndChild();
     }
-
-#if TEST_VERSION == 2
-#elif TEST_VERSION == 1
-    /// update assets
-    void UpdateAssets()
-    {
-        // get the currently visible node in the tree, it should be an folder
-        auto nodeIt = mAssetTree.find(mVisibleKey);
-        if (nodeIt == mAssetTree.end() || !nodeIt->second.mData.mIsFolder)
-        {
-            L_ASSERT(mAssetTree.roots().size());
-            mVisibleKey = mAssetTree.roots().front();
-            nodeIt = mAssetTree.find(mVisibleKey);
-            L_ASSERT(nodeIt != mAssetTree.end());
-        }
-
-        // get asset infos for the currently visible folder
-        std::vector<AssetInfoPtr> assetInfos;
-        std::string path;
-        for (auto it = nodeIt; it->second.mParentKey != AssetTree::NoKey; it = mAssetTree.find(it->second.mParentKey))
-        {
-            path = "/" + it->second.mData.mFilename + path;
-        }
-        path = (path.starts_with("/Assets/") || path == "/Assets") ? path.substr(7) + "/" : "";
-        if (path.size())
-        {
-            if (!AssetManager::GetAssetInfos(path, assetInfos))
-            {
-                DebugLog::Info("Implement deleted Assets path: {}", path.size() ? path : "(root)");
-                return;
-            }
-        }
-
-        //on change focus read whats on the folder setup a monitor to receive changes
-    }
-
-    void AddAsset(const std::filesystem::path &filePath, bool isDirectory)//DELME!!!
-    {
-        AssetTree::KeyType key = mAssetTree.roots().front();
-        for (const auto &part : filePath.parent_path())
-        {
-            auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
-            if (partIt != mAssetTree.end())
-            {
-                key = partIt->first;
-            }
-            else
-            {
-                key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
-            }
-        }
-        if (!isDirectory)
-        {
-            mAssetTree.insert(key, AssetTreeNode { filePath.filename().string(), false });
-        }
-        else
-        {
-            // some items might be added out of order, so directories might be added after their contents
-            std::string filename = filePath.filename().string();
-            auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == filename; });
-            if (partIt == mAssetTree.end())
-            {
-                mAssetTree.insert(key, AssetTreeNode { filename, true });
-            }
-        }
-
-        DebugLog::Info("Added: {}", filePath.string());
-    }
-#else //TEST_VERSION == 0
-#endif
 
     /// process asset changes
     void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)

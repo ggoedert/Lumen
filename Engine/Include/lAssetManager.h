@@ -6,8 +6,9 @@
 #pragma once
 
 #include "lDefs.h"
+#include "lExpected.h"
 #include "lAsset.h"
-#include "lAssetInfo.h"
+#include "lFileSystem.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -16,13 +17,16 @@ namespace Lumen
     namespace AssetManager
     {
         /// initialize asset manager namespace
-        void Initialize(/*const EngineWeakPtr &engine*/);
+        void Initialize(const EngineWeakPtr &engine);
 
         /// shutdown asset manager namespace
         void Shutdown();
 
-        /// get asset infos from a path
-        bool GetAssetInfos(const std::string &path, std::vector<AssetInfoPtr> &assetInfos);
+        /// create asset info
+        bool CreateAssetInfo(const std::string &path);
+
+        /// process asset changes
+        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
     };
 
     CLASS_WEAK_PTR_DEF(Engine);
