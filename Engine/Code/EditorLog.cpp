@@ -10,7 +10,6 @@
 
 /// \cond
 #include <fstream>
-#include <chrono>
 /// \endcond
 
 using namespace Lumen;
@@ -140,8 +139,7 @@ public:
     void AddMessage(DebugLog::LogLevel level, std::string_view message)
     {
         // create app log message
-        using clock = std::chrono::system_clock;
-        auto time = clock::to_time_t(clock::now());
+        auto time = system_clock::to_time_t(system_clock::now());
         std::tm timeInfo;
         localtime_s(&timeInfo, &time);
         std::ostringstream messageFile;

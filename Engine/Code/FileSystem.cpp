@@ -11,7 +11,7 @@
 
 using namespace Lumen;
 
-constexpr std::chrono::milliseconds InfoDelay { 500 };
+constexpr milliseconds InfoDelay { 500 };
 
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
@@ -28,7 +28,7 @@ namespace Lumen::Hidden
         Id::Generator mFileIdGenerator;
 
         /// file change mapFileChange
-        std::multimap<std::chrono::system_clock::time_point, FileSystem::AssetChange> mAssetChangeMap;
+        std::multimap<system_clock::time_point, FileSystem::AssetChange> mAssetChangeMap;
 
         /// file systems
         StringMap<IFileSystemPtr> mFileSystems;
@@ -152,11 +152,7 @@ void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 /// process file changes
 void FileSystem::ProcessFileChanges()
 {
-    using clock = std::chrono::system_clock;
-    using time_point = clock::time_point;
-    using ms = std::chrono::milliseconds;
-
-    auto now = clock::now();
+    auto now = system_clock::now();
     auto &map = Hidden::gFileSytemState->mAssetChangeMap;
     std::vector<AssetChange> assetBatch;
 
@@ -190,7 +186,7 @@ void FileSystem::ProcessFileChanges()
                         switch (fileChange.mChange)
                         {
                         case FileSystem::Change::Added:
-                            assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mName, "" };
+                            assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
                             if (hasInfo)
                             {
                                 Lumen::DebugLog::Detail("Added file with infofile, {}, infofile exists", assetChange.mName);
@@ -198,17 +194,17 @@ void FileSystem::ProcessFileChanges()
                             }
                             else
                             {
-                                map.emplace(clock::now() + InfoDelay, assetChange);
+                                map.emplace(system_clock::now() + InfoDelay, assetChange);
                             }
                             break;
                         case FileSystem::Change::Modified:
-                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mName, "" });
+                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
                             break;
                         case FileSystem::Change::Renamed:
-                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mName, fileChange.mOldName });
+                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, fileChange.mOldName });
                             break;
                         case FileSystem::Change::Removed:
-                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mName, "" });
+                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
                             break;
                         }
                     }

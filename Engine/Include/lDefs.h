@@ -10,6 +10,7 @@
 /// \cond
 #include <array>
 #include <algorithm>
+#include <chrono>
 /// \endcond
 
 /// sse platform specific includes
@@ -41,6 +42,10 @@ namespace Lumen
     using word = uint16_t;
     using dword = uint32_t;
     using qword = uint64_t;
+
+    /// time types
+    using system_clock = std::chrono::system_clock;
+    using milliseconds = std::chrono::milliseconds;
 
     /// return the shared Base64 table for encoding function, hopefully optimized away by the compiler if not used
     consteval const char *GetBase64Table() { return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; }

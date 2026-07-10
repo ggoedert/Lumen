@@ -38,6 +38,9 @@ namespace Lumen
             /// flags
             Flags mFlags;
 
+            /// last write time
+            std::filesystem::file_time_type mLastWrite;
+
             /// name
             std::string mName;
         };
@@ -50,6 +53,9 @@ namespace Lumen
 
             /// flags
             Flags mFlags;
+
+            /// last write time
+            std::filesystem::file_time_type mLastWrite;
 
             /// name
             std::string mName;
@@ -67,6 +73,9 @@ namespace Lumen
 
             /// flags
             Flags mFlags;
+
+            /// last write time
+            std::filesystem::file_time_type mLastWrite;
 
             /// name
             std::string mName;

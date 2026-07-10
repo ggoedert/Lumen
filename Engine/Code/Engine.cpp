@@ -62,8 +62,7 @@ public:
             return false;
 
 #ifdef EDITOR
-        using clock = std::chrono::system_clock;
-        auto time = clock::to_time_t(clock::now());
+        auto time = system_clock::to_time_t(system_clock::now());
         std::tm timeInfo;
         localtime_s(&timeInfo, &time);
         std::ostringstream oss;

@@ -35,7 +35,7 @@ public:
             {
                 FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
                 std::string filename = entry.path().lexically_relative(mPath).generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, flags, (mPath / filename).string(), "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, entry.last_write_time(), (mPath / filename).string(), "" });
             }
         }
         if (!fileBatch.empty())
@@ -72,11 +72,11 @@ public:
         {
             if (entry.is_regular_file())
             {
-                files.push_back({ FileSystem::Flag::File, entry.path().filename().string() });
+                files.push_back({ FileSystem::Flag::File, entry.last_write_time(), entry.path().filename().string() });
             }
             else if (entry.is_directory())
             {
-                files.push_back({ FileSystem::Flag::Directory, entry.path().filename().string() });
+                files.push_back({ FileSystem::Flag::Directory, entry.last_write_time(), entry.path().filename().string() });
             }
         }
         return files;

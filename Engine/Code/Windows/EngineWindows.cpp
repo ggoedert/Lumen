@@ -207,26 +207,33 @@ void EngineWindows::Impl::FileChangeCallback()
 
         if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
         {
-            std::wstring wFullPath = ToWString(sMonitorDir) + L"/" + wfilename;
             WIN32_FILE_ATTRIBUTE_DATA attr;
             FileSystem::Flags flags = FileSystem::Flag::None;
+            std::filesystem::file_time_type lastWrite = {};
+            std::wstring wFullPath = ToWString(sMonitorDir) + L"/" + wfilename;
             if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
             {
+                // determine if the file is a directory or a file
                 flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
+
+                // convert attr.ftLastWriteTime to std::filesystem::file_time_type, file_time_type ticks are 100ns since 1601-01-01, same as windows FILETIME
+                ULARGE_INTEGER uliLastWrite { attr.ftLastWriteTime.dwLowDateTime, attr.ftLastWriteTime.dwHighDateTime };
+                lastWrite = std::filesystem::file_time_type { std::filesystem::file_time_type::duration{static_cast<int64_t>(uliLastWrite.QuadPart)} };
             }
+
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                fileBatch.push_back({ FileSystem::Change::Added, flags, sMonitorDir + "/" + filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Added, flags, lastWrite, sMonitorDir + "/" + filename, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                fileBatch.push_back({ FileSystem::Change::Modified, flags, sMonitorDir + "/" + filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Modified, flags, lastWrite, sMonitorDir + "/" + filename, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                fileBatch.push_back({ FileSystem::Change::Renamed, flags, sMonitorDir + "/" + filename, sMonitorDir + "/" + sLastFilename });
+                fileBatch.push_back({ FileSystem::Change::Renamed, flags, lastWrite, sMonitorDir + "/" + filename, sMonitorDir + "/" + sLastFilename });
                 break;
             case FILE_ACTION_REMOVED:
-                fileBatch.push_back({ FileSystem::Change::Removed, flags, sMonitorDir + "/" + filename, "" });
+                fileBatch.push_back({ FileSystem::Change::Removed, flags, lastWrite, sMonitorDir + "/" + filename, "" });
                 break;
             }
             sLastFilename = filename;
