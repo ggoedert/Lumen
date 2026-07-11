@@ -59,7 +59,7 @@ public:
     /// check if a file exists
     bool Exists(const std::filesystem::path &path)
     {
-        std::filesystem::path fullPath = mPath / path;
+        const std::filesystem::path fullPath = mPath / path;
         return std::filesystem::exists(fullPath);
     }
 
@@ -67,8 +67,8 @@ public:
     std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
     {
         std::vector<FileSystem::FileEntry> files;
-        const std::filesystem::path relativePath = std::filesystem::path("Assets") / path;
-        for (const auto &entry : std::filesystem::directory_iterator(relativePath))
+        const std::filesystem::path fullPath = mPath / path;
+        for (const auto &entry : std::filesystem::directory_iterator(fullPath))
         {
             if (entry.is_regular_file())
             {
@@ -85,7 +85,7 @@ public:
     /// opens a file on the specified path
     Id::Type Open(const std::filesystem::path &path, bool write, bool binary)
     {
-        std::filesystem::path fullPath = mPath / path;
+        const std::filesystem::path fullPath = mPath / path;
         if (!Exists(path))
         {
             std::ofstream file(fullPath, (binary ? std::ios::binary : (std::ios::openmode)0));
