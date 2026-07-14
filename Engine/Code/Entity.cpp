@@ -219,7 +219,7 @@ void Entity::Impl::Run()
 Entity::Entity() : Object(Type()) {}
 
 /// destroys entity
-Entity::~Entity() {}
+Entity::~Entity() = default;
 
 /// custom smart pointer maker, self registers into scene manager
 EntityWeakPtr Entity::MakePtr(Lumen::Application &application, std::string_view name)

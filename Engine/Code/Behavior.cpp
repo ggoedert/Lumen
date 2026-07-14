@@ -11,6 +11,7 @@ using namespace Lumen;
 /// Behavior::Impl class
 class Behavior::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
 

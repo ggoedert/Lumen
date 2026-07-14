@@ -71,8 +71,7 @@ private:
 DEFINE_COMPONENT_TYPEINFO(Camera);
 
 /// constructs a camera with a background color
-Camera::Camera(const EntityWeakPtr &entity) :
-    Component(Type(), Name(), entity), mImpl(Camera::Impl::MakeUniquePtr()) {}
+Camera::Camera(const EntityWeakPtr &entity) : Component(Type(), Name(), entity), mImpl(Camera::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the camera component
 ComponentPtr Camera::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)

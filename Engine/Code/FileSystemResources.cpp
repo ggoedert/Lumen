@@ -19,7 +19,7 @@ class FileSystemResources::Impl
 
 public:
     /// constructor
-    explicit Impl() {}
+    explicit Impl() = default;
 
     /// destructor
     ~Impl() = default;

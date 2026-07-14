@@ -6,7 +6,7 @@
 #pragma once
 #ifdef EDITOR
 
-#include "lFileSystem.h"
+#include "lAssetManager.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -17,6 +17,7 @@ namespace Lumen
     /// Editor class
     class Editor : public std::enable_shared_from_this<Editor>
     {
+        CLASS_NO_DEFAULT_CTOR(Editor);
         CLASS_NO_COPY_MOVE(Editor);
 
     public:
@@ -36,7 +37,7 @@ namespace Lumen
         virtual void FirstRun();
 
         /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+        void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 
         /// run editor
         void Run();

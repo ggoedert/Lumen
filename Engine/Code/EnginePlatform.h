@@ -18,7 +18,7 @@ namespace Lumen
 
     public:
         /// constructs an engine
-        explicit EnginePlatform() {}
+        explicit EnginePlatform() = default;
 
         /// virtual destroys engine
         virtual ~EnginePlatform() = default;

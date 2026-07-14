@@ -23,6 +23,7 @@ using namespace Lumen;
 /// Editor::Impl class
 class Editor::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
     friend class Editor;
@@ -54,7 +55,7 @@ public:
     explicit Impl(const ApplicationWeakPtr &application);
 
     /// destructor
-    ~Impl();
+    ~Impl() = default;
 
     /// initialize editor
     void Initialize();
@@ -69,7 +70,7 @@ public:
     void FirstRun();
 
     /// process asset changes
-    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+    void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 
     /// run editor
     void Run();
@@ -126,9 +127,6 @@ Editor::Impl::Impl(const ApplicationWeakPtr &application) :
     mEditorContent = EditorContent::MakePtr();
     mEditorLog = EditorLog::MakePtr(engine->GetExecutableName() + ".log");
 }
-
-/// destroys editor
-Editor::Impl::~Impl() {}
 
 /// initialize editor
 void Editor::Impl::Initialize()
@@ -262,7 +260,7 @@ void Editor::Impl::FirstRun()
 }
 
 /// process asset changes
-void Editor::Impl::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+void Editor::Impl::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
 {
     mEditorContent->ProcessAssetChanges(std::move(assetBatch));
 }
@@ -488,7 +486,7 @@ void Editor::Impl::RunStatusBar()
 Editor::Editor(const ApplicationWeakPtr &application) : mImpl(Editor::Impl::MakeUniquePtr(application)) {}
 
 /// virtual destructor
-Editor::~Editor() {}
+Editor::~Editor() = default;
 
 /// creates a smart pointer version of the editor
 EditorPtr Editor::MakePtr(const ApplicationWeakPtr &application)
@@ -515,7 +513,7 @@ void Editor::FirstRun()
 }
 
 /// process asset changes
-void Editor::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+void Editor::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
 {
     mImpl->ProcessAssetChanges(std::move(assetBatch));
 }

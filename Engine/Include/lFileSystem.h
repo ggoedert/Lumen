@@ -64,27 +64,6 @@ namespace Lumen
             std::string mOldName;
         };
 
-#ifdef EDITOR
-        /// AssetChange struct
-        struct AssetChange
-        {
-            /// change
-            Change mChange;
-
-            /// flags
-            Flags mFlags;
-
-            /// last write time
-            std::filesystem::file_time_type mLastWrite;
-
-            /// name
-            std::string mName;
-
-            /// old name
-            std::string mOldName;
-        };
-#endif
-
         /// initialize file namespace
         void Initialize(const EngineWeakPtr &engine);
 
@@ -100,11 +79,13 @@ namespace Lumen
         /// register a file system
         void RegisterFileSystem(const std::filesystem::path &mountPoint, const IFileSystemPtr &fileSystem);
 
+#ifdef EDITOR
         /// push file changes
         void PushFileChangeBatch(std::vector<FileChange> &&fileBatch);
 
         /// process file changes
         void ProcessFileChanges();
+#endif
 
         /// generates a new file id
         Id::Type GenerateFileId();

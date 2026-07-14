@@ -16,6 +16,7 @@ namespace Lumen
     /// EditorLog class
     class EditorLog
     {
+        CLASS_NO_DEFAULT_CTOR(EditorLog);
         CLASS_NO_COPY_MOVE(EditorLog);
 
     public:

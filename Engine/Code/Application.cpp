@@ -7,6 +7,7 @@
 #include "lApplication.h"
 #include "lCamera.h"
 #include "lSceneManager.h"
+#include "lEngine.h"
 
 #ifdef EDITOR
 #include "lEditor.h"
@@ -23,10 +24,10 @@ class Application::Impl
 
 public:
     /// constructs application
-    explicit Impl();
+    explicit Impl() = default;
 
     /// destructor
-    ~Impl();
+    ~Impl() = default;
 
     /// get engine
     [[nodiscard]] EngineWeakPtr GetEngine() { return mEngine; }
@@ -52,7 +53,7 @@ public:
 protected:
 #ifdef EDITOR
     /// process asset changes
-    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+    void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 
     /// run editor
     void Editor();
@@ -112,12 +113,6 @@ private:
     float mTime { 0.f };
 };
 
-/// constructs application
-Application::Impl::Impl() {}
-
-/// destroys application
-Application::Impl::~Impl() {}
-
 /// set engine
 void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 {
@@ -127,6 +122,10 @@ void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 /// initialize application
 void Application::Impl::Initialize(const Lumen::ApplicationWeakPtr &application)
 {
+    if (auto engineLock = mEngine.lock())
+    {
+        Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());
+    }
 #ifdef EDITOR
     mEditor = Editor::MakePtr(application);
     mEditor->Initialize();
@@ -143,9 +142,9 @@ void Application::Impl::Shutdown()
 
 #ifdef EDITOR
 /// process asset changes
-void Application::Impl::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+void Application::Impl::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
 {
-    return mEditor->ProcessAssetChanges(std::move(assetBatch));
+    mEditor->ProcessAssetChanges(std::move(assetBatch));
 }
 
 /// run editor
@@ -289,7 +288,7 @@ const Math::Vector4 &Application::Impl::BackgroundColor() const
 Application::Application() : mImpl(Application::Impl::MakeUniquePtr()) {}
 
 /// virtual destructor
-Application::~Application() {}
+Application::~Application() = default;
 
 /// get engine
 [[nodiscard]] EngineWeakPtr Application::GetEngine()
@@ -371,7 +370,7 @@ void Application::Step()
 }
 
 /// process asset changes
-void Application::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+void Application::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
 {
     return mImpl->ProcessAssetChanges(std::move(assetBatch));
 }

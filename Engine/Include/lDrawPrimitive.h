@@ -17,6 +17,7 @@ namespace Lumen
     /// DrawPrimitive class
     class DrawPrimitive : public RenderCommand
     {
+        CLASS_NO_DEFAULT_CTOR(DrawPrimitive);
         OBJECT_TYPEINFO;
 
     public:

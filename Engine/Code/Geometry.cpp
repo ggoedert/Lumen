@@ -63,8 +63,7 @@ private:
 DEFINE_COMPONENT_TYPEINFO(Geometry);
 
 /// constructs a geometry with a mesh
-Geometry::Geometry(const EntityWeakPtr &entity) :
-    Component(Type(), Name(), entity), mImpl(Geometry::Impl::MakeUniquePtr()) {}
+Geometry::Geometry(const EntityWeakPtr &entity) : Component(Type(), Name(), entity), mImpl(Geometry::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the geometry component
 ComponentPtr Geometry::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)

@@ -78,8 +78,10 @@ public:
             return false;
         }
 
+#ifdef EDITOR
         // process initial file changes
         FileSystem::ProcessFileChanges();
+#endif
 
         // success
         return true;
@@ -168,6 +170,12 @@ public:
     {
         return mPlatform->IsLightTheme();
     }
+
+    /// push a batch of items
+    void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
+    {
+        mApplication->ProcessAssetChanges(std::move(assetBatch));
+    }
 #endif
 
     /// get fullscreen size
@@ -242,15 +250,6 @@ public:
         return mPlatform->GetRenderTextureHandle(texId);
     }
 
-    /// push a batch of items
-    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
-    {
-        std::vector<FileSystem::AssetChange> assetBatchCopy = assetBatch;
-//?WIP? AssetsFileSystem()->ProcessAssetChanges(std::move(assetBatch));
-//?WIP? FileSystem::ProcessAssetChanges(std::move(assetBatch));
-        mApplication->ProcessAssetChanges(std::move(assetBatchCopy));
-    }
-
 private:
     /// owner
     EngineWeakPtr mOwner;
@@ -261,7 +260,6 @@ private:
     // application
     ApplicationPtr mApplication;
 };
-
 
 //==============================================================================================================================================================================
 
@@ -347,6 +345,12 @@ bool Engine::IsLightTheme() const
 {
     return mImpl->IsLightTheme();
 }
+/// process asset changes
+
+void Engine::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
+{
+    mImpl->ProcessAssetChanges(std::move(assetBatch));
+}
 #endif
 
 /// get fullscreen size
@@ -419,12 +423,6 @@ void Engine::SetRenderTextureSize(Id::Type texId, Math::Int2 size)
 qword Engine::GetRenderTextureHandle(Id::Type texId)
 {
     return mImpl->GetRenderTextureHandle(texId);
-}
-
-/// process asset changes
-void Engine::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
-{
-    mImpl->ProcessAssetChanges(std::move(assetBatch));
 }
 
 //==============================================================================================================================================================================

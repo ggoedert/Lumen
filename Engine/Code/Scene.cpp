@@ -153,8 +153,7 @@ StringMap<std::string> Scene::Impl::mAssetPaths;
 //==============================================================================================================================================================================
 
 /// constructor
-Scene::Scene(Lumen::Application &application, const std::filesystem::path &path) :
-    Asset(Type(), path), mImpl(Scene::Impl::MakeUniquePtr(*this, application)) {}
+Scene::Scene(Lumen::Application &application, const std::filesystem::path &path) : Asset(Type(), path), mImpl(Scene::Impl::MakeUniquePtr(*this, application)) {}
 
 /// destroys scene
 Scene::~Scene()

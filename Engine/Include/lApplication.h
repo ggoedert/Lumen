@@ -7,7 +7,7 @@
 
 #include "lDefs.h"
 #include "lMath.h"
-#include "lFileSystem.h"
+#include "lAssetManager.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -88,7 +88,7 @@ namespace Lumen
 
 #ifdef EDITOR
         /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+        void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 
         /// run editor
         void Editor();

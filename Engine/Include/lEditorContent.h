@@ -30,7 +30,7 @@ namespace Lumen
         static const char *Name();
 
         /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+        void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 
         /// run editor content
         void Run();

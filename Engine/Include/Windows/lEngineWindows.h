@@ -17,6 +17,7 @@ namespace Lumen::Windows
     /// engine initialize config
     struct Config : Object
     {
+        CLASS_NO_DEFAULT_CTOR(Config);
         OBJECT_TYPEINFO;
         explicit Config(HWND window) : Object(Type()), mWindow(window) {}
         HWND mWindow;

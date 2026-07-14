@@ -11,8 +11,6 @@
 
 using namespace Lumen;
 
-constexpr milliseconds InfoDelay { 500 };
-
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
@@ -26,9 +24,6 @@ namespace Lumen::Hidden
 
         /// file id generator
         Id::Generator mFileIdGenerator;
-
-        /// file change mapFileChange
-        std::multimap<system_clock::time_point, FileSystem::AssetChange> mAssetChangeMap;
 
         /// file systems
         StringMap<IFileSystemPtr> mFileSystems;
@@ -143,6 +138,7 @@ void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, con
     Hidden::gFileSytemState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
 }
 
+#ifdef EDITOR
 /// push file changes
 void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 {
@@ -152,97 +148,23 @@ void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 /// process file changes
 void FileSystem::ProcessFileChanges()
 {
-    auto now = system_clock::now();
-    auto &map = Hidden::gFileSytemState->mAssetChangeMap;
-    std::vector<AssetChange> assetBatch;
+    std::vector<FileChange> fileBatch;
 
     std::list<std::vector<FileChange>> fileBatchQueue;
     if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
         for (auto &batch : fileBatchQueue)
         {
-            for (auto &fileChange : batch)
-            {
-                // determine info and base file existence
-                auto ext = std::filesystem::path(fileChange.mName).extension().string();
-                bool isInfo = (ext.size() == 5) &&
-                    std::equal(ext.begin() + 1, ext.end(), "info", [](unsigned char a, unsigned char b) { return std::tolower(a) == b; });
-                bool hasInfo = isInfo;
-                bool hasBase = !isInfo;
-                if (isInfo)
-                {
-                    hasBase = Exists(std::filesystem::path(fileChange.mName.substr(0, fileChange.mName.size() - 5)));
-                }
-                else
-                {
-                    hasInfo = Exists(std::filesystem::path(fileChange.mName + ".info"));
-                }
-
-                if (!isInfo)
-                {
-                    if (hasBase)
-                    {
-                        AssetChange assetChange;
-                        switch (fileChange.mChange)
-                        {
-                        case FileSystem::Change::Added:
-                            assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
-                            if (hasInfo)
-                            {
-                                Lumen::DebugLog::Detail("Added file with infofile, {}, infofile exists", assetChange.mName);
-                                assetBatch.push_back(assetChange);
-                            }
-                            else
-                            {
-                                map.emplace(system_clock::now() + InfoDelay, assetChange);
-                            }
-                            break;
-                        case FileSystem::Change::Modified:
-                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
-                            break;
-                        case FileSystem::Change::Renamed:
-                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, fileChange.mOldName });
-                            break;
-                        case FileSystem::Change::Removed:
-                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
-                            break;
-                        }
-                    }
-                }
-            }
+            fileBatch.insert(fileBatch.end(), std::make_move_iterator(batch.begin()), std::make_move_iterator(batch.end()));
         }
     }
 
-    for (auto it = map.begin(); it != map.end(); )
+    if (!fileBatch.empty())
     {
-        auto &[processTime, assetChange] = *it;
-
-        if (Exists(std::filesystem::path(assetChange.mName + ".info")))
-        {
-            Lumen::DebugLog::Detail("Added file with infofile, {}, infofile late arrival", assetChange.mName);
-            assetBatch.push_back(assetChange);
-            it = map.erase(it);
-        }
-        else if (processTime <= now)
-        {
-            Lumen::DebugLog::Detail("Added file without infofile, {}, created infofile", assetChange.mName);
-            if (AssetManager::CreateAssetInfo(assetChange.mName))
-            {
-                assetBatch.push_back(assetChange);
-            }
-            it = map.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    if (!assetBatch.empty())
-    {
-        AssetManager::ProcessAssetChanges(std::move(assetBatch));
+        AssetManager::ProcessFileChanges(std::move(fileBatch));
     }
 }
+#endif
 
 /// generates a new file id
 Id::Type FileSystem::GenerateFileId()

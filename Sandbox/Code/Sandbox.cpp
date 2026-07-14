@@ -17,10 +17,6 @@
 void Sandbox::Initialize(const Lumen::ApplicationWeakPtr &application)
 {
     Lumen::Application::Initialize(application);
-    if (auto engineLock = GetEngine().lock())
-    {
-        Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());
-    }
 }
 
 /// shutdown sandbox

@@ -88,6 +88,9 @@ namespace Lumen
 
         /// check if light theme is used
         [[nodiscard]] bool IsLightTheme() const;
+
+        /// process asset changes
+        void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch);
 #endif
 
         /// get fullscreen size
@@ -125,9 +128,6 @@ namespace Lumen
 
         /// get render texture id
         qword GetRenderTextureHandle(Id::Type texId);
-
-        /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
 
     private:
         /// constructor

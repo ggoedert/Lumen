@@ -19,6 +19,7 @@ namespace Lumen
     /// Shader class
     class Shader : public Asset
     {
+        CLASS_NO_DEFAULT_CTOR(Shader);
         CLASS_NO_COPY_MOVE(Shader);
         OBJECT_TYPEINFO;
 

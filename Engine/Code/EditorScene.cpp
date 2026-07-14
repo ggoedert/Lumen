@@ -22,7 +22,7 @@ public:
     explicit Impl() : mWindowOpen(true) {}
 
     /// destructor
-    ~Impl() {}
+    ~Impl() = default;
 
     /// editor scene dialog name
     static const char *Name()
@@ -94,7 +94,7 @@ private:
 EditorScene::EditorScene() : mImpl(EditorScene::Impl::MakeUniquePtr()) {}
 
 /// destructor
-EditorScene::~EditorScene() {}
+EditorScene::~EditorScene() = default;
 
 /// creates a smart pointer version of the editor log
 EditorScenePtr EditorScene::MakePtr()

@@ -52,6 +52,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 /// EngineWindows::Impl class
 class EngineWindows::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
     friend class EngineWindows;
@@ -87,12 +88,6 @@ public:
 
     /// check if light theme is used
     bool IsLightTheme() const;
-
-    /// file change callback, static version
-    static void CALLBACK StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped);
-
-    /// file change callback
-    void FileChangeCallback();
 #endif
 
 private:
@@ -108,20 +103,8 @@ private:
 #ifdef EDITOR
     /// cached settings
     Engine::Settings mSettings;
-
-    static BYTE sBuffer[65536];
-    static OVERLAPPED sOverlapped;
-    static HANDLE sDirHandle;
-    static std::string sMonitorDir;
 #endif
 };
-
-#ifdef EDITOR
-BYTE EngineWindows::Impl::sBuffer[65536];
-OVERLAPPED EngineWindows::Impl::sOverlapped;
-HANDLE EngineWindows::Impl::sDirHandle;
-std::string EngineWindows::Impl::sMonitorDir = "Assets";
-#endif
 
 /// simple windows events
 Lumen::HashType EngineWindows::DisplayChanged = Lumen::EncodeType("EngineWindows::DisplayChanged");
@@ -131,136 +114,15 @@ Lumen::HashType EngineWindows::Resuming = Lumen::EncodeType("EngineWindows::Resu
 Lumen::HashType EngineWindows::Activated = Lumen::EncodeType("EngineWindows::Activated");
 Lumen::HashType EngineWindows::Deactivated = Lumen::EncodeType("EngineWindows::Deactivated");
 
-#ifdef EDITOR
-/// file change callback, static version
-void CALLBACK EngineWindows::Impl::StaticFileChangeCallback(DWORD errorCode, DWORD bytesTransferred, LPOVERLAPPED overlapped)
-{
-    if (errorCode == ERROR_SUCCESS)
-    {
-        reinterpret_cast<EngineWindows::Impl *>(overlapped->hEvent)->FileChangeCallback();
-    }
-    else if (errorCode == ERROR_OPERATION_ABORTED)
-    {
-        // operation canceled, possibly change of focus
-        return;
-    }
-    else
-    {
-        std::string message;
-        LPSTR buffer = nullptr;
-        DWORD size = FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            nullptr,
-            errorCode,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPTSTR)&buffer,
-            0, nullptr);
-        if (size != 0 && buffer != nullptr)
-        {
-            message = buffer;
-            LocalFree(buffer);
-        }
-        else
-        {
-            message = "Unknown error";
-        }
-        Lumen::DebugLog::Error("FileChange callback error: {}", message);  // OutputDebugStringA should be thread safe
-    }
-
-    // re-arm the watcher
-    ReadDirectoryChangesW(
-        sDirHandle,
-        sBuffer,
-        sizeof(sBuffer),
-        TRUE, // recursive
-        FILE_NOTIFY_CHANGE_FILE_NAME |
-        FILE_NOTIFY_CHANGE_DIR_NAME |
-        FILE_NOTIFY_CHANGE_LAST_WRITE,
-        NULL,
-        overlapped,
-        StaticFileChangeCallback
-    );
-}
-
-/// file change callback
-void EngineWindows::Impl::FileChangeCallback()
-{
-    static DWORD sLastAction = -1;
-    static double sLastTimer = -1.f;
-    static std::string sLastFilename;
-    static std::vector<FileSystem::FileChange> fileBatch;
-
-    /// get elapsed milliseconds since last callback
-    double timer = mOwner.GetElapsedTime();
-    double elapsedMiliseconds = (sLastTimer >= 0.f) ? (timer - sLastTimer) * 1000.f : FLT_MAX;
-    sLastTimer = timer;
-
-    FILE_NOTIFY_INFORMATION *info = (FILE_NOTIFY_INFORMATION *)sBuffer;
-    while (true)
-    {
-        std::wstring wfilename(info->FileName, info->FileNameLength / sizeof(WCHAR));
-        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), nullptr, 0, nullptr, nullptr);
-        std::string filename(size_needed, 0);
-        WideCharToMultiByte(CP_UTF8, 0, wfilename.c_str(), (int)wfilename.size(), filename.data(), size_needed, nullptr, nullptr);
-
-        if ((elapsedMiliseconds >= 50.f) || (sLastAction != info->Action) || (sLastFilename != filename))
-        {
-            WIN32_FILE_ATTRIBUTE_DATA attr;
-            FileSystem::Flags flags = FileSystem::Flag::None;
-            std::filesystem::file_time_type lastWrite = {};
-            std::wstring wFullPath = ToWString(sMonitorDir) + L"/" + wfilename;
-            if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
-            {
-                // determine if the file is a directory or a file
-                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
-
-                // convert attr.ftLastWriteTime to std::filesystem::file_time_type, file_time_type ticks are 100ns since 1601-01-01, same as windows FILETIME
-                ULARGE_INTEGER uliLastWrite { attr.ftLastWriteTime.dwLowDateTime, attr.ftLastWriteTime.dwHighDateTime };
-                lastWrite = std::filesystem::file_time_type { std::filesystem::file_time_type::duration{static_cast<int64_t>(uliLastWrite.QuadPart)} };
-            }
-
-            switch (info->Action)
-            {
-            case FILE_ACTION_ADDED:
-                fileBatch.push_back({ FileSystem::Change::Added, flags, lastWrite, sMonitorDir + "/" + filename, "" });
-                break;
-            case FILE_ACTION_MODIFIED:
-                fileBatch.push_back({ FileSystem::Change::Modified, flags, lastWrite, sMonitorDir + "/" + filename, "" });
-                break;
-            case FILE_ACTION_RENAMED_NEW_NAME:
-                fileBatch.push_back({ FileSystem::Change::Renamed, flags, lastWrite, sMonitorDir + "/" + filename, sMonitorDir + "/" + sLastFilename });
-                break;
-            case FILE_ACTION_REMOVED:
-                fileBatch.push_back({ FileSystem::Change::Removed, flags, lastWrite, sMonitorDir + "/" + filename, "" });
-                break;
-            }
-            sLastFilename = filename;
-            sLastAction = info->Action;
-        }
-
-        if (info->NextEntryOffset == 0)
-        {
-            break;
-        }
-        info = (FILE_NOTIFY_INFORMATION *)(((BYTE *)info) + info->NextEntryOffset);
-    }
-    if (!fileBatch.empty())
-    {
-        if (auto engine = mOwner.GetOwner().lock())
-        {
-            FileSystem::PushFileChangeBatch(std::move(fileBatch));
-            fileBatch.clear();
-        }
-    }
-}
-#endif
-
 /// set configuration
 bool EngineWindows::Impl::Config(const Object &config)
 {
-    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr(sMonitorDir);
+#ifdef EDITOR
+    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr("Assets");
+#else
+    //@@REVIEW@@ in game mode this should be some pack file system, but for now we will use the folder file system
+    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr("Assets");
+#endif
     mAssetsFileSystem->Initialize();
 
     mWindow = static_cast<const Windows::Config &>(config).mWindow;
@@ -276,45 +138,6 @@ HWND EngineWindows::Impl::GetWindow()
 /// initialization and management
 bool EngineWindows::Impl::Initialize()
 {
-#ifdef EDITOR
-    sDirHandle = CreateFileA(
-        sMonitorDir.c_str(),
-        FILE_LIST_DIRECTORY,
-        FILE_SHARE_READ |
-        FILE_SHARE_WRITE |
-        FILE_SHARE_DELETE,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS |
-        FILE_FLAG_OVERLAPPED,
-        NULL
-    );
-
-    if (sDirHandle != INVALID_HANDLE_VALUE)
-    {
-        sOverlapped = {};
-        sOverlapped.hEvent = this; // store "this" so callback can find the object
-
-        // start watching
-        ReadDirectoryChangesW(
-            sDirHandle,
-            sBuffer,
-            sizeof(sBuffer),
-            FALSE, // recursive
-            FILE_NOTIFY_CHANGE_FILE_NAME |
-            FILE_NOTIFY_CHANGE_DIR_NAME |
-            FILE_NOTIFY_CHANGE_LAST_WRITE,
-            NULL,
-            &sOverlapped,
-            StaticFileChangeCallback
-        );
-    }
-    else
-    {
-        Lumen::DebugLog::Error("Could not open directory to monitor: {}", sMonitorDir);
-    }
-#endif
-
     return true;
 }
 
@@ -735,7 +558,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 EngineWindows::EngineWindows() : mImpl(EngineWindows::Impl::MakeUniquePtr(*this)) {}
 
 /// destroys engine
-EngineWindows::~EngineWindows() {}
+EngineWindows::~EngineWindows() = default;
 
 /// set configuration
 bool EngineWindows::Config(const Object &config)

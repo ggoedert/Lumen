@@ -10,6 +10,8 @@
 
 using namespace Lumen;
 
+constexpr milliseconds InfoDelay { 500 };
+
 /// Lumen Hidden namespace
 namespace Lumen::Hidden
 {
@@ -18,7 +20,7 @@ namespace Lumen::Hidden
     /// AssetManagerImpl class
     class AssetManagerImpl
     {
-        //CLASS_NO_DEFAULT_CTOR(AssetManagerImpl);
+        CLASS_NO_DEFAULT_CTOR(AssetManagerImpl);
         CLASS_NO_COPY_MOVE(AssetManagerImpl);
         CLASS_PTR_UNIQUEMAKER(AssetManagerImpl);
 
@@ -49,18 +51,106 @@ namespace Lumen::Hidden
             return true;
         }
 
-        /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+#ifdef EDITOR
+        /// process file changes
+        void ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
         {
-            if (auto engineLock = mEngine.lock())
+            auto now = system_clock::now();
+            std::vector<AssetManager::AssetChange> assetBatch;
+
+            for (auto &fileChange : fileBatch)
             {
-                engineLock->ProcessAssetChanges(std::move(assetBatch));
+                // determine info and base file existence
+                auto ext = std::filesystem::path(fileChange.mName).extension().string();
+                bool isInfo = (ext.size() == 5) &&
+                    std::equal(ext.begin() + 1, ext.end(), "info", [](unsigned char a, unsigned char b) { return std::tolower(a) == b; });
+                bool hasInfo = isInfo;
+                bool hasBase = !isInfo;
+                if (isInfo)
+                {
+                    hasBase = FileSystem::Exists(std::filesystem::path(fileChange.mName.substr(0, fileChange.mName.size() - 5)));
+                }
+                else
+                {
+                    hasInfo = FileSystem::Exists(std::filesystem::path(fileChange.mName + ".info"));
+                }
+
+                if (!isInfo)
+                {
+                    if (hasBase)
+                    {
+                        AssetManager::AssetChange assetChange;
+                        switch (fileChange.mChange)
+                        {
+                        case FileSystem::Change::Added:
+                            assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
+                            if (hasInfo)
+                            {
+                                Lumen::DebugLog::Detail("Added file with infofile, {}, infofile exists", assetChange.mName);
+                                assetBatch.push_back(assetChange);
+                            }
+                            else
+                            {
+                                mAssetChangeMap.emplace(system_clock::now() + InfoDelay, assetChange);
+                            }
+                            break;
+                        case FileSystem::Change::Modified:
+                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                            break;
+                        case FileSystem::Change::Renamed:
+                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, fileChange.mOldName });
+                            break;
+                        case FileSystem::Change::Removed:
+                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (auto it = mAssetChangeMap.begin(); it != mAssetChangeMap.end(); )
+            {
+                auto &[processTime, assetChange] = *it;
+
+                if (FileSystem::Exists(std::filesystem::path(assetChange.mName + ".info")))
+                {
+                    Lumen::DebugLog::Detail("Added file with infofile, {}, infofile late arrival", assetChange.mName);
+                    assetBatch.push_back(assetChange);
+                    it = mAssetChangeMap.erase(it);
+                }
+                else if (processTime <= now)
+                {
+                    Lumen::DebugLog::Detail("Added file without infofile, {}, created infofile", assetChange.mName);
+                    if (AssetManager::CreateAssetInfo(assetChange.mName))
+                    {
+                        assetBatch.push_back(assetChange);
+                    }
+                    it = mAssetChangeMap.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+
+            if (!assetBatch.empty())
+            {
+                if (auto engineLock = mEngine.lock())
+                {
+                    engineLock->ProcessAssetChanges(std::move(assetBatch));
+                }
             }
         }
+#endif
 
     private:
         /// engine pointer
         EngineWeakPtr mEngine;
+
+#ifdef EDITOR
+        /// file change mapFileChange
+        std::multimap<system_clock::time_point, AssetManager::AssetChange> mAssetChangeMap;
+#endif
     };
 
     /// global asset manager implementation pointer
@@ -90,12 +180,14 @@ bool AssetManager::CreateAssetInfo(const std::string &path)
     return Hidden::gAssetManagerImpl->CreateAssetInfo(path);
 }
 
-/// process asset changes
-void AssetManager::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+#ifdef EDITOR
+/// process file changes
+void AssetManager::ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
 {
     L_ASSERT(Hidden::gAssetManagerImpl);
-    Hidden::gAssetManagerImpl->ProcessAssetChanges(std::move(assetBatch));
+    Hidden::gAssetManagerImpl->ProcessFileChanges(std::move(fileBatch));
 }
+#endif
 
 // DEPRECATED, this is the old asset manager interface, we should move to the new one as soon as possible, but for now we keep it around for testing and reference
 

@@ -49,7 +49,7 @@ public:
     }
 
     /// destructor
-    ~Impl() {}
+    ~Impl() = default;
 
     /// editor content dialog name
     static const char *Name()
@@ -344,11 +344,8 @@ public:
     }
 
     /// process asset changes
-    void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+    void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
     {
-#if TEST_VERSION == 2
-#elif TEST_VERSION == 1
-#else //TEST_VERSION == 0
         for (auto item : assetBatch)
         {
             std::filesystem::path oldFilePath = item.mOldName;
@@ -459,7 +456,6 @@ public:
                 break;
             }
         }
-#endif
     }
 
     /// run editor content
@@ -511,7 +507,7 @@ private:
 EditorContent::EditorContent() : mImpl(EditorContent::Impl::MakeUniquePtr()) {}
 
 /// destructor
-EditorContent::~EditorContent() {}
+EditorContent::~EditorContent() = default;
 
 /// creates a smart pointer version of the editor content
 EditorContentPtr EditorContent::MakePtr()
@@ -526,7 +522,7 @@ const char *EditorContent::Name()
 }
 
 /// process asset changes
-void EditorContent::ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch)
+void EditorContent::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
 {
     mImpl->ProcessAssetChanges(std::move(assetBatch));
 }

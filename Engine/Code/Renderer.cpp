@@ -105,8 +105,7 @@ public:
 DEFINE_COMPONENT_TYPEINFO(Renderer);
 
 /// constructs a renderer with an material
-Renderer::Renderer(const EngineWeakPtr &engine, const EntityWeakPtr &entity) :
-    Component(Type(), Name(), entity), mImpl(Renderer::Impl::MakeUniquePtr(*this, engine)) {}
+Renderer::Renderer(const EngineWeakPtr &engine, const EntityWeakPtr &entity) : Component(Type(), Name(), entity), mImpl(Renderer::Impl::MakeUniquePtr(*this, engine)) {}
 
 /// creates a smart pointer version of the renderer component
 ComponentPtr Renderer::MakePtr(const EngineWeakPtr &engine, const EntityWeakPtr &entity)

@@ -28,6 +28,7 @@ public:
     /// initialize file system
     void Initialize()
     {
+#ifdef EDITOR
         std::vector<FileSystem::FileChange> fileBatch;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(mPath))
         {
@@ -42,6 +43,7 @@ public:
         {
             FileSystem::PushFileChangeBatch(std::move(fileBatch));
         }
+#endif
     }
 
     /// whether this file system is packed
@@ -245,8 +247,7 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a folder file system
-FolderFileSystem::FolderFileSystem(const std::filesystem::path &path) :
-    IFileSystem(), mImpl(FolderFileSystem::Impl::MakeUniquePtr(FileSystem::NormalizeDirPath(path))) {}
+FolderFileSystem::FolderFileSystem(const std::filesystem::path &path) : IFileSystem(), mImpl(FolderFileSystem::Impl::MakeUniquePtr(FileSystem::NormalizeDirPath(path))) {}
 
 /// creates a smart pointer version of the folder file system
 IFileSystemPtr FolderFileSystem::MakePtr(const std::filesystem::path &path)

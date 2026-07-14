@@ -22,7 +22,7 @@ public:
     explicit Impl() : mWindowOpen(true), mThemeIndex(0) {}
 
     /// destructor
-    ~Impl() {}
+    ~Impl() = default;
 
     /// editor preferences dialog name
     static const char *Name()
@@ -120,7 +120,7 @@ private:
 EditorPreferences::EditorPreferences() : mImpl(EditorPreferences::Impl::MakeUniquePtr()) {}
 
 /// destructor
-EditorPreferences::~EditorPreferences() {}
+EditorPreferences::~EditorPreferences() = default;
 
 /// creates a smart pointer version of the editor log
 EditorPreferencesPtr EditorPreferences::MakePtr()

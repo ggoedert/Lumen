@@ -67,7 +67,7 @@ public:
 
 private:
     /// constructs a sphere mesh info
-    explicit SphereMeshInfo() {}
+    explicit SphereMeshInfo() = default;
 };
 
 /// CheckerGrayTextureInfo class
@@ -134,7 +134,7 @@ public:
 
 private:
     /// constructs a checker gray texture info
-    explicit CheckerGrayTextureInfo() {}
+    explicit CheckerGrayTextureInfo() = default;
 };
 
 /// SimpleDiffuseShaderInfo class
@@ -175,7 +175,7 @@ public:
 
 private:
     /// constructs a simple diffuse shader info
-    explicit SimpleDiffuseShaderInfo() {}
+    explicit SimpleDiffuseShaderInfo() = default;
 };
 
 //==============================================================================================================================================================================

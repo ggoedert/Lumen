@@ -25,8 +25,29 @@ namespace Lumen
         /// create asset info
         bool CreateAssetInfo(const std::string &path);
 
-        /// process asset changes
-        void ProcessAssetChanges(std::vector<FileSystem::AssetChange> &&assetBatch);
+#ifdef EDITOR
+        /// AssetChange struct
+        struct AssetChange
+        {
+            /// change
+            FileSystem::Change mChange;
+
+            /// flags
+            FileSystem::Flags mFlags;
+
+            /// last write time
+            std::filesystem::file_time_type mLastWrite;
+
+            /// name
+            std::string mName;
+
+            /// old name
+            std::string mOldName;
+        };
+
+        /// process file changes
+        void ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch);
+#endif
     };
 
     CLASS_WEAK_PTR_DEF(Engine);

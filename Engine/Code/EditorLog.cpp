@@ -17,6 +17,7 @@ using namespace Lumen;
 /// EditorLog::Impl class
 class EditorLog::Impl
 {
+    CLASS_NO_DEFAULT_CTOR(Impl);
     CLASS_NO_COPY_MOVE(Impl);
     CLASS_PTR_UNIQUEMAKER(Impl);
 
@@ -321,7 +322,7 @@ private:
 EditorLog::EditorLog(const std::string &logFilename) : mImpl(EditorLog::Impl::MakeUniquePtr(logFilename)) {}
 
 /// destructor
-EditorLog::~EditorLog() {}
+EditorLog::~EditorLog() = default;
 
 /// creates a smart pointer version of the editor log
 EditorLogPtr EditorLog::MakePtr(const std::string &logFilename)
