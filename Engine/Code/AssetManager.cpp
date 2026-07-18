@@ -55,7 +55,7 @@ namespace Lumen::Hidden
         /// process file changes
         void ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
         {
-            auto now = system_clock::now();
+            auto now = steady_clock::now();
             std::vector<AssetManager::AssetChange> assetBatch;
 
             for (auto &fileChange : fileBatch)
@@ -91,7 +91,7 @@ namespace Lumen::Hidden
                             }
                             else
                             {
-                                mAssetChangeMap.emplace(system_clock::now() + InfoDelay, assetChange);
+                                mAssetChangeMap.emplace(steady_clock::now() + InfoDelay, assetChange);
                             }
                             break;
                         case FileSystem::Change::Modified:
@@ -149,7 +149,7 @@ namespace Lumen::Hidden
 
 #ifdef EDITOR
         /// file change mapFileChange
-        std::multimap<system_clock::time_point, AssetManager::AssetChange> mAssetChangeMap;
+        std::multimap<steady_clock::time_point, AssetManager::AssetChange> mAssetChangeMap;
 #endif
     };
 

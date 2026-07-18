@@ -7,7 +7,7 @@
 #include "lApplication.h"
 #include "lCamera.h"
 #include "lSceneManager.h"
-#include "lEngine.h"
+#include "lFolderFileSystem.h"
 
 #ifdef EDITOR
 #include "lEditor.h"
@@ -36,7 +36,7 @@ public:
     void SetEngine(const EngineWeakPtr &engine);
 
     /// initialize application
-    void Initialize(const Lumen::ApplicationWeakPtr &application);
+    void Initialize(const ApplicationWeakPtr &application);
 
     /// shutdown application
     void Shutdown();
@@ -89,6 +89,9 @@ private:
     /// engine pointer
     EngineWeakPtr mEngine;
 
+    /// assets file system
+    IFileSystemPtr mAssetsFileSystem;
+
 #ifndef EDITOR
     /// application previous state
     State mPreviousState { State::Running };
@@ -120,12 +123,16 @@ void Application::Impl::SetEngine(const EngineWeakPtr &engine)
 }
 
 /// initialize application
-void Application::Impl::Initialize(const Lumen::ApplicationWeakPtr &application)
+void Application::Impl::Initialize(const ApplicationWeakPtr &application)
 {
-    if (auto engineLock = mEngine.lock())
-    {
-        Lumen::FileSystem::RegisterFileSystem("Assets", engineLock->AssetsFileSystem());
-    }
+#ifdef EDITOR
+    mAssetsFileSystem = FolderFileSystem::MakePtr("Assets");
+#else
+    //@@REVIEW@@ in game mode this should be some pack file system, but for now we will use the folder file system
+    mAssetsFileSystem = FolderFileSystem::MakePtr("Assets");
+#endif
+    mAssetsFileSystem->Initialize();
+    FileSystem::RegisterFileSystem("Assets", mAssetsFileSystem);
 #ifdef EDITOR
     mEditor = Editor::MakePtr(application);
     mEditor->Initialize();

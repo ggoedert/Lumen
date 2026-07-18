@@ -18,34 +18,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 using namespace Lumen::Windows;
 
-/// quick function to convert string to wstring
-std::wstring ToWString(const std::string &str)
-{
-    if (str.empty()) return {};
-
-    int sizeNeeded = MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        str.data(),
-        (int)str.size(),
-        nullptr,
-        0
-    );
-
-    std::wstring result(sizeNeeded, 0);
-
-    MultiByteToWideChar(
-        CP_UTF8,
-        0,
-        str.data(),
-        (int)str.size(),
-        result.data(),
-        sizeNeeded
-    );
-
-    return result;
-}
-
 /// windows procedure prototype
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -73,9 +45,6 @@ public:
     /// initialization and management
     bool Initialize();
 
-    /// create a file system for the assets
-    Lumen::IFileSystemPtr AssetsFileSystem() const;
-
 #ifdef EDITOR
     /// get executable name
     std::string GetExecutableName() const;
@@ -97,9 +66,6 @@ private:
     /// main window handle
     HWND mWindow = nullptr;
 
-    /// assets file system
-    IFileSystemPtr mAssetsFileSystem;
-
 #ifdef EDITOR
     /// cached settings
     Engine::Settings mSettings;
@@ -117,14 +83,6 @@ Lumen::HashType EngineWindows::Deactivated = Lumen::EncodeType("EngineWindows::D
 /// set configuration
 bool EngineWindows::Impl::Config(const Object &config)
 {
-#ifdef EDITOR
-    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr("Assets");
-#else
-    //@@REVIEW@@ in game mode this should be some pack file system, but for now we will use the folder file system
-    mAssetsFileSystem = Lumen::FolderFileSystem::MakePtr("Assets");
-#endif
-    mAssetsFileSystem->Initialize();
-
     mWindow = static_cast<const Windows::Config &>(config).mWindow;
     return true;
 }
@@ -139,12 +97,6 @@ HWND EngineWindows::Impl::GetWindow()
 bool EngineWindows::Impl::Initialize()
 {
     return true;
-}
-
-/// create a file system for the assets
-Lumen::IFileSystemPtr EngineWindows::Impl::AssetsFileSystem() const
-{
-    return mAssetsFileSystem;
 }
 
 #ifdef EDITOR
@@ -576,12 +528,6 @@ HWND EngineWindows::GetWindow()
 bool EngineWindows::Initialize()
 {
     return mImpl->Initialize();
-}
-
-/// create a file system for the assets
-Lumen::IFileSystemPtr EngineWindows::AssetsFileSystem() const
-{
-    return mImpl->AssetsFileSystem();
 }
 
 #ifdef EDITOR

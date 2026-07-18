@@ -45,6 +45,7 @@ namespace Lumen
 
     /// time types
     using system_clock = std::chrono::system_clock;
+    using steady_clock = std::chrono::steady_clock;
     using milliseconds = std::chrono::milliseconds;
 
     /// return the shared Base64 table for encoding function, hopefully optimized away by the compiler if not used

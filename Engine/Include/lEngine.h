@@ -96,9 +96,6 @@ namespace Lumen
         /// get fullscreen size
         void GetFullscreenSize(int &width, int &height) const;
 
-        /// create a file system for the assets
-        [[nodiscard]] IFileSystemPtr AssetsFileSystem() const;
-
         /// post event
         void PostEvent(EventUniquePtr event);
 

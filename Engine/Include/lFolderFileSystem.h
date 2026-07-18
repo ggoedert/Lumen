@@ -62,9 +62,16 @@ namespace Lumen
         /// gets the size of the file by handle
         size_t Size(const Id::Type handle) override;
 
-    private:
+    protected:
         /// constructs a folder file system
         explicit FolderFileSystem(const std::filesystem::path &path);
+
+        /// destroys folder file system
+        ~FolderFileSystem() override;
+
+    private:
+        /// get path
+        virtual const std::filesystem::path &Path() const = 0;
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

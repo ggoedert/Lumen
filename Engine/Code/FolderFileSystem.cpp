@@ -23,20 +23,21 @@ class FolderFileSystem::Impl
 
 public:
     /// constructs a folder file system implementation
-    explicit Impl(const std::filesystem::path &path) : mPath(path) {}
+    explicit Impl(FolderFileSystem &owner) : mOwner(owner) {}
 
     /// initialize file system
     void Initialize()
     {
 #ifdef EDITOR
+        const std::filesystem::path &path = mOwner.Path();
         std::vector<FileSystem::FileChange> fileBatch;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(mPath))
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(path))
         {
             if (entry.is_regular_file() || entry.is_directory())
             {
                 FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
-                std::string filename = entry.path().lexically_relative(mPath).generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, flags, entry.last_write_time(), (mPath / filename).string(), "" });
+                std::string filename = entry.path().lexically_relative(path).generic_string();
+                fileBatch.push_back({ FileSystem::Change::Added, flags, entry.last_write_time(), (path / filename).string(), "" });
             }
         }
         if (!fileBatch.empty())
@@ -61,7 +62,7 @@ public:
     /// check if a file exists
     bool Exists(const std::filesystem::path &path)
     {
-        const std::filesystem::path fullPath = mPath / path;
+        const std::filesystem::path fullPath = mOwner.Path() / path;
         return std::filesystem::exists(fullPath);
     }
 
@@ -69,7 +70,7 @@ public:
     std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
     {
         std::vector<FileSystem::FileEntry> files;
-        const std::filesystem::path fullPath = mPath / path;
+        const std::filesystem::path fullPath = mOwner.Path() / path;
         for (const auto &entry : std::filesystem::directory_iterator(fullPath))
         {
             if (entry.is_regular_file())
@@ -87,7 +88,7 @@ public:
     /// opens a file on the specified path
     Id::Type Open(const std::filesystem::path &path, bool write, bool binary)
     {
-        const std::filesystem::path fullPath = mPath / path;
+        const std::filesystem::path fullPath = mOwner.Path() / path;
         if (!Exists(path))
         {
             std::ofstream file(fullPath, (binary ? std::ios::binary : (std::ios::openmode)0));
@@ -230,15 +231,15 @@ public:
     }
 
 private:
+    /// owner
+    FolderFileSystem &mOwner;
+
     /// file state struct
     struct FileState
     {
         /// file stream
         std::fstream mFileStream;
     };
-
-    /// path
-    const std::filesystem::path mPath;
 
     /// open files
     std::unordered_map<Id::Type, FileState> mOpenFiles;
@@ -247,13 +248,10 @@ private:
 //==============================================================================================================================================================================
 
 /// constructs a folder file system
-FolderFileSystem::FolderFileSystem(const std::filesystem::path &path) : IFileSystem(), mImpl(FolderFileSystem::Impl::MakeUniquePtr(FileSystem::NormalizeDirPath(path))) {}
+FolderFileSystem::FolderFileSystem(const std::filesystem::path &path) : IFileSystem(), mImpl(FolderFileSystem::Impl::MakeUniquePtr(*this)) {}
 
-/// creates a smart pointer version of the folder file system
-IFileSystemPtr FolderFileSystem::MakePtr(const std::filesystem::path &path)
-{
-    return IFileSystemPtr(new FolderFileSystem(path));
-}
+/// destructor
+FolderFileSystem::~FolderFileSystem() = default;
 
 /// initialize file system
 void FolderFileSystem::Initialize()

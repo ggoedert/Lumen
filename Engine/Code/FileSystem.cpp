@@ -27,6 +27,14 @@ namespace Lumen::Hidden
 
         /// file systems
         StringMap<IFileSystemPtr> mFileSystems;
+
+#ifdef EDITOR
+        /// file batch queue
+        ConcurrentBatchQueue<FileSystem::FileChange> mFileBatchQueue;
+
+        // delayed file batch
+        std::multimap<steady_clock::time_point, FileSystem::FileChange> mDelayedFileBatch;
+#endif
     };
 
     /// global file state
@@ -47,10 +55,6 @@ namespace Lumen::Hidden
         return true;
     }
 
-#ifdef EDITOR
-    /// file batch queue
-    ConcurrentBatchQueue<FileSystem::FileChange> gFileBatchQueue;
-#endif
 }
 
 class HandleStreamBuf : public std::streambuf
@@ -142,27 +146,94 @@ void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, con
 /// push file changes
 void FileSystem::PushFileChangeBatch(std::vector<FileChange> &&fileBatch)
 {
-    Hidden::gFileBatchQueue.PushBatch(std::move(fileBatch));
+    L_ASSERT(Hidden::gFileSytemState);
+    Hidden::gFileSytemState->mFileBatchQueue.PushBatch(std::move(fileBatch));
 }
 
 /// process file changes
 void FileSystem::ProcessFileChanges()
 {
-    std::vector<FileChange> fileBatch;
+    L_ASSERT(Hidden::gFileSytemState);
 
+    std::vector<FileChange> fileBatch;
+    steady_clock::time_point now = steady_clock::now();
+
+    // pop file changes from the queue
     std::list<std::vector<FileChange>> fileBatchQueue;
-    if (Hidden::gFileBatchQueue.PopBatchQueue(fileBatchQueue))
+    if (Hidden::gFileSytemState->mFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
-        for (auto &batch : fileBatchQueue)
+        for (auto &fileBatch : fileBatchQueue)
         {
-            fileBatch.insert(fileBatch.end(), std::make_move_iterator(batch.begin()), std::make_move_iterator(batch.end()));
+            for (auto &fileChange : fileBatch)
+            {
+                // ignore directory modified events
+                if ((fileChange.mChange == Change::Modified) && (fileChange.mFlags.Has(Flag::Directory)))
+                {
+                    continue;
+                }
+
+                // check if the file change is already in the delayed batch
+                bool inserted = false;
+                if ((fileChange.mChange == Change::Added) || (fileChange.mChange == Change::Modified))
+                {
+                    auto it = std::find_if(Hidden::gFileSytemState->mDelayedFileBatch.begin(), Hidden::gFileSytemState->mDelayedFileBatch.end(), [&](const auto &pair)
+                    {
+                        return (pair.second.mName == fileChange.mName) && ((pair.second.mChange == Change::Added) || (pair.second.mChange == Change::Modified));
+                    });
+                    if (it != Hidden::gFileSytemState->mDelayedFileBatch.end())
+                    {
+                        it->second.mLastWrite = fileChange.mLastWrite;
+                        inserted = true;
+                    }
+                }
+
+                // if the file change is not already in the delayed batch, insert it with a delay
+                if (!inserted)
+                {
+                    steady_clock::time_point insertTime = now;
+                    if ((fileChange.mChange == Change::Added) || (fileChange.mChange == Change::Modified))
+                        insertTime += milliseconds(100);
+                    for (auto &pair : Hidden::gFileSytemState->mDelayedFileBatch)
+                    {
+                        if (pair.second.mName == fileChange.mName)
+                        {
+                            insertTime = std::max(pair.first, insertTime);
+                        }
+                    }
+                    Hidden::gFileSytemState->mDelayedFileBatch.emplace(insertTime, fileChange);
+                }
+            }
         }
     }
 
-    if (!fileBatch.empty())
+    // process delayed file changes that are ready
+    auto cutoff = Hidden::gFileSytemState->mDelayedFileBatch.upper_bound(now);
+    for (auto it = Hidden::gFileSytemState->mDelayedFileBatch.begin(); it != cutoff; ++it)
     {
-        AssetManager::ProcessFileChanges(std::move(fileBatch));
+        fileBatch.push_back(std::move(it->second));
     }
+    Hidden::gFileSytemState->mDelayedFileBatch.erase(Hidden::gFileSytemState->mDelayedFileBatch.begin(), cutoff);
+
+    // process file changes
+    for (auto &fileChange : fileBatch)
+    {
+        switch (fileChange.mChange)
+        {
+            case Change::Added:
+                Lumen::DebugLog::Info("fileChange: Added, {}", fileChange.mName);
+                break;
+            case Change::Modified:
+                Lumen::DebugLog::Info("fileChange: Modified, {}", fileChange.mName);
+                break;
+            case Change::Renamed:
+                Lumen::DebugLog::Info("fileChange: Renamed, {}, {}", fileChange.mOldName, fileChange.mName);
+                break;
+            case Change::Removed:
+                Lumen::DebugLog::Info("fileChange: Removed, {}", fileChange.mName);
+                break;
+        }
+    }
+    AssetManager::ProcessFileChanges(std::move(fileBatch));
 }
 #endif
 

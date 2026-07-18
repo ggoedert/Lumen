@@ -184,12 +184,6 @@ public:
         return mPlatform->GetFullscreenSize(width, height);
     }
 
-    /// create a file system for the assets
-    IFileSystemPtr AssetsFileSystem() const
-    {
-        return mPlatform->AssetsFileSystem();
-    }
-
     /// post event
     void PostEvent(EventUniquePtr event)
     {
@@ -357,12 +351,6 @@ void Engine::ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetB
 void Engine::GetFullscreenSize(int &width, int &height) const
 {
     return mImpl->GetFullscreenSize(width, height);
-}
-
-/// create a file system for the assets
-IFileSystemPtr Engine::AssetsFileSystem() const
-{
-    return mImpl->AssetsFileSystem();
 }
 
 /// post event

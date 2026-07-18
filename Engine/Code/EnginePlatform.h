@@ -69,9 +69,6 @@ namespace Lumen
         /// get fullscreen size
         virtual void GetFullscreenSize(int &width, int &height) const = 0;
 
-        /// create a folder file system
-        virtual IFileSystemPtr AssetsFileSystem() const = 0;
-
         /// post event
         virtual void PostEvent(EventUniquePtr event) = 0;
 

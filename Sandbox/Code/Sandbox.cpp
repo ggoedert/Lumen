@@ -9,10 +9,6 @@
 #include "lEngine.h"
 #include "lSceneManager.h"
 
-/// \cond
-#include <fstream>
-/// \endcond
-
 /// initialize sandbox
 void Sandbox::Initialize(const Lumen::ApplicationWeakPtr &application)
 {

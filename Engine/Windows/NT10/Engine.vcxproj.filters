@@ -248,6 +248,9 @@
     <ClInclude Include="..\..\Include\lAssetInfo.h">
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Windows\lFolderFileSystemWindows.h">
+      <Filter>Header Files\System\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -322,9 +325,6 @@
     <ClCompile Include="..\..\Code\Engine.cpp">
       <Filter>Source Files\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Code\Windows\FolderFileSystem.cpp">
-      <Filter>Source Files\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Code\BuiltinResources.cpp">
       <Filter>Source Files\Resources</Filter>
     </ClCompile>
@@ -369,6 +369,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\AssetInfo.cpp">
       <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\FolderFileSystem.cpp">
+      <Filter>Source Files\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Windows\FolderFileSystemWindows.cpp">
+      <Filter>Source Files\Systems\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
