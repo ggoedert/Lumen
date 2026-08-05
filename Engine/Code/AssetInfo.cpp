@@ -28,7 +28,7 @@ public:
     void Initialize()
     {
         mUUID = UUIDGenerate();
-        mType = Mesh::Type();
+        mType = Mesh::Type();  // TODO use path to determine type, for now we just use Mesh as a placeholder
     }
 
     /// register assetinfo name / path

@@ -102,6 +102,9 @@ namespace Lumen
         /// check if a file exists
         bool Exists(const std::filesystem::path &path);
 
+        /// rename a file
+        bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
+
         /// list files in a directory
         std::vector<FileEntry> ListFiles(const std::filesystem::path &path);
 
@@ -156,6 +159,9 @@ namespace Lumen
 
         /// check if a file exists
         virtual bool Exists(const std::filesystem::path &path) = 0;
+
+        /// rename a file
+        virtual bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) = 0;
 
         /// list files in a directory
         virtual std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) = 0;

@@ -22,9 +22,6 @@ namespace Lumen
         /// shutdown asset manager namespace
         void Shutdown();
 
-        /// create asset info
-        bool CreateAssetInfo(const std::string &path);
-
 #ifdef EDITOR
         /// AssetChange struct
         struct AssetChange

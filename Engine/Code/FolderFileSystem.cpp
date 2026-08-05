@@ -66,6 +66,20 @@ public:
         return std::filesystem::exists(fullPath);
     }
 
+    /// rename a file
+    bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+    {
+        const std::filesystem::path fullOldPath = mOwner.Path() / oldPath;
+        const std::filesystem::path fullNewPath = mOwner.Path() / newPath;
+        if (!std::filesystem::exists(fullOldPath))
+        {
+            return false;
+        }
+        std::error_code ec;
+        std::filesystem::rename(fullOldPath, fullNewPath, ec);
+        return !ec;
+    }
+
     /// list files in a directory
     std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
     {
@@ -275,6 +289,12 @@ bool FolderFileSystem::Handles(Id::Type handle)
 bool FolderFileSystem::Exists(const std::filesystem::path &path)
 {
     return mImpl->Exists(path);
+}
+
+/// rename a file
+bool FolderFileSystem::Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+{
+    return mImpl->Rename(oldPath, newPath);
 }
 
 /// list files in a directory

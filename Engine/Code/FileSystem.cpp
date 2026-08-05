@@ -214,23 +214,23 @@ void FileSystem::ProcessFileChanges()
     }
     Hidden::gFileSytemState->mDelayedFileBatch.erase(Hidden::gFileSytemState->mDelayedFileBatch.begin(), cutoff);
 
-    // process file changes
+    // process file changes (process even if empty to allow for asset manager to process delayed changes)
     for (auto &fileChange : fileBatch)
     {
         switch (fileChange.mChange)
         {
-            case Change::Added:
-                Lumen::DebugLog::Info("fileChange: Added, {}", fileChange.mName);
-                break;
-            case Change::Modified:
-                Lumen::DebugLog::Info("fileChange: Modified, {}", fileChange.mName);
-                break;
-            case Change::Renamed:
-                Lumen::DebugLog::Info("fileChange: Renamed, {}, {}", fileChange.mOldName, fileChange.mName);
-                break;
-            case Change::Removed:
-                Lumen::DebugLog::Info("fileChange: Removed, {}", fileChange.mName);
-                break;
+        case Change::Added:
+            Lumen::DebugLog::Info("fileChange: Added, {}", fileChange.mName);
+            break;
+        case Change::Modified:
+            Lumen::DebugLog::Info("fileChange: Modified, {}", fileChange.mName);
+            break;
+        case Change::Renamed:
+            Lumen::DebugLog::Info("fileChange: Renamed, {}, {}", fileChange.mOldName, fileChange.mName);
+            break;
+        case Change::Removed:
+            Lumen::DebugLog::Info("fileChange: Removed, {}", fileChange.mName);
+            break;
         }
     }
     AssetManager::ProcessFileChanges(std::move(fileBatch));
@@ -340,6 +340,23 @@ bool FileSystem::Exists(const std::filesystem::path &path)
             return fileSystem->Exists(relativePath.string());
         }
     }
+    return false;
+}
+
+/// rename a file
+bool FileSystem::Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (Hidden::StartsWith(oldPath, mountPoint))
+        {
+            std::filesystem::path relativeOldPath = oldPath.lexically_relative(mountPoint);
+            std::filesystem::path relativeNewPath = newPath.lexically_relative(mountPoint);
+            return fileSystem->Rename(relativeOldPath.string(), relativeNewPath.string());
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for path {}", oldPath.string());
     return false;
 }
 

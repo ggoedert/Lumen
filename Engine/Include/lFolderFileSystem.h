@@ -32,6 +32,9 @@ namespace Lumen
         /// check if a file exists
         bool Exists(const std::filesystem::path &path) override;
 
+        /// rename a file
+        bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) override;
+
         /// list files in a directory
         std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) override;
 
