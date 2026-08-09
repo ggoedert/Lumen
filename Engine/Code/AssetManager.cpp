@@ -69,6 +69,40 @@ namespace Lumen::Hidden
             return true;
         }
 
+        /// register an asset factory
+        void RegisterFactory(const AssetFactoryPtr &assetFactory)
+        {
+            // insert asset factory with the given priority
+            mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
+        }
+
+        /// import asset
+        Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path)
+        {
+            // normalize the path
+            std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
+
+            //@@REVIEW@@
+            //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
+
+            // get asset infos that are on the path from all factories
+            for (auto &priorityFactory : mAssetFactories)
+            {
+                auto &assetFactory = priorityFactory.second;
+                if (assetFactory->Exists(normalizedPath))
+                {
+                    auto assetExpected = assetFactory->Import(mEngine, type, normalizedPath);
+                    if (assetExpected)
+                    {
+                        return assetExpected.Value();
+                    }
+                }
+            }
+
+            // not found
+            return Expected<AssetPtr>::Unexpected("Asset not found");
+        }
+
 #ifdef EDITOR
         /// process file changes
         void ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
@@ -270,6 +304,9 @@ namespace Lumen::Hidden
         /// engine pointer
         EngineWeakPtr mEngine;
 
+        /// asset factories
+        std::multimap<float, AssetFactoryPtr, std::greater<float>> mAssetFactories;
+
 #ifdef EDITOR
         /// temporary skip changes list, used to avoid processing the same file change multiple times during renames or similar
         std::unordered_set<std::string> mSkipChanges;
@@ -299,6 +336,18 @@ void AssetManager::Shutdown()
     Hidden::gAssetManagerImpl.reset();
 }
 
+/// register an asset factory
+void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
+{
+    Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
+}
+
+/// import asset
+Expected<AssetPtr> AssetManager::Import(HashType type, const std::filesystem::path &path)
+{
+    return Hidden::gAssetManagerImpl->Import(type, path);
+}
+
 #ifdef EDITOR
 /// process file changes
 void AssetManager::ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
@@ -307,106 +356,3 @@ void AssetManager::ProcessFileChanges(std::vector<FileSystem::FileChange> &&file
     Hidden::gAssetManagerImpl->ProcessFileChanges(std::move(fileBatch));
 }
 #endif
-
-// DEPRECATED, this is the old asset manager interface, we should move to the new one as soon as possible, but for now we keep it around for testing and reference
-
-CLASS_UNIQUE_PTR_DEF(AssetManagerOldImpl);
-
-/// AssetManagerOldImpl class
-class AssetManagerOldImpl
-{
-    CLASS_NO_DEFAULT_CTOR(AssetManagerOldImpl);
-    CLASS_NO_COPY_MOVE(AssetManagerOldImpl);
-    CLASS_PTR_UNIQUEMAKER(AssetManagerOldImpl);
-
-public:
-    /// constructs an assets implementation with engine
-    explicit AssetManagerOldImpl(const EngineWeakPtr &engine) : mEngine(engine) {}
-
-    /// destroys assets
-    ~AssetManagerOldImpl() = default;
-
-    /// set engine
-    void SetEngine(const EngineWeakPtr &engine);
-
-    /// register an asset factory
-    void RegisterFactory(const AssetFactoryOldPtr &assetFactory);
-
-    /// import asset
-    Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);
-
-private:
-    /// engine pointer
-    EngineWeakPtr mEngine;
-
-    /// asset factories
-    std::multimap<float, AssetFactoryOldPtr, std::greater<float>> mAssetFactories;
-};
-
-/// register an asset factory
-void AssetManagerOldImpl::RegisterFactory(const AssetFactoryOldPtr &assetFactory)
-{
-    // insert asset factory with the given priority
-    mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
-}
-
-/// import asset
-Expected<AssetPtr> AssetManagerOldImpl::Import(HashType type, const std::filesystem::path &path)
-{
-    // normalize the path
-    std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
-
-    //@@REVIEW@@
-    //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
-
-    // get asset infos that are on the path from all factories
-    for (auto &priorityFactory : mAssetFactories)
-    {
-        auto &assetFactory = priorityFactory.second;
-        if (assetFactory->Exists(normalizedPath))
-        {
-            auto assetExpected = assetFactory->Import(mEngine, type, normalizedPath);
-            if (assetExpected)
-            {
-                return assetExpected.Value();
-            }
-        }
-    }
-
-    // not found
-    return Expected<AssetPtr>::Unexpected("Asset not found");
-}
-
-//==============================================================================================================================================================================
-
-/// Lumen Hidden namespace
-namespace Lumen::Hidden
-{
-    static AssetManagerOldImplUniquePtr gAssetManagerOldImpl;
-}
-
-/// initialize assets namespace
-void AssetManagerOld::Initialize(const EngineWeakPtr &engine)
-{
-    L_ASSERT(!Hidden::gAssetManagerOldImpl);
-    Hidden::gAssetManagerOldImpl = AssetManagerOldImpl::MakeUniquePtr(engine);
-}
-
-/// shutdown assets namespace
-void AssetManagerOld::Shutdown()
-{
-    L_ASSERT(Hidden::gAssetManagerOldImpl);
-    Hidden::gAssetManagerOldImpl.reset();
-}
-
-/// register an asset factory
-void AssetManagerOld::RegisterFactory(const AssetFactoryOldPtr &assetFactory)
-{
-    Hidden::gAssetManagerOldImpl->RegisterFactory(assetFactory);
-}
-
-/// import asset
-Expected<AssetPtr> AssetManagerOld::Import(HashType type, const std::filesystem::path &path)
-{
-    return Hidden::gAssetManagerOldImpl->Import(type, path);
-}

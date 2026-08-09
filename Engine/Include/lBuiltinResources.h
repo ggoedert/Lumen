@@ -12,14 +12,14 @@
 namespace Lumen
 {
     /// BuiltinResources class
-    class BuiltinResources : public AssetFactoryOld
+    class BuiltinResources : public AssetFactory
     {
         CLASS_NO_DEFAULT_CTOR(BuiltinResources);
         CLASS_NO_COPY_MOVE(BuiltinResources);
 
     public:
         /// creates a smart pointer version of the default resources
-        static AssetFactoryOldPtr MakePtr(float priority);
+        static AssetFactoryPtr MakePtr(float priority);
 
         /// check if asset exists
         [[nodiscard]] bool Exists(const std::filesystem::path &path) const override;

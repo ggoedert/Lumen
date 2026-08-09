@@ -1,4 +1,3 @@
-// DEPRECATED
 //==============================================================================================================================================================================
 /// \file
 /// \brief     FileSystemResources interface
@@ -13,14 +12,14 @@
 namespace Lumen
 {
     /// FileSystemResources class
-    class FileSystemResources : public AssetFactoryOld
+    class FileSystemResources : public AssetFactory
     {
         CLASS_NO_DEFAULT_CTOR(FileSystemResources);
         CLASS_NO_COPY_MOVE(FileSystemResources);
 
     public:
         /// creates a smart pointer version of the folder resources
-        static AssetFactoryOldPtr MakePtr(float priority);
+        static AssetFactoryPtr MakePtr(float priority);
 
         /// check if asset exists
         [[nodiscard]] bool Exists(const std::filesystem::path &path) const override;

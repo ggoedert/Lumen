@@ -40,9 +40,6 @@ namespace Lumen
         virtual bool Initialized() = 0;
 #endif
 
-        /// create new resources
-        virtual bool CreateNewResources() = 0;
-
         /// shutdown
         virtual void Shutdown() = 0;
 

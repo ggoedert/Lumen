@@ -53,12 +53,12 @@ public:
 //==============================================================================================================================================================================
 
 /// constructs folder resources
-FileSystemResources::FileSystemResources(float priority) : AssetFactoryOld(priority), mImpl(FileSystemResources::Impl::MakeUniquePtr()) {}
+FileSystemResources::FileSystemResources(float priority) : AssetFactory(priority), mImpl(FileSystemResources::Impl::MakeUniquePtr()) {}
 
 /// creates a smart pointer version of the folder resources
-AssetFactoryOldPtr FileSystemResources::MakePtr(float priority)
+AssetFactoryPtr FileSystemResources::MakePtr(float priority)
 {
-    return AssetFactoryOldPtr(new FileSystemResources(priority));
+    return AssetFactoryPtr(new FileSystemResources(priority));
 }
 
 /// check if asset exists

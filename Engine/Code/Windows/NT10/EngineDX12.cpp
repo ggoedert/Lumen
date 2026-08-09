@@ -59,9 +59,6 @@ namespace Lumen::Windows::NT10
         bool Initialized() override { return mInitialized; }
 #endif
 
-        /// create new resources
-        bool CreateNewResources() override;
-
         /// shutdown
         void Shutdown() override;
 
@@ -74,6 +71,12 @@ namespace Lumen::Windows::NT10
         // IDeviceNotify
         void OnDeviceLost() override;
         void OnDeviceRestored() override;
+
+        /// create new resources
+        bool CreateNewResources();
+
+        /// cleanup resources
+        bool CleanupResources(bool waitForGpu);
 
         // messages
         void OnActivated();
@@ -179,6 +182,7 @@ namespace Lumen::Windows::NT10
         using MeshMapType = std::unordered_map<Id::Type, MeshData>;
         MeshMapType mMeshMap;
         std::vector<MeshMapType::iterator> mNewDeviceMeshMap;
+        std::vector<GeometricPrimitive *> mReleasedShapes;
 
         /// map of shader
         struct ShaderData
@@ -190,6 +194,7 @@ namespace Lumen::Windows::NT10
         ShaderMapType mShaderMap;
         std::vector<ShaderMapType::iterator> mNewDeviceShaderMap;
         std::vector<ShaderMapType::iterator> mNewWindowShaderMap;
+        std::vector<IEffect *> mReleasedShaders;
 
         /// map of texture
         struct TextureData
@@ -395,10 +400,40 @@ namespace Lumen::Windows::NT10
         return true;
     }
 
+    /// cleanup resources
+    bool EngineDX12::CleanupResources(bool waitForGpu)
+    {
+        if (mReleasedShapes.empty() && mReleasedShaders.empty())
+        {
+            return true;
+        }
+
+        if (waitForGpu)
+        {
+            mDeviceResources->WaitForGpu();
+        }
+
+        for (auto shader : mReleasedShaders)
+        {
+            delete shader;
+        }
+        mReleasedShaders.clear();
+
+        for (auto shape : mReleasedShapes)
+        {
+            delete shape;
+        }
+        mReleasedShapes.clear();
+
+        return true;
+    }
+
     /// shutdown
     void EngineDX12::Shutdown()
     {
         mDeviceResources->WaitForGpu();
+
+        CleanupResources(false);
 
 #ifdef EDITOR
         // Shutdown ImGui first
@@ -488,6 +523,8 @@ namespace Lumen::Windows::NT10
         PIXEndEvent();
         if (!updateResult)
             return false;
+
+        CleanupResources(true);
 
         if (!mNewDeviceMeshMap.empty() || !mNewDeviceTextureMap.empty() || !mNewDeviceShaderMap.empty())
         {
@@ -817,7 +854,7 @@ namespace Lumen::Windows::NT10
         Id::Type shaderID = mShaderIdGenerator.Next();
         ShaderData shaderData;
         shaderData.mShader = shader;
-        shaderData.mEffect;
+        //shaderData.mEffect;
         auto it = mShaderMap.insert_or_assign(shaderID, std::move(shaderData)).first;
         mNewDeviceShaderMap.push_back(it);
         mNewWindowShaderMap.push_back(it);
@@ -830,6 +867,7 @@ namespace Lumen::Windows::NT10
         auto it = mShaderMap.find(shaderID);
         if (it != mShaderMap.end())
         {
+            mReleasedShaders.push_back(it->second.mEffect.release());
             mShaderMap.erase(it);
         }
     }
@@ -850,6 +888,7 @@ namespace Lumen::Windows::NT10
         auto it = mMeshMap.find(meshId);
         if (it != mMeshMap.end())
         {
+            mReleasedShapes.push_back(it->second.mShape.release());
             mMeshMap.erase(it);
         }
     }

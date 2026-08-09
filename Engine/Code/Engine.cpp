@@ -49,11 +49,8 @@ public:
     bool Initialize(const Object &config)
     {
         AssetManager::Initialize(mOwner);
-
-        //AssetManagerOld::Initialize(shared_from_this());
-        AssetManagerOld::Initialize(mOwner);
-        AssetManagerOld::RegisterFactory(FileSystemResources::MakePtr(1.0f));
-        AssetManagerOld::RegisterFactory(BuiltinResources::MakePtr(0.1f));
+        AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
+        AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
 
         FileSystem::Initialize(mOwner);
         SceneManager::Initialize();
@@ -104,8 +101,7 @@ public:
 
         SceneManager::Shutdown();
         FileSystem::Shutdown();
-
-        AssetManagerOld::Shutdown();
+        AssetManager::Shutdown();
 
         mPlatform->Shutdown();
     }
@@ -121,7 +117,7 @@ public:
     bool Open()
     {
         mApplication->Open();
-        return mPlatform->CreateNewResources();
+        return true;
     }
 
     /// basic game loop
