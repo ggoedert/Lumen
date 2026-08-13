@@ -35,37 +35,32 @@ namespace Lumen::Hidden
         /// destroys assets
         ~AssetManagerImpl() = default;
 
+        /// scan asset info files
+        void Scan(const std::filesystem::path &path)
+        {
+            for (const auto &entry : FileSystem::ListFiles(path))
+            {
+                auto entryPath = FileSystem::NormalizeFilePath(path / entry.mName);
+                if (entryPath.extension() != ".info" && FileSystem::Exists(std::filesystem::path(entryPath).concat(".info")))
+                {
+                    AssetInfo::Register(entryPath);
+                }
+                if (entry.mFlags.Has(FileSystem::Flag::Directory))
+                {
+                    Scan(entryPath);
+                }
+            }
+        }
+
         /// update asset info
         bool UpdateAssetInfo(const std::string &path)
         {
-            std::string infoFile = path + std::string(".info");
-            if (!FileSystem::Exists(infoFile))
+            auto assetInfoExpected = AssetInfo::AcquirePtr(path);
+            if (!assetInfoExpected.HasValue())
             {
-                auto assetInfoExpected = AssetInfo::MakePtr(infoFile);
-                if (!assetInfoExpected.HasValue())
-                {
-                    DebugLog::Error("Unable to create asset info for file: {}, error: {}", infoFile, assetInfoExpected.Error());
-                    return false;
-                }
-                auto &assetInfo = assetInfoExpected.Value();
-                assetInfo->Initialize();
-                assetInfo->Save();
-                DebugLog::Info("Create asset file in Assets folder: {}", infoFile);
+                DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
+                return false;
             }
-/* TODO load and check if info is up to date and correct type, if not, recreate it
-            else
-            {
-                auto assetInfoExpected = AssetInfo::MakePtr(infoFile);
-                if (!assetInfoExpected.HasValue())
-                {
-                    DebugLog::Error("Unable to load asset info for file: {}, error: {}", infoFile, assetInfoExpected.Error());
-                    return false;
-                }
-                auto &assetInfo = assetInfoExpected.Value();
-                assetInfo->Load();
-                DebugLog::Info("Update asset file in Assets folder: {}", infoFile);
-            }
-*/
             return true;
         }
 
@@ -146,8 +141,8 @@ namespace Lumen::Hidden
                         assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
                         if (hasInfo)
                         {
-                            Lumen::DebugLog::Detail("Added file with infofile, {}, infofile already exists", assetChange.mName);
                             assetBatch.push_back(assetChange);
+                            AssetInfo::Register(assetChange.mName);
                         }
                         else
                         {
@@ -160,6 +155,7 @@ namespace Lumen::Hidden
                         {
                             std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
                             assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, name, "" });
+                            AssetInfo::Register(name);
                         }
                     }
                     break;
@@ -208,6 +204,7 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
+                        AssetInfo::Rename(fileChange.mOldName, fileChange.mName);
                     }
                     else
                     {
@@ -231,18 +228,20 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
+                        AssetInfo::Rename(oldName, name);
                     }
                     break;
                 case FileSystem::Change::Removed:
                     if (isBase)
                     {
                         assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                        AssetInfo::Remove(fileChange.mName);
                     }
                     else
                     {
+                        std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
                         if (hasBase)
                         {
-                            std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
                             assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, name, "" });
                             AssetManager::AssetChange assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, name, "" };
                             if (hasInfo)
@@ -255,6 +254,7 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
+                        AssetInfo::Remove(name);
                     }
                     break;
                 }
@@ -340,6 +340,12 @@ void AssetManager::Shutdown()
 void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 {
     Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
+}
+
+/// scan assets
+void AssetManager::Scan()
+{
+    Hidden::gAssetManagerImpl->Scan("Assets/");
 }
 
 /// import asset

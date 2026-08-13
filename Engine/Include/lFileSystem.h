@@ -96,6 +96,12 @@ namespace Lumen
         /// write serialized data to a path
         bool WriteSerializedData(const std::filesystem::path &path, const Serialized::Type &data);
 
+        /// read asset info from a path
+        bool ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Serialized::Type *data);
+
+        /// write asset info to a path
+        bool WriteAssetInfo(const std::filesystem::path &path, UUID uuid, const Serialized::Type &data);
+
         /// checks if a path is packed
         bool IsPacked(const std::filesystem::path &path);
 
@@ -125,12 +131,6 @@ namespace Lumen
 
         /// writes text to a file handle
         bool WriteText(const Id::Type handle, const std::string &text);
-
-        /// reads infofile record from a file handle
-        bool ReadInfofileRecord(const Id::Type handle, Serialized::Type &record);
-
-        /// writes infofile record to a file handle
-        bool WriteInfofileRecord(const Id::Type handle, const Serialized::Type &record);
 
         /// gets the current position in the file by handle
         size_t Tell(const Id::Type handle);

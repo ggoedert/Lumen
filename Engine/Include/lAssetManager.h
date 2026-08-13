@@ -52,6 +52,9 @@ namespace Lumen
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
+        /// scan assets
+        void Scan();
+
         /// import asset
         Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);
 

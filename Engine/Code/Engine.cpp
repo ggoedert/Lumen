@@ -48,11 +48,12 @@ public:
     /// initialization and management
     bool Initialize(const Object &config)
     {
+        FileSystem::Initialize(mOwner);
+
         AssetManager::Initialize(mOwner);
         AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
         AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
 
-        FileSystem::Initialize(mOwner);
         SceneManager::Initialize();
 
         if (!mApplication)
@@ -74,6 +75,8 @@ public:
         {
             return false;
         }
+
+        AssetManager::Scan();
 
 #ifdef EDITOR
         // process initial file changes

@@ -9,6 +9,7 @@
 #include "lAssetManager.h"
 #include "lImGuiLib.h"
 #include "lNodeForest.h"
+#include "lAssetInfo.h"
 
 /// \cond
 #include <ranges>
@@ -61,6 +62,7 @@ public:
     void Draw()
     {
         DrawTree();
+        ImGui::SameLine();
         DrawAssetBrowser();
     }
 
@@ -80,13 +82,14 @@ public:
                 if (nodeIt != mAssetTree.end())
                 {
                     for (AssetTree::KeyType &childKey : nodeIt->second.mChildKeys)
+                    {
                         DrawTree(childKey);
+                    }
                 }
                 ImGui::EndTable();
             }
         }
         ImGui::EndChild();
-        ImGui::SameLine();
     }
 
     /// draw tree node
@@ -104,21 +107,27 @@ public:
             tree_flags |= ImGuiTreeNodeFlags_SpanFullWidth;         // Span full width for easier mouse reach
             tree_flags |= ImGuiTreeNodeFlags_DrawLinesToNodes;      // Always draw hierarchy outlines
             if (key == mVisibleKey)
+            {
                 tree_flags |= ImGuiTreeNodeFlags_Selected;
-            /* commented out, we dont draw leaf nodes in the tree, we only draw folders, so this is not needed
-            if (!nodeIt->second.mData.mIsFolder)
-                tree_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
-            */
+            }
             if (nodeIt->second.mParentKey == AssetTree::NoKey)
+            {
                 ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+            }
+
             // we should not use the name as ID because they are not unique, so we use the UID as ID and display the name only in the label
             bool node_open = ImGui::TreeNodeEx("", tree_flags, "%s", nodeIt->second.mData.mFilename.c_str());
-            if (ImGui::IsItemFocused())
+            if (ImGui::IsItemFocused() && mVisibleKey != key)
+            {
                 mVisibleKey = key;
+                mVisibleAssetInfo.clear();
+            }
             if (node_open)
             {
                 for (AssetTree::KeyType &childKey : nodeIt->second.mChildKeys)
+                {
                     DrawTree(childKey);
+                }
                 ImGui::TreePop();
             }
             ImGui::PopID();
@@ -138,8 +147,37 @@ public:
                 auto childIt = mAssetTree.find(childKey);
                 if (childIt != mAssetTree.end())
                 {
-                    // @@REVIEW@@ we should not rely on the name to determine the type, we should store the type in the data, but for now this is just a test
                     AssetTree::Node &child = childIt->second;
+                    auto parentIt = child.mParentKey;
+                    std::string path = child.mData.mFilename;
+                    while (parentIt != AssetTree::NoKey)
+                    {
+                        auto parentNodeIt = mAssetTree.find(parentIt);
+                        if (parentNodeIt == mAssetTree.end())
+                        {
+                            break;
+                        }
+                        path = parentNodeIt->second.mData.mFilename + "/" + path;
+                        parentIt = parentNodeIt->second.mParentKey;
+                    }
+                    if (path.starts_with("./"))
+                    {
+                        path = path.substr(2);
+                    }
+
+                    // cache visible asset info
+                    if (mVisibleAssetInfo.find(path) == mVisibleAssetInfo.end())
+                    {
+                        auto assetInfoExpected = AssetInfo::AcquirePtr(path);
+                        if (!assetInfoExpected.HasValue())
+                        {
+                            DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
+                            continue;
+                        }
+                        mVisibleAssetInfo[path] = assetInfoExpected.Value();
+                    }
+
+                    // @@REVIEW@@ we should not rely on the name to determine the type, we should store the type in the data, but for now this is just a test
                     if (child.mData.mIsFolder)
                     {
                         assets.push_back({ MATERIAL_ICONS_FOLDER, child.mData.mFilename });
@@ -198,8 +236,14 @@ public:
             bool clicked = ImGui::IsItemClicked();
             bool double_clicked = hovered && ImGui::IsMouseDoubleClicked(0);
 
-            if (clicked) selected = i;
-            if (double_clicked) DebugLog::Info("Open asset: {}", asset.mName);
+            if (clicked)
+            {
+                selected = i;
+            }
+            if (double_clicked)
+            {
+                DebugLog::Info("Open asset: {}", asset.mName);
+            }
 
             // drag-drop source
             if (ImGui::BeginDragDropSource())
@@ -227,19 +271,17 @@ public:
                 ImVec2 drag_max = drag_start;
                 ImRect selection_rect(drag_min, drag_max);
                 if (selection_rect.Contains(cell_min))
+                {
                     selected = i;
+                }
             }
 
             // draw icon centered
-            //if (asset.mColor == false)
-            //    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 0.00f, 0.00f, 1.00f));
             ImGui::PushFont(NULL, icon_size);
             ImVec2 icon_pos = ImVec2(cell_min.x + (cell_size - ImGui::CalcTextSize(asset.mIcon).x) / 2.f, cell_min.y);
             ImGui::SetCursorScreenPos(icon_pos);
             ImGui::Text("%s", asset.mIcon);
             ImGui::PopFont();
-            //if (asset.mColor == false)
-            //    ImGui::PopStyleColor();
 
             // draw name (with optional rename)
             ImGui::SetCursorScreenPos(ImVec2(cell_min.x, cell_min.y + icon_size + 20.f));
@@ -278,42 +320,42 @@ public:
             }
             else
             {*/
-            // display mode truncated with ...
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            ImRect total_bb(pos, ImVec2(pos.x + icon_width, pos.y + ImGui::GetTextLineHeight()));
+                // display mode truncated with ...
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+                ImRect total_bb(pos, ImVec2(pos.x + icon_width, pos.y + ImGui::GetTextLineHeight()));
 
-            // render the ellipsis text 
-            ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(),
-                total_bb.Min,
-                total_bb.Max,
-                total_bb.Max.x,
-                label.c_str(),
-                NULL,
-                NULL);
+                // render the ellipsis text 
+                ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(),
+                    total_bb.Min,
+                    total_bb.Max,
+                    total_bb.Max.x,
+                    label.c_str(),
+                    NULL,
+                    NULL);
 
-            // register the item size so the layout cursor advances properly
-            ImGui::ItemSize(total_bb.GetSize(), 0.0f);
+                // register the item size so the layout cursor advances properly
+                ImGui::ItemSize(total_bb.GetSize(), 0.0f);
 
-            // register the item ID and bounding box for interaction (hover/click)
-            if (ImGui::ItemAdd(total_bb, ImGui::GetID(label.c_str())))
-            {
-                if (ImGui::IsItemHovered())
+                // register the item ID and bounding box for interaction (hover/click)
+                if (ImGui::ItemAdd(total_bb, ImGui::GetID(label.c_str())))
                 {
-                    // right-click to trigger renaming @@REVIEW@@ renaming broken for now, need to review this
-                    /*if (ImGui::IsMouseClicked(1))
+                    if (ImGui::IsItemHovered())
                     {
-                        asset.mRenaming = true;
-                    }*/
+                        // right-click to trigger renaming @@REVIEW@@ renaming broken for now, need to review this
+                        /*if (ImGui::IsMouseClicked(1))
+                        {
+                            asset.mRenaming = true;
+                        }*/
 
-                    // show tooltip only if the text was actually truncated
-                    if (fullTextWidth > icon_width)
-                    {
-                        ImGui::BeginTooltip();
-                        ImGui::TextUnformatted(label.c_str());
-                        ImGui::EndTooltip();
+                        // show tooltip only if the text was actually truncated
+                        if (fullTextWidth > icon_width)
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::TextUnformatted(label.c_str());
+                            ImGui::EndTooltip();
+                        }
                     }
                 }
-            }
             //}
 
             // move cursor for next asset
@@ -496,6 +538,9 @@ private:
 
     /// currently visible node key
     AssetTree::KeyType mVisibleKey = AssetTree::NoKey;
+
+    /// visible asset info cache
+    std::unordered_map<std::string, AssetInfoPtr> mVisibleAssetInfo;
 
     /// window open bool
     bool mWindowOpen;

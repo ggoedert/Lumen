@@ -180,7 +180,7 @@ public:
         }
         else
         {
-            while (std::getline(file, line) && lineCount--)
+            while ((--lineCount >= 0) && std::getline(file, line))
             {
                 serializedData += std::move(line);
             }

@@ -250,7 +250,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
     Id::Type file = FileSystem::Open(path, false, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open scene file for reading, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open serialized file for reading, {}", path.string());
         return false;
     }
 
@@ -267,7 +267,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
             }
             catch (const std::exception &e)
             {
-                Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", path.string(), e.what());
+                Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.string(), e.what());
                 result = false;
             }
         }
@@ -280,7 +280,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
         }
         catch (const std::exception &e)
         {
-            Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", path.string(), e.what());
+            Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.string(), e.what());
             result = false;
         }
     }
@@ -295,7 +295,7 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
     Id::Type file = FileSystem::Open(path, true, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open scene file for writing, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.string());
         return false;
     }
 
@@ -306,6 +306,114 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
     }
     else
     {
+        FileSystem::WriteText(file, data.dump(4));
+    }
+
+    FileSystem::Close(file);
+    return true;
+}
+
+/// read asset info from a path
+bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Serialized::Type *data)
+{
+    bool binary = FileSystem::IsPacked(path);
+    Id::Type file = FileSystem::Open(path, false, binary);
+    if (file == Id::Invalid)
+    {
+        Lumen::DebugLog::Error("Unable to open asset info file for reading, {}", path.string());
+        return false;
+    }
+
+    bool result = true;
+    if (binary)
+    {
+        size_t fileSize = FileSystem::Size(file);
+        if (fileSize < sizeof(UUID))
+        {
+            Lumen::DebugLog::Error("Asset info file {} is too small to contain a UUID", path.string());
+            FileSystem::Close(file);
+            return false;
+        }
+
+        uuid = 0;
+        std::vector<uint8_t> u(sizeof(UUID));
+        if (FileSystem::ReadBytes(file, u.data(), sizeof(UUID)) == sizeof(UUID))
+        {
+            for (std::size_t i = 0; i < sizeof(UUID); ++i)
+            {
+                uuid = static_cast<UUID>((uuid << 8) | static_cast<UUID>(u[i]));
+            }
+        }
+
+        if (data)
+        {
+            size_t dataSize = fileSize - sizeof(UUID);
+            if (dataSize > 0)
+            {
+                std::vector<uint8_t> v(dataSize);
+                if (FileSystem::ReadBytes(file, v.data(), dataSize) == dataSize)
+                {
+                    try
+                    {
+                        *data = Serialized::Type::from_cbor(v);
+                    }
+                    catch (const std::exception &e)
+                    {
+                        Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.string(), e.what());
+                        result = false;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        std::string uuidText = FileSystem::ReadText(file, 1);
+        uuid = UUIDFromString(uuidText.substr(1, uuidText.length() - 5));
+
+        if (data)
+        {
+            try
+            {
+                *data = Serialized::Type::parse("{\n" + FileSystem::ReadText(file));
+            }
+            catch (const std::exception &e)
+            {
+                Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.string(), e.what());
+                result = false;
+            }
+        }
+    }
+    FileSystem::Close(file);
+    return result;
+}
+
+/// write asset info to a path
+bool FileSystem::WriteAssetInfo(const std::filesystem::path &path, UUID uuid, const Serialized::Type &data)
+{
+    bool binary = FileSystem::IsPacked(path);
+    Id::Type file = FileSystem::Open(path, true, binary);
+    if (file == Id::Invalid)
+    {
+        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.string());
+        return false;
+    }
+
+    if (binary)
+    {
+        std::vector<uint8_t> serUUID(sizeof(UUID));
+        for (std::size_t i = 0; i < sizeof(UUID); ++i)
+        {
+            serUUID[i] = static_cast<uint8_t>((uuid >> ((sizeof(UUID) - 1 - i) * 8)) & 0xff);
+        }
+        FileSystem::WriteBytes(file, serUUID.data(), serUUID.size());
+
+        std::vector<uint8_t> serData = Serialized::Type::to_cbor(data);
+        FileSystem::WriteBytes(file, serData.data(), serData.size());
+    }
+    else
+    {
+        FileSystem::WriteText(file, "\"" + UUIDToString(uuid) + "\": ");
         FileSystem::WriteText(file, data.dump(4));
     }
 
@@ -462,68 +570,6 @@ bool FileSystem::WriteText(const Id::Type handle, const std::string &text)
         if (fileSystem->Handles(handle))
         {
             return fileSystem->WriteText(handle, text);
-        }
-    }
-    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
-    return false;
-}
-
-/// reads infofile record from a file handle
-bool FileSystem::ReadInfofileRecord(const Id::Type handle, Serialized::Type &record)
-{
-    L_ASSERT(Hidden::gFileSytemState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
-    {
-        if (fileSystem->Handles(handle))
-        {
-            if (fileSystem->Packed())
-            {
-//??                std::vector<uint8_t> serData = Serialized::Type::to_cbor(record);
-//??                return fileSystem->WriteBytes(handle, serData.data(), serData.size());
-                size_t fileSize = FileSystem::Size(handle);
-                std::vector<uint8_t> v(fileSize);
-                if (FileSystem::ReadBytes(handle, v.data(), fileSize) == fileSize)
-                {
-                    try
-                    {
-                        record = Serialized::Type::from_cbor(v);
-                    }
-                    catch (const std::exception &e)
-                    {
-                        Lumen::DebugLog::Error("Unable to parse scene file {}, error {}", "unknown"/*path.string()*/, e.what());
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-//??                return fileSystem->WriteText(handle, record.dump(4));
-                record = Serialized::Type::parse(FileSystem::ReadText(handle));
-            }
-            return true;
-        }
-    }
-    Lumen::DebugLog::Error("No registered file system for file handle {}", handle);
-    return false;
-}
-
-/// writes intofile record to a file handle
-bool FileSystem::WriteInfofileRecord(const Id::Type handle, const Serialized::Type &record)
-{
-    L_ASSERT(Hidden::gFileSytemState);
-    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
-    {
-        if (fileSystem->Handles(handle))
-        {
-            if (fileSystem->Packed())
-            {
-                std::vector<uint8_t> serData = Serialized::Type::to_cbor(record);
-                return fileSystem->WriteBytes(handle, serData.data(), serData.size());
-            }
-            else
-            {
-                return fileSystem->WriteText(handle, record.dump(4));
-            }
         }
     }
     Lumen::DebugLog::Error("No registered file system for file handle {}", handle);

@@ -25,23 +25,17 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(AssetInfo);
 
     public:
-        /// creates a smart pointer version of the assetinfo
-        static Expected<AssetInfoPtr> MakePtr(const std::filesystem::path &path);
+        /// get or create a smart pointer version of the assetinfo from smart pointer cache
+        static Expected<AssetInfoPtr> AcquirePtr(const std::filesystem::path &path);
 
-        /// initialize assetinfo
-        void Initialize();
+        /// register asset info
+        static void Register(const std::filesystem::path &path);
 
-        /// register assetinfo name / path
-        static void Register(std::string_view name, std::string_view path);
+        /// rename asset info
+        static void Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
-        /// find assetinfo path from name
-        static Expected<std::string_view> Find(std::string_view name);
-
-        /// save assetinfo
-        bool Save() const;
-
-        /// load assetinfo
-        bool Load();
+        /// remove asset info
+        static void Remove(const std::filesystem::path &path);
 
         /// get path
         const std::filesystem::path &Path() const;
