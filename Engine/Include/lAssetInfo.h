@@ -5,7 +5,6 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lExpected.h"
 #include "lUUID.h"
 
 /// \cond
@@ -25,17 +24,23 @@ namespace Lumen
         CLASS_NO_COPY_MOVE(AssetInfo);
 
     public:
-        /// get or create a smart pointer version of the assetinfo from smart pointer cache
-        static Expected<AssetInfoPtr> AcquirePtr(const std::filesystem::path &path);
+        /// custom deleter type
+        using Deleter = std::function<void(AssetInfo *)>;
 
-        /// register asset info
-        static void Register(const std::filesystem::path &path);
+        /// destructor
+        ~AssetInfo();
 
-        /// rename asset info
-        static void Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
+        /// creates a smart pointer version of the AssetInfo (custom deletion)
+        static AssetInfoPtr MakePtr(const std::filesystem::path &path, Deleter deleter);
 
-        /// remove asset info
-        static void Remove(const std::filesystem::path &path);
+        /// initialize assetinfo
+        void Initialize();
+
+        /// save assetinfo
+        bool Save() const;
+
+        /// load assetinfo
+        bool Load();
 
         /// get path
         const std::filesystem::path &Path() const;

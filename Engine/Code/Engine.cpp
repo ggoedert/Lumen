@@ -100,7 +100,10 @@ public:
     {
         // shutdown application
         if (mApplication)
+        {
             mApplication->Shutdown();
+            mApplication.reset();
+        }
 
         SceneManager::Shutdown();
         FileSystem::Shutdown();

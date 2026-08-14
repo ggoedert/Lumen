@@ -9,6 +9,7 @@
 #include "lExpected.h"
 #include "lAsset.h"
 #include "lFileSystem.h"
+#include "lAssetInfo.h"
 
 /// Lumen namespace
 namespace Lumen
@@ -54,6 +55,9 @@ namespace Lumen
 
         /// scan assets
         void Scan();
+
+        /// create or get assetinfo
+        Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path);
 
         /// import asset
         Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);

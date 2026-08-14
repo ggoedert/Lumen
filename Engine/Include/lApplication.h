@@ -22,8 +22,8 @@ namespace Lumen
     /// Application class
     class Application
     {
-        friend class Engine;
         CLASS_NO_COPY_MOVE(Application);
+        friend class Engine;
 
     public:
         /// application state

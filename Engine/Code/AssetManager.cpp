@@ -43,7 +43,7 @@ namespace Lumen::Hidden
                 auto entryPath = FileSystem::NormalizeFilePath(path / entry.mName);
                 if (entryPath.extension() != ".info" && FileSystem::Exists(std::filesystem::path(entryPath).concat(".info")))
                 {
-                    AssetInfo::Register(entryPath);
+                    Register(entryPath);
                 }
                 if (entry.mFlags.Has(FileSystem::Flag::Directory))
                 {
@@ -52,10 +52,109 @@ namespace Lumen::Hidden
             }
         }
 
+        /// register asset info
+        void Register(const std::filesystem::path &path)
+        {
+            auto assetUUIDIt = mAssetUUIDs.find(path);
+            if (assetUUIDIt == mAssetUUIDs.end())
+            {
+                Lumen::UUID uuid;
+                if (FileSystem::ReadAssetInfo(std::filesystem::path(path).concat(".info"), uuid, nullptr))
+                {
+                    mAssetPaths[uuid] = path;
+                    mAssetUUIDs[path] = uuid;
+                }
+            }
+        }
+
+        /// rename asset info
+        void Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+        {
+            // find old path
+            auto assetUUIDIt = mAssetUUIDs.find(oldPath);
+            if (assetUUIDIt != mAssetUUIDs.end())
+            {
+                // save mapped uuid and erase old path from cache
+                Lumen::UUID uuid = assetUUIDIt->second;
+                mAssetUUIDs.erase(assetUUIDIt);
+
+                // find uuid in cache
+                auto assetPathIt = mAssetPaths.find(uuid);
+                if (assetPathIt != mAssetPaths.end())
+                {
+                    // update mapped path and insert uuid to cache
+                    assetPathIt->second = newPath;
+                    mAssetUUIDs[newPath] = uuid;
+                }
+            }
+        }
+
+        /// remove asset info
+        void Remove(const std::filesystem::path &path)
+        {
+            // find path
+            auto assetUUIDIt = mAssetUUIDs.find(path);
+            if (assetUUIDIt != mAssetUUIDs.end())
+            {
+                // erase uuid and path from cache
+                mAssetPaths.erase(assetUUIDIt->second);
+                mAssetUUIDs.erase(assetUUIDIt);
+            }
+        }
+
+        /// create or get assetinfo
+        Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path)
+        {
+            auto assetInfoIt = mAssetInfos.find(path);
+            if (assetInfoIt != mAssetInfos.end())
+            {
+                if (auto ptr = assetInfoIt->second.lock())
+                {
+                    return ptr;
+                }
+                mAssetInfos.erase(assetInfoIt);
+            }
+
+            // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
+            auto deleter = [this, path](AssetInfo *ptr)
+            {
+                delete ptr;
+                mAssetInfos.erase(path);
+            };
+            auto assetInfoPtr = AssetInfo::MakePtr(path, deleter);
+
+            std::filesystem::path infoFile = std::filesystem::path(path).concat(".info");
+            if (!FileSystem::Exists(infoFile))
+            {
+                // register assetinfo
+                assetInfoPtr->Initialize();
+                if (!assetInfoPtr->Save())
+                {
+                    return Expected<AssetInfoPtr>::Unexpected("Failed to save asset info");
+                }
+
+                // register assetinfo in caches
+                mAssetPaths[assetInfoPtr->UUID()] = assetInfoPtr->Path();
+                mAssetUUIDs[assetInfoPtr->Path()] = assetInfoPtr->UUID();
+
+                DebugLog::Info("Created asset info file in Assets folder: {}", infoFile.string());
+            }
+            else
+            {
+                if (!assetInfoPtr->Load())
+                {
+                    return Expected<AssetInfoPtr>::Unexpected("Failed to load asset info");
+                }
+            }
+
+            mAssetInfos[path] = assetInfoPtr;
+            return assetInfoPtr;
+        }
+
         /// update asset info
         bool UpdateAssetInfo(const std::string &path)
         {
-            auto assetInfoExpected = AssetInfo::AcquirePtr(path);
+            auto assetInfoExpected = GetInfo(path);
             if (!assetInfoExpected.HasValue())
             {
                 DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
@@ -142,7 +241,7 @@ namespace Lumen::Hidden
                         if (hasInfo)
                         {
                             assetBatch.push_back(assetChange);
-                            AssetInfo::Register(assetChange.mName);
+                            Register(assetChange.mName);
                         }
                         else
                         {
@@ -155,7 +254,7 @@ namespace Lumen::Hidden
                         {
                             std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
                             assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, name, "" });
-                            AssetInfo::Register(name);
+                            Register(name);
                         }
                     }
                     break;
@@ -204,7 +303,7 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
-                        AssetInfo::Rename(fileChange.mOldName, fileChange.mName);
+                        Rename(fileChange.mOldName, fileChange.mName);
                     }
                     else
                     {
@@ -228,14 +327,14 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
-                        AssetInfo::Rename(oldName, name);
+                        Rename(oldName, name);
                     }
                     break;
                 case FileSystem::Change::Removed:
                     if (isBase)
                     {
                         assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
-                        AssetInfo::Remove(fileChange.mName);
+                        Remove(fileChange.mName);
                     }
                     else
                     {
@@ -254,7 +353,7 @@ namespace Lumen::Hidden
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
-                        AssetInfo::Remove(name);
+                        Remove(name);
                     }
                     break;
                 }
@@ -307,6 +406,15 @@ namespace Lumen::Hidden
         /// asset factories
         std::multimap<float, AssetFactoryPtr, std::greater<float>> mAssetFactories;
 
+        /// asset infos
+        std::unordered_map<std::filesystem::path, AssetInfoWeakPtr> mAssetInfos;
+
+        /// asset info paths
+        std::unordered_map<Lumen::UUID, std::filesystem::path> mAssetPaths;
+
+        /// asset info uuids
+        std::unordered_map<std::filesystem::path, Lumen::UUID> mAssetUUIDs;
+
 #ifdef EDITOR
         /// temporary skip changes list, used to avoid processing the same file change multiple times during renames or similar
         std::unordered_set<std::string> mSkipChanges;
@@ -346,6 +454,12 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 void AssetManager::Scan()
 {
     Hidden::gAssetManagerImpl->Scan("Assets/");
+}
+
+/// create or get cached assetinfo
+Expected<AssetInfoPtr> AssetManager::GetInfo(const std::filesystem::path &path)
+{
+    return Hidden::gAssetManagerImpl->GetInfo(path);
 }
 
 /// import asset

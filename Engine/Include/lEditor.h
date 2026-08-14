@@ -42,11 +42,10 @@ namespace Lumen
         /// run editor
         void Run();
 
-    protected:
+    private:
         /// constructs editor
         explicit Editor(const ApplicationWeakPtr &application);
 
-    private:
         /// private implementation
         CLASS_PIMPL_DEF(Impl);
     };

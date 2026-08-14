@@ -26,103 +26,6 @@ public:
     {
         mUUID = UUIDGenerate();
         mType = HASH_INVALID;  // TODO use path to determine type
-
-        // register assetinfo in caches
-        mAssetPathCache[mUUID] = mPath;
-        mAssetUUIDCache[mPath] = mUUID;
-    }
-
-    /// get or create a smart pointer version of the assetinfo from smart pointer cache
-    static Expected<AssetInfoPtr> AcquirePtr(const std::filesystem::path &path)
-    {
-        auto it = mAssetInfoCache.find(path);
-        if (it != mAssetInfoCache.end())
-        {
-            if (auto ptr = it->second.lock())
-            {
-                return ptr;
-            }
-            mAssetInfoCache.erase(it);
-        }
-
-        // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
-        auto deleter = [path](AssetInfo *ptr)
-        {
-            delete ptr;
-            mAssetInfoCache.erase(path);
-        };
-        auto assetInfoPtr = AssetInfoPtr(new AssetInfo(path), deleter);
-
-        std::filesystem::path infoFile = std::filesystem::path(path).concat(".info");
-        if (!FileSystem::Exists(infoFile))
-        {
-            assetInfoPtr->mImpl->Initialize();
-            if (!assetInfoPtr->mImpl->Save())
-            {
-                return Expected<AssetInfoPtr>::Unexpected("Failed to save asset info");
-            }
-            DebugLog::Info("Created asset info file in Assets folder: {}", infoFile.string());
-        }
-        else
-        {
-            if (!assetInfoPtr->mImpl->Load())
-            {
-                return Expected<AssetInfoPtr>::Unexpected("Failed to load asset info");
-            }
-        }
-
-        mAssetInfoCache[path] = assetInfoPtr;
-        return assetInfoPtr;
-    }
-
-    /// register asset info
-    static void Register(const std::filesystem::path &path)
-    {
-        auto UUIDCacheIt = mAssetUUIDCache.find(path);
-        if (UUIDCacheIt == mAssetUUIDCache.end())
-        {
-            Lumen::UUID uuid;
-            if (FileSystem::ReadAssetInfo(std::filesystem::path(path).concat(".info"), uuid, nullptr))
-            {
-                mAssetPathCache[uuid] = path;
-                mAssetUUIDCache[path] = uuid;
-            }
-        }
-    }
-
-    /// rename asset info
-    static void Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
-    {
-        // find old path in cache
-        auto UUIDCacheIt = mAssetUUIDCache.find(oldPath);
-        if (UUIDCacheIt != mAssetUUIDCache.end())
-        {
-            // save mapped uuid and erase old path from cache
-            Lumen::UUID uuid = UUIDCacheIt->second;
-            mAssetUUIDCache.erase(UUIDCacheIt);
-
-            // find uuid in cache
-            auto pathCacheIt = mAssetPathCache.find(uuid);
-            if (pathCacheIt != mAssetPathCache.end())
-            {
-                // update mapped path and insert uuid to cache
-                pathCacheIt->second = newPath;
-                mAssetUUIDCache[newPath] = uuid;
-            }
-        }
-    }
-
-    /// remove asset info
-    static void Remove(const std::filesystem::path &path)
-    {
-        // find path in cache
-        auto UUIDCacheIt = mAssetUUIDCache.find(path);
-        if (UUIDCacheIt != mAssetUUIDCache.end())
-        {
-            // erase uuid and path from cache
-            mAssetPathCache.erase(UUIDCacheIt->second);
-            mAssetUUIDCache.erase(UUIDCacheIt);
-        }
     }
 
     /// get path
@@ -214,52 +117,38 @@ private:
     /// assetinfo type
     Hash mType;
 
-    /// AssetInfo cache
-    static std::unordered_map<std::filesystem::path, AssetInfoWeakPtr> mAssetInfoCache;
-
-    /// AssetInfo path cache
-    static std::unordered_map<Lumen::UUID, std::filesystem::path> mAssetPathCache;
-
-    /// AssetInfo uuid cache
-    static std::unordered_map<std::filesystem::path, Lumen::UUID> mAssetUUIDCache;
 };
-
-/// AssetInfo cache
-std::unordered_map<std::filesystem::path, AssetInfoWeakPtr> AssetInfo::Impl::mAssetInfoCache;
-
-/// AssetInfo path cache
-std::unordered_map<Lumen::UUID, std::filesystem::path> AssetInfo::Impl::mAssetPathCache;
-
-/// AssetInfo uuid cache
-std::unordered_map<std::filesystem::path, Lumen::UUID> AssetInfo::Impl::mAssetUUIDCache;
 
 //==============================================================================================================================================================================
 
 /// constructs a assetinfo
 AssetInfo::AssetInfo(const std::filesystem::path &path) : mImpl(AssetInfo::Impl::MakeUniquePtr(path)) {}
 
-/// get or create a smart pointer version of the assetinfo from smart pointer cache
-Expected<AssetInfoPtr> AssetInfo::AcquirePtr(const std::filesystem::path &path)
+/// destructor
+AssetInfo::~AssetInfo() = default;
+
+/// creates a smart pointer version of the AssetInfo (custom deletion)
+AssetInfoPtr AssetInfo::MakePtr(const std::filesystem::path &path, Deleter deleter)
 {
-    return Impl::AcquirePtr(path);
+    return AssetInfoPtr(new AssetInfo(path), std::move(deleter));
 }
 
-/// register asset info
-void AssetInfo::Register(const std::filesystem::path &path)
+/// initialize assetinfo
+void AssetInfo::Initialize()
 {
-    return Impl::Register(path);
+    mImpl->Initialize();
 }
 
-/// rename asset info
-void AssetInfo::Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+/// save assetinfo
+bool AssetInfo::Save() const
 {
-    return Impl::Rename(oldPath, newPath);
+    return mImpl->Save();
 }
 
-/// remove asset info
-void AssetInfo::Remove(const std::filesystem::path &path)
+/// load assetinfo
+bool AssetInfo::Load()
 {
-    return Impl::Remove(path);
+    return mImpl->Load();
 }
 
 /// get path

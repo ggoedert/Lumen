@@ -9,10 +9,8 @@
 #include "lAssetManager.h"
 #include "lImGuiLib.h"
 #include "lNodeForest.h"
-#include "lAssetInfo.h"
 
 /// \cond
-#include <ranges>
 #include <filesystem>
 /// \endcond
 
@@ -168,7 +166,7 @@ public:
                     // cache visible asset info
                     if (mVisibleAssetInfo.find(path) == mVisibleAssetInfo.end())
                     {
-                        auto assetInfoExpected = AssetInfo::AcquirePtr(path);
+                        auto assetInfoExpected = AssetManager::GetInfo(path);
                         if (!assetInfoExpected.HasValue())
                         {
                             DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
