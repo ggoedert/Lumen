@@ -30,7 +30,7 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        Serialized::SerializeValue(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Path().string());
+        Serialized::SerializeValue(out, packed, Serialized::cMaterialTypeToken, Serialized::cMaterialTypeTokenPacked, mMaterial->Path().generic_string());
     }
 
     /// deserialize
@@ -45,7 +45,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load material resource, no path in material asset"));
         }
-        Expected<AssetPtr> materialExp = AssetManager::Import(Material::Type(), path);
+        Expected<AssetPtr> materialExp = AssetManager::Load(Material::Type(), path);
         if (!materialExp.HasValue())
         {
             throw std::runtime_error(std::format("Unable to load material resource, {}", materialExp.Error()));

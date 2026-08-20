@@ -35,6 +35,9 @@ namespace Lumen
         /// rename a file
         bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) override;
 
+        /// get file attributes
+        FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) override;
+
         /// list files in a directory
         std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) override;
 

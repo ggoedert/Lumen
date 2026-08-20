@@ -50,6 +50,13 @@ public:
     /// destructor
     ~Impl() = default;
 
+    /// shutdown editor content
+    void Shutdown()
+    {
+        // asset infos need to be delete before the engine is destroyed
+        mVisibleAssetInfo.clear();
+    }
+
     /// editor content dialog name
     static const char *Name()
     {
@@ -390,7 +397,7 @@ public:
         {
             std::filesystem::path oldFilePath = item.mOldName;
             std::filesystem::path filePath = item.mName;
-            bool isDirectory = item.mFlags.Has(FileSystem::Flag::Directory);
+            bool isDirectory = item.mAttributes.mFlags.Has(FileSystem::Flag::Directory);
             AssetTree::KeyType key;
             auto eraseIt = mAssetTree.end();
             switch (item.mChange)
@@ -399,24 +406,24 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.generic_string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.generic_string(), true })->first;
                     }
                 }
                 if (!isDirectory)
                 {
-                    mAssetTree.insert(key, AssetTreeNode { filePath.filename().string(), false });
+                    mAssetTree.insert(key, AssetTreeNode { filePath.filename().generic_string(), false });
                 }
                 else
                 {
                     // some items might be added out of order, so directories might be added after their contents
-                    std::string fileName = filePath.filename().string();
+                    std::string fileName = filePath.filename().generic_string();
                     auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == fileName; });
                     if (partIt == mAssetTree.end())
                     {
@@ -435,19 +442,19 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : oldFilePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.generic_string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.generic_string(), true })->first;
                     }
                 }
                 eraseIt = mAssetTree.find_if([&](const auto &pair)
                 {
-                    return pair.second.mParentKey == key && pair.second.mData.mFilename == oldFilePath.filename().string();
+                    return pair.second.mParentKey == key && pair.second.mData.mFilename == oldFilePath.filename().generic_string();
                 });
                 if (eraseIt != mAssetTree.end())
                 {
@@ -457,17 +464,17 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.generic_string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.generic_string(), true })->first;
                     }
                 }
-                mAssetTree.insert(key, AssetTreeNode { filePath.filename().string(), isDirectory });
+                mAssetTree.insert(key, AssetTreeNode { filePath.filename().generic_string(), isDirectory });
 
                 DebugLog::Info("Renamed: {} -> {}", item.mOldName, item.mName);
                 break;
@@ -476,17 +483,18 @@ public:
                 key = mAssetTree.roots().front();
                 for (const auto &part : filePath.parent_path())
                 {
-                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.string(); });
+                    auto partIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == part.generic_string(); });
                     if (partIt != mAssetTree.end())
                     {
                         key = partIt->first;
                     }
                     else
                     {
-                        key = mAssetTree.insert(key, AssetTreeNode { part.string(), true })->first;
+                        key = mAssetTree.insert(key, AssetTreeNode { part.generic_string(), true })->first;
                     }
                 }
-                eraseIt = mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == filePath.filename().string(); });
+                eraseIt =
+                    mAssetTree.find_if([&](const auto &pair) { return pair.second.mParentKey == key && pair.second.mData.mFilename == filePath.filename().generic_string(); });
                 if (eraseIt != mAssetTree.end())
                 {
                     mAssetTree.erase(eraseIt->first);
@@ -556,6 +564,12 @@ EditorContent::~EditorContent() = default;
 EditorContentPtr EditorContent::MakePtr()
 {
     return EditorContentPtr(new EditorContent());
+}
+
+/// shutdown editor content
+void EditorContent::Shutdown()
+{
+    mImpl->Shutdown();
 }
 
 /// editor content dialog name

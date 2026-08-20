@@ -35,9 +35,9 @@ public:
         {
             if (entry.is_regular_file() || entry.is_directory())
             {
-                FileSystem::Flags flags = entry.is_directory() ? FileSystem::Flag::Directory : FileSystem::Flag::File;
-                std::string filename = entry.path().lexically_relative(path).generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, flags, entry.last_write_time(), (path / filename).string(), "" });
+                std::filesystem::path relativePath = entry.path().lexically_relative(path);
+                std::string filepath = (path / relativePath).lexically_normal().generic_string();
+                fileBatch.push_back({ FileSystem::Change::Added, GetAttributes(relativePath), filepath, "" });
             }
         }
         if (!fileBatch.empty())
@@ -80,6 +80,19 @@ public:
         return !ec;
     }
 
+    /// get file attributes
+    FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path)
+    {
+        FileSystem::FileAttributes attributes;
+        const std::filesystem::path fullPath = mOwner.Path() / path;
+        if (std::filesystem::exists(fullPath))
+        {
+            attributes.mFlags = std::filesystem::is_directory(fullPath) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
+            attributes.mLastWrite = std::filesystem::last_write_time(fullPath);
+        }
+        return attributes;
+    }
+
     /// list files in a directory
     std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
     {
@@ -87,14 +100,9 @@ public:
         const std::filesystem::path fullPath = mOwner.Path() / path;
         for (const auto &entry : std::filesystem::directory_iterator(fullPath))
         {
-            if (entry.is_regular_file())
-            {
-                files.push_back({ FileSystem::Flag::File, entry.last_write_time(), entry.path().filename().string() });
-            }
-            else if (entry.is_directory())
-            {
-                files.push_back({ FileSystem::Flag::Directory, entry.last_write_time(), entry.path().filename().string() });
-            }
+            std::filesystem::path relativePath = entry.path().lexically_relative(fullPath);
+            std::string filepath = (path / relativePath).lexically_normal().generic_string();
+            files.push_back({ GetAttributes(relativePath), filepath });
         }
         return files;
     }
@@ -295,6 +303,12 @@ bool FolderFileSystem::Exists(const std::filesystem::path &path)
 bool FolderFileSystem::Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
 {
     return mImpl->Rename(oldPath, newPath);
+}
+
+/// get file attributes
+FileSystem::FileAttributes FolderFileSystem::GetAttributes(const std::filesystem::path &path)
+{
+    return mImpl->GetAttributes(path);
 }
 
 /// list files in a directory

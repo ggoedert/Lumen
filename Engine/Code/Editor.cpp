@@ -114,9 +114,8 @@ private:
 Editor::Impl::Impl(const ApplicationWeakPtr &application) :
     mViewport(nullptr), mDockMainId(0), mApplication(application), mEditorPreferences(EditorPreferences::MakePtr()), mEditorScene(EditorScene::MakePtr())
 {
-    Lumen::ApplicationPtr applicationLock;
     Lumen::EnginePtr engine;
-    if (applicationLock = mApplication.lock())
+    if (Lumen::ApplicationPtr applicationLock = mApplication.lock())
     {
         engine = applicationLock->GetEngine().lock();
     }
@@ -136,11 +135,11 @@ void Editor::Impl::Initialize()
 
     // setup settings path
     std::filesystem::path inFile = "Settings/User.settings";
-    Lumen::DebugLog::Info("Editor::Impl::Initialize loading {}", inFile.string());
+    Lumen::DebugLog::Info("Editor::Impl::Initialize loading {}", inFile.generic_string());
 
     if (!std::filesystem::exists(inFile))
     {
-        Lumen::DebugLog::Warning("Editor::Impl::Initialize user settings file does not exist, {}", inFile.string());
+        Lumen::DebugLog::Warning("Editor::Impl::Initialize user settings file does not exist, {}", inFile.generic_string());
         return;
     }
 
@@ -197,7 +196,7 @@ void Editor::Impl::Initialize()
 void Editor::Impl::Shutdown()
 {
     std::filesystem::path outFile = "Settings/User.settings";
-    Lumen::DebugLog::Info("Editor::Impl::Shutdown saving {}", outFile.string());
+    Lumen::DebugLog::Info("Editor::Impl::Shutdown saving {}", outFile.generic_string());
 
     Serialized::Type out;
     if (auto application = mApplication.lock())
@@ -226,11 +225,14 @@ void Editor::Impl::Shutdown()
     std::ofstream file(outFile);
     if (!file.is_open())
     {
-        Lumen::DebugLog::Error("Unable to open user settings file for writing, {}", outFile.string());
+        Lumen::DebugLog::Error("Unable to open user settings file for writing, {}", outFile.generic_string());
         return;
     }
     file << out.dump(4);
     file.close();
+
+    // shut down any component that needs to cleanup before the engine is destroyed
+    mEditorContent->Shutdown();
 }
 
 /// log callback

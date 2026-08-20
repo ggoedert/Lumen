@@ -26,6 +26,9 @@ namespace Lumen
         /// creates a smart pointer version of the editor content
         static EditorContentPtr MakePtr();
 
+        /// shutdown editor content
+        void Shutdown();
+
         /// editor content dialog name
         static const char *Name();
 

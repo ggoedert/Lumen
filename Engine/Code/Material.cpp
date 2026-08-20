@@ -71,7 +71,7 @@ public:
                 auto tex = std::get<Lumen::TexturePtr>(value);
                 if (tex)
                 {
-                    Serialized::SerializeValue(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Path().string());
+                    Serialized::SerializeValue(textureValue, packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, tex->Path().generic_string());
                 }
                 propertiesObj[key] = textureValue;
             }
@@ -97,7 +97,7 @@ public:
         {
             throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderName.get<std::string_view>(), shaderPathExp.Error()));
         }
-        Expected<AssetPtr> shaderExp = AssetManager::Import(Shader::Type(), shaderPathExp.Value());
+        Expected<AssetPtr> shaderExp = AssetManager::Load(Shader::Type(), shaderPathExp.Value());
         if (!shaderExp.HasValue())
         {
             throw std::runtime_error(shaderExp.Error());
@@ -116,7 +116,7 @@ public:
                     Serialized::DeserializeValue(inProperty.value(), packed, Serialized::cTextureTypeToken, Serialized::cTextureTypeTokenPacked, path);
 
                     // load texture
-                    Expected<AssetPtr> textureExp = AssetManager::Import(Texture::Type(), path);
+                    Expected<AssetPtr> textureExp = AssetManager::Load(Texture::Type(), path);
                     if (!textureExp.HasValue())
                     {
                         throw std::runtime_error(std::format("Unable to load texture resource {}, {}", path.get<std::string>(), textureExp.Error()));
@@ -155,7 +155,7 @@ public:
     bool Load()
     {
         const std::filesystem::path &path = mOwner.Path();
-        Lumen::DebugLog::Info("Material::Impl::Load {}", path.string());
+        Lumen::DebugLog::Info("Material::Impl::Load {}", path.generic_string());
 
         // read the material
         Serialized::Type data;

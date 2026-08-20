@@ -43,8 +43,8 @@ namespace Lumen::Hidden
     /// checks if a path starts with a prefix
     bool StartsWith(const std::filesystem::path &path, const std::filesystem::path &prefix)
     {
-        std::string pathStr = path.string();
-        std::string prefixStr = prefix.string();
+        std::string pathStr = path.generic_string();
+        std::string prefixStr = prefix.generic_string();
         for (auto itPath = pathStr.begin(), itPrefix = prefixStr.begin(); itPrefix != prefixStr.end(); ++itPath, ++itPrefix)
         {
             if (itPath == pathStr.end() || *itPath != *itPrefix)
@@ -132,14 +132,14 @@ const std::filesystem::path FileSystem::NormalizeDirPath(const std::filesystem::
 const std::filesystem::path FileSystem::NormalizeFilePath(const std::filesystem::path &filePath)
 {
     // trivial case
-    return filePath.lexically_normal().generic_string();
+    return filePath.lexically_normal();
 }
 
 /// register file system
 void FileSystem::RegisterFileSystem(const std::filesystem::path &mountPoint, const IFileSystemPtr &fileSystem)
 {
     L_ASSERT(Hidden::gFileSytemState);
-    Hidden::gFileSytemState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).string(), fileSystem);
+    Hidden::gFileSytemState->mFileSystems.insert_or_assign(FileSystem::NormalizeDirPath(mountPoint).generic_string(), fileSystem);
 }
 
 #ifdef EDITOR
@@ -167,7 +167,7 @@ void FileSystem::ProcessFileChanges()
             for (auto &fileChange : fileBatch)
             {
                 // ignore directory modified events
-                if ((fileChange.mChange == Change::Modified) && (fileChange.mFlags.Has(Flag::Directory)))
+                if ((fileChange.mChange == Change::Modified) && (fileChange.mAttributes.mFlags.Has(Flag::Directory)))
                 {
                     continue;
                 }
@@ -182,7 +182,7 @@ void FileSystem::ProcessFileChanges()
                     });
                     if (it != Hidden::gFileSytemState->mDelayedFileBatch.end())
                     {
-                        it->second.mLastWrite = fileChange.mLastWrite;
+                        it->second.mAttributes.mLastWrite = fileChange.mAttributes.mLastWrite;
                         inserted = true;
                     }
                 }
@@ -250,7 +250,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
     Id::Type file = FileSystem::Open(path, false, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open serialized file for reading, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open serialized file for reading, {}", path.generic_string());
         return false;
     }
 
@@ -267,7 +267,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
             }
             catch (const std::exception &e)
             {
-                Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.string(), e.what());
+                Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.generic_string(), e.what());
                 result = false;
             }
         }
@@ -280,7 +280,7 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
         }
         catch (const std::exception &e)
         {
-            Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.string(), e.what());
+            Lumen::DebugLog::Error("Unable to parse serialized file {}, error {}", path.generic_string(), e.what());
             result = false;
         }
     }
@@ -295,7 +295,7 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
     Id::Type file = FileSystem::Open(path, true, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.generic_string());
         return false;
     }
 
@@ -320,7 +320,7 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
     Id::Type file = FileSystem::Open(path, false, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open asset info file for reading, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open asset info file for reading, {}", path.generic_string());
         return false;
     }
 
@@ -330,7 +330,7 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
         size_t fileSize = FileSystem::Size(file);
         if (fileSize < sizeof(UUID))
         {
-            Lumen::DebugLog::Error("Asset info file {} is too small to contain a UUID", path.string());
+            Lumen::DebugLog::Error("Asset info file {} is too small to contain a UUID", path.generic_string());
             FileSystem::Close(file);
             return false;
         }
@@ -359,7 +359,7 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
                     }
                     catch (const std::exception &e)
                     {
-                        Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.string(), e.what());
+                        Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.generic_string(), e.what());
                         result = false;
                     }
                 }
@@ -369,17 +369,18 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
     else
     {
         std::string uuidText = FileSystem::ReadText(file, 1);
-        uuid = UUIDFromString(uuidText.substr(1, uuidText.length() - 5));
+        uuid = UUIDFromString(uuidText.substr(1, uuidText.length() - 6));
+        uuidText = uuidText.substr(16);
 
         if (data)
         {
             try
             {
-                *data = Serialized::Type::parse("{\n" + FileSystem::ReadText(file));
+                *data = Serialized::Type::parse(uuidText + FileSystem::ReadText(file));
             }
             catch (const std::exception &e)
             {
-                Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.string(), e.what());
+                Lumen::DebugLog::Error("Unable to parse asset info file {}, error {}", path.generic_string(), e.what());
                 result = false;
             }
         }
@@ -395,7 +396,7 @@ bool FileSystem::WriteAssetInfo(const std::filesystem::path &path, UUID uuid, co
     Id::Type file = FileSystem::Open(path, true, binary);
     if (file == Id::Invalid)
     {
-        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.string());
+        Lumen::DebugLog::Error("Unable to open serialized file for writing, {}", path.generic_string());
         return false;
     }
 
@@ -432,7 +433,7 @@ bool FileSystem::IsPacked(const std::filesystem::path &path)
             return fileSystem->Packed();
         }
     }
-    Lumen::DebugLog::Error("No registered file system for path {}", path.string());
+    Lumen::DebugLog::Error("No registered file system for path {}", path.generic_string());
     return false;
 }
 
@@ -445,7 +446,7 @@ bool FileSystem::Exists(const std::filesystem::path &path)
         if (Hidden::StartsWith(path, mountPoint))
         {
             std::filesystem::path relativePath = path.lexically_relative(mountPoint);
-            return fileSystem->Exists(relativePath.string());
+            return fileSystem->Exists(relativePath);
         }
     }
     return false;
@@ -461,11 +462,26 @@ bool FileSystem::Rename(const std::filesystem::path &oldPath, const std::filesys
         {
             std::filesystem::path relativeOldPath = oldPath.lexically_relative(mountPoint);
             std::filesystem::path relativeNewPath = newPath.lexically_relative(mountPoint);
-            return fileSystem->Rename(relativeOldPath.string(), relativeNewPath.string());
+            return fileSystem->Rename(relativeOldPath.generic_string(), relativeNewPath.generic_string());
         }
     }
-    Lumen::DebugLog::Error("No registered file system for path {}", oldPath.string());
+    Lumen::DebugLog::Error("No registered file system for path {}", oldPath.generic_string());
     return false;
+}
+
+/// get file attributes
+FileSystem::FileAttributes FileSystem::GetAttributes(const std::filesystem::path &path)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (Hidden::StartsWith(path, mountPoint))
+        {
+            std::filesystem::path relativePath = path.lexically_relative(mountPoint);
+            return fileSystem->GetAttributes(relativePath);
+        }
+    }
+    return FileAttributes();
 }
 
 /// list files in a directory
@@ -494,10 +510,10 @@ Id::Type FileSystem::Open(const std::filesystem::path &path, bool write, bool bi
         if (Hidden::StartsWith(path, mountPoint))
         {
             std::filesystem::path relativePath = path.lexically_relative(mountPoint);
-            return fileSystem->Open(relativePath.string(), write, binary);
+            return fileSystem->Open(relativePath, write, binary);
         }
     }
-    Lumen::DebugLog::Error("No registered file system for path {}", path.string());
+    Lumen::DebugLog::Error("No registered file system for path {}", path.generic_string());
     return Id::Invalid;
 }
 

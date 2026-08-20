@@ -24,8 +24,8 @@ namespace Lumen
         /// check if asset exists
         [[nodiscard]] bool Exists(const std::filesystem::path &path) const override;
 
-        /// import asset
-        [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const override;
+        /// load asset
+        [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const override;
 
     private:
         /// constructor

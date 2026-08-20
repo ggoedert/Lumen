@@ -83,7 +83,7 @@ public:
     bool Save() const
     {
         const std::filesystem::path &path = mOwner.Path();
-        Lumen::DebugLog::Info("Scene::Save {}", path.string());
+        Lumen::DebugLog::Info("Scene::Save {}", path.generic_string());
 
         // serialize the scene
         Serialized::Type data;
@@ -97,7 +97,7 @@ public:
     bool Load()
     {
         const std::filesystem::path &path = mOwner.Path();
-        Lumen::DebugLog::Info("Scene::Load {}", path.string());
+        Lumen::DebugLog::Info("Scene::Load {}", path.generic_string());
 
         // read the scene
         Serialized::Type data;

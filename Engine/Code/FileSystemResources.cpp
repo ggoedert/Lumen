@@ -30,8 +30,8 @@ public:
         return FileSystem::Exists(path);
     }
 
-    /// import asset
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+    /// load asset
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
     {
         if (type == Material::Type())
         {
@@ -42,11 +42,11 @@ public:
             }
             if (!materialExpected.Value()->Load())
             {
-                return Expected<AssetPtr>::Unexpected(std::format("Unable to import material resource, {}", path.string()));
+                return Expected<AssetPtr>::Unexpected(std::format("Unable to load material resource, {}", path.generic_string()));
             }
             return materialExpected;
         }
-        return Expected<AssetPtr>::Unexpected(std::format("Unknown resource type, {}", path.string()));
+        return Expected<AssetPtr>::Unexpected(std::format("Unknown resource type, {}", path.generic_string()));
     }
 };
 
@@ -67,8 +67,8 @@ AssetFactoryPtr FileSystemResources::MakePtr(float priority)
     return mImpl->Exists(path);
 }
 
-/// import asset
-Expected<AssetPtr> FileSystemResources::Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+/// load asset
+Expected<AssetPtr> FileSystemResources::Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
 {
-    return mImpl->Import(engine, type, path);
+    return mImpl->Load(engine, type, path);
 }

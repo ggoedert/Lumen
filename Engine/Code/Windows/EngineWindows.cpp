@@ -107,7 +107,7 @@ std::string EngineWindows::Impl::GetExecutableName() const
     {
         return "unknown";
     }
-    return std::filesystem::path(buffer).stem().string();
+    return std::filesystem::path(buffer).stem().generic_string();
 }
 
 /// get settings

@@ -45,7 +45,7 @@ namespace Lumen::Hidden
                 {
                     Register(entryPath);
                 }
-                if (entry.mFlags.Has(FileSystem::Flag::Directory))
+                if (entry.mAttributes.mFlags.Has(FileSystem::Flag::Directory))
                 {
                     Scan(entryPath);
                 }
@@ -137,7 +137,7 @@ namespace Lumen::Hidden
                 mAssetPaths[assetInfoPtr->UUID()] = assetInfoPtr->Path();
                 mAssetUUIDs[assetInfoPtr->Path()] = assetInfoPtr->UUID();
 
-                DebugLog::Info("Created asset info file in Assets folder: {}", infoFile.string());
+                DebugLog::Info("Created asset info file in Assets folder: {}", infoFile.generic_string());
             }
             else
             {
@@ -170,11 +170,11 @@ namespace Lumen::Hidden
             mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
         }
 
-        /// import asset
-        Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path)
+        /// load asset
+        Expected<AssetPtr> Load(HashType type, const std::filesystem::path &path)
         {
             // normalize the path
-            std::string normalizedPath = FileSystem::NormalizeFilePath(path).string();
+            std::string normalizedPath = FileSystem::NormalizeFilePath(path).generic_string();
 
             //@@REVIEW@@
             //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
@@ -185,7 +185,7 @@ namespace Lumen::Hidden
                 auto &assetFactory = priorityFactory.second;
                 if (assetFactory->Exists(normalizedPath))
                 {
-                    auto assetExpected = assetFactory->Import(mEngine, type, normalizedPath);
+                    auto assetExpected = assetFactory->Load(mEngine, type, normalizedPath);
                     if (assetExpected)
                     {
                         return assetExpected.Value();
@@ -214,7 +214,7 @@ namespace Lumen::Hidden
                 }
 
                 // determine base and info file existence
-                auto ext = std::filesystem::path(fileChange.mName).extension().string();
+                auto ext = std::filesystem::path(fileChange.mName).extension().generic_string();
                 bool isBase = (ext.size() != 5) ||
                     !std::equal(ext.begin() + 1, ext.end(), "info", [](unsigned char a, unsigned char b) { return std::tolower(a) == b; });
                 bool hasBase = false;
@@ -237,7 +237,7 @@ namespace Lumen::Hidden
                 case FileSystem::Change::Added:
                     if (isBase)
                     {
-                        assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
+                        assetChange = { FileSystem::Change::Added, fileChange.mAttributes, fileChange.mName, "" };
                         if (hasInfo)
                         {
                             assetBatch.push_back(assetChange);
@@ -253,8 +253,22 @@ namespace Lumen::Hidden
                         if (hasBase)
                         {
                             std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
-                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, name, "" });
+
+                            // update last write time to the latest of the base and info file
+                            FileSystem::FileAttributes attributes = FileSystem::GetAttributes(name);
+                            attributes.mLastWrite =
+                                attributes.mLastWrite > fileChange.mAttributes.mLastWrite ? attributes.mLastWrite : fileChange.mAttributes.mLastWrite;
+
+                            assetBatch.push_back({ FileSystem::Change::Modified, attributes, name, "" });
                             Register(name);
+                            if (attributes.mFlags.Has(FileSystem::Flag::File))
+                            {
+                                auto assetInfoExpected = GetInfo(name);
+                                if (assetInfoExpected.HasValue())
+                                {
+                                    AssetManager::Import(assetInfoExpected.Value());
+                                }
+                            }
                         }
                     }
                     break;
@@ -263,12 +277,12 @@ namespace Lumen::Hidden
                     {
                         if (hasInfo)
                         {
-                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mAttributes, fileChange.mName, "" });
                         }
                         else
                         {
-                            mAssetChangeMap.emplace(nowTime + InfoDelayTime,
-                                AssetManager::AssetChange { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                            mAssetChangeMap.emplace(nowTime + InfoDelayTime, AssetManager::AssetChange
+                                { FileSystem::Change::Added, fileChange.mAttributes, fileChange.mName, "" });
                         }
                     }
                     else
@@ -276,7 +290,7 @@ namespace Lumen::Hidden
                         if (hasBase)
                         {
                             std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
-                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mFlags, fileChange.mLastWrite, name, "" });
+                            assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mAttributes, name, "" });
                         }
                     }
                     break;
@@ -285,21 +299,21 @@ namespace Lumen::Hidden
                     {
                         if (hasInfo)
                         {
-                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, fileChange.mOldName });
+                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mAttributes, fileChange.mName, fileChange.mOldName });
                         }
                         else
                         {
                             std::string name = fileChange.mName + ".info";
                             std::string oldName = fileChange.mOldName + ".info";
-                            if (FileSystem::Exists(std::filesystem::path(oldName)))
+                            if (FileSystem::Exists(oldName))
                             {
-                                FileSystem::Rename(std::filesystem::path(oldName), std::filesystem::path(name));
-                                assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, fileChange.mOldName });
+                                FileSystem::Rename(oldName, name);
+                                assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mAttributes, fileChange.mName, fileChange.mOldName });
                                 newSkipChanges.insert(name);
                             }
                             else
                             {
-                                assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" };
+                                assetChange = { FileSystem::Change::Added, fileChange.mAttributes, fileChange.mName, "" };
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
@@ -311,19 +325,19 @@ namespace Lumen::Hidden
                         std::string oldName = fileChange.mOldName.substr(0, fileChange.mOldName.size() - 5);
                         if (hasBase)
                         {
-                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, name, oldName });
+                            assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mAttributes, name, oldName });
                         }
                         else
                         {
-                            if (FileSystem::Exists(std::filesystem::path(oldName)))
+                            if (FileSystem::Exists(oldName))
                             {
-                                FileSystem::Rename(std::filesystem::path(oldName), std::filesystem::path(name));
-                                assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mFlags, fileChange.mLastWrite, name, oldName });
+                                FileSystem::Rename(oldName, name);
+                                assetBatch.push_back({ FileSystem::Change::Renamed, fileChange.mAttributes, name, oldName });
                                 newSkipChanges.insert(name);
                             }
                             else
                             {
-                                assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, name, "" };
+                                assetChange = { FileSystem::Change::Added, fileChange.mAttributes, name, "" };
                                 mAssetChangeMap.emplace(nowTime + InfoDelayTime, assetChange);
                             }
                         }
@@ -333,7 +347,7 @@ namespace Lumen::Hidden
                 case FileSystem::Change::Removed:
                     if (isBase)
                     {
-                        assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, fileChange.mName, "" });
+                        assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mAttributes, fileChange.mName, "" });
                         Remove(fileChange.mName);
                     }
                     else
@@ -341,8 +355,8 @@ namespace Lumen::Hidden
                         std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
                         if (hasBase)
                         {
-                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mFlags, fileChange.mLastWrite, name, "" });
-                            AssetManager::AssetChange assetChange = { FileSystem::Change::Added, fileChange.mFlags, fileChange.mLastWrite, name, "" };
+                            assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mAttributes, name, "" });
+                            AssetManager::AssetChange assetChange = { FileSystem::Change::Added, fileChange.mAttributes, name, "" };
                             if (hasInfo)
                             {
                                 Lumen::DebugLog::Detail("Added file with infofile, {}, infofile already exists", assetChange.mName);
@@ -364,7 +378,7 @@ namespace Lumen::Hidden
             {
                 auto &[processTime, assetChange] = *it;
 
-                if (FileSystem::Exists(std::filesystem::path(assetChange.mName + ".info")))
+                if (FileSystem::Exists(assetChange.mName + ".info"))
                 {
                     Lumen::DebugLog::Detail("Added file with infofile, {}, infofile late arrival", assetChange.mName);
                     assetBatch.push_back(assetChange);
@@ -462,13 +476,24 @@ Expected<AssetInfoPtr> AssetManager::GetInfo(const std::filesystem::path &path)
     return Hidden::gAssetManagerImpl->GetInfo(path);
 }
 
-/// import asset
-Expected<AssetPtr> AssetManager::Import(HashType type, const std::filesystem::path &path)
+/// load asset
+Expected<AssetPtr> AssetManager::Load(HashType type, const std::filesystem::path &path)
 {
-    return Hidden::gAssetManagerImpl->Import(type, path);
+    return Hidden::gAssetManagerImpl->Load(type, path);
 }
 
 #ifdef EDITOR
+/// register an importer for a specific asset type
+void AssetManager::RegisterImporter(std::string &extension, Importer importer)
+{
+}
+
+/// import asset
+bool AssetManager::Import(const AssetInfoPtr &assetInfo)
+{
+    return false;
+}
+
 /// process file changes
 void AssetManager::ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
 {

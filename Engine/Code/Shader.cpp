@@ -121,7 +121,7 @@ Expected<AssetPtr> Shader::MakePtr(EngineWeakPtr &engine, const std::filesystem:
     AssetPtr shaderPtr = AssetPtr(new Shader(engine, path, name));
     if (!shaderPtr)
     {
-        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource", path.string(), name));
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load ({} - {}) shader resource", path.generic_string(), name));
     }
     ShaderPtr ptr = static_pointer_cast<Shader>(shaderPtr);
     if (auto engineLock = engine.lock())

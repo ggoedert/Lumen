@@ -33,8 +33,8 @@ namespace Lumen
         /// check if asset exists
         [[nodiscard]] virtual bool Exists(const std::filesystem::path &path) const = 0;
 
-        /// import asset
-        [[nodiscard]] virtual Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const = 0;
+        /// load asset
+        [[nodiscard]] virtual Expected<AssetPtr> Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const = 0;
 
     private:
         /// priority
@@ -59,21 +59,30 @@ namespace Lumen
         /// create or get assetinfo
         Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path);
 
-        /// import asset
-        Expected<AssetPtr> Import(HashType type, const std::filesystem::path &path);
+        /// load asset
+        Expected<AssetPtr> Load(HashType type, const std::filesystem::path &path);
+
+        /// load asset
+        Expected<AssetPtr> Load(const AssetInfoPtr &assetInfo);
 
 #ifdef EDITOR
+        /// custom Importer type
+        using Importer = std::function<void(const AssetInfoPtr &assetInfo)>;
+
+        /// register an importer for a specific asset type
+        void RegisterImporter(std::string &extension, Importer importer);
+
+        /// import asset
+        bool Import(const AssetInfoPtr &assetInfo);
+
         /// AssetChange struct
         struct AssetChange
         {
             /// change
             FileSystem::Change mChange;
 
-            /// flags
-            FileSystem::Flags mFlags;
-
-            /// last write time
-            std::filesystem::file_time_type mLastWrite;
+            /// attributes
+            FileSystem::FileAttributes mAttributes;
 
             /// name
             std::string mName;

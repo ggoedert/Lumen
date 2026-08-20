@@ -32,14 +32,21 @@ namespace Lumen
         /// change flags type
         using Flags = Lumen::Flags<Flag>;
 
+        /// FileAttributes struct
+        struct FileAttributes
+        {
+            /// flags
+            Flags mFlags = Flag::None;
+
+            /// last write time
+            std::filesystem::file_time_type mLastWrite = {};
+        };
+
         /// FileEntry struct
         struct FileEntry
         {
-            /// flags
-            Flags mFlags;
-
-            /// last write time
-            std::filesystem::file_time_type mLastWrite;
+            /// attributes
+            FileAttributes mAttributes;
 
             /// name
             std::string mName;
@@ -51,11 +58,8 @@ namespace Lumen
             /// change
             Change mChange;
 
-            /// flags
-            Flags mFlags;
-
-            /// last write time
-            std::filesystem::file_time_type mLastWrite;
+            /// attributes
+            FileAttributes mAttributes;
 
             /// name
             std::string mName;
@@ -111,6 +115,9 @@ namespace Lumen
         /// rename a file
         bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
+        /// get file attributes
+        FileAttributes GetAttributes(const std::filesystem::path &path);
+
         /// list files in a directory
         std::vector<FileEntry> ListFiles(const std::filesystem::path &path);
 
@@ -162,6 +169,9 @@ namespace Lumen
 
         /// rename a file
         virtual bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) = 0;
+
+        /// get file attributes
+        virtual FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) = 0;
 
         /// list files in a directory
         virtual std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) = 0;

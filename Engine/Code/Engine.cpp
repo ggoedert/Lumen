@@ -102,7 +102,6 @@ public:
         if (mApplication)
         {
             mApplication->Shutdown();
-            mApplication.reset();
         }
 
         SceneManager::Shutdown();

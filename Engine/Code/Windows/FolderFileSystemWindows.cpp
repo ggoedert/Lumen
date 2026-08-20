@@ -134,7 +134,7 @@ void FolderFileSystemWindows::Impl::Initialize()
 {
 #ifdef EDITOR
     mDirHandle = CreateFileA(
-        mPath.string().c_str(),
+        mPath.generic_string().c_str(),
         FILE_LIST_DIRECTORY,
         FILE_SHARE_READ |
         FILE_SHARE_WRITE |
@@ -156,7 +156,7 @@ void FolderFileSystemWindows::Impl::Initialize()
     }
     else
     {
-        Lumen::DebugLog::Error("Could not open directory to monitor: {}", mPath.string());
+        Lumen::DebugLog::Error("Could not open directory to monitor: {}", mPath.generic_string());
     }
 #endif
 }
@@ -220,35 +220,34 @@ void FolderFileSystemWindows::Impl::FileChangeCallback()
         if ((mLastFilename != filename) || (info->Action != mLastAction) || (info->Action == FILE_ACTION_MODIFIED))
         {
             WIN32_FILE_ATTRIBUTE_DATA attr;
-            FileSystem::Flags flags = FileSystem::Flag::None;
-            std::filesystem::file_time_type lastWrite = {};
-            std::wstring wFullPath = ToWString(mPath.string()) + wfilename;
+            FileSystem::FileAttributes attributes;
+            std::wstring wFullPath = ToWString(mPath.generic_string()) + wfilename;
             std::string name, oldName;
             if (GetFileAttributesEx(wFullPath.c_str(), GetFileExInfoStandard, &attr))
             {
                 // determine if the file is a directory or a file
-                flags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
+                attributes.mFlags = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
 
                 // convert attr.ftLastWriteTime to std::filesystem::file_time_type, file_time_type ticks are 100ns since 1601-01-01, same as windows FILETIME
                 ULARGE_INTEGER uliLastWrite { attr.ftLastWriteTime.dwLowDateTime, attr.ftLastWriteTime.dwHighDateTime };
-                lastWrite = std::filesystem::file_time_type { std::filesystem::file_time_type::duration{ static_cast<int64_t>(uliLastWrite.QuadPart) } };
+                attributes.mLastWrite = std::filesystem::file_time_type { std::filesystem::file_time_type::duration{ static_cast<int64_t>(uliLastWrite.QuadPart) } };
             }
 
-            name = FileSystem::NormalizeFilePath(mPath.string() + filename).string();
+            name = FileSystem::NormalizeFilePath(mPath / filename).generic_string();
             switch (info->Action)
             {
             case FILE_ACTION_ADDED:
-                mFileBatch.push_back({ FileSystem::Change::Added, flags, lastWrite, name, "" });
+                mFileBatch.push_back({ FileSystem::Change::Added, attributes, name, "" });
                 break;
             case FILE_ACTION_MODIFIED:
-                mFileBatch.push_back({ FileSystem::Change::Modified, flags, lastWrite, name, "" });
+                mFileBatch.push_back({ FileSystem::Change::Modified, attributes, name, "" });
                 break;
             case FILE_ACTION_RENAMED_NEW_NAME:
-                oldName = FileSystem::NormalizeFilePath(mPath.string() + mLastFilename).string();
-                mFileBatch.push_back({ FileSystem::Change::Renamed, flags, lastWrite, name, oldName });
+                oldName = FileSystem::NormalizeFilePath(mPath / mLastFilename).generic_string();
+                mFileBatch.push_back({ FileSystem::Change::Renamed, attributes, name, oldName });
                 break;
             case FILE_ACTION_REMOVED:
-                mFileBatch.push_back({ FileSystem::Change::Removed, flags, lastWrite, name, "" });
+                mFileBatch.push_back({ FileSystem::Change::Removed, attributes, name, "" });
                 break;
             }
             mLastFilename = filename;

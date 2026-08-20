@@ -70,7 +70,7 @@ public:
     void GetMeshData(byte *data)
     {
         const std::filesystem::path &path = mOwner.Path();
-        // if ("|Procedural|Sphere" == path.string()) do something?
+        // if ("|Procedural|Sphere" == path.generic_string()) do something?
     }
 
     /// owner

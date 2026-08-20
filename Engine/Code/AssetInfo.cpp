@@ -19,13 +19,12 @@ class AssetInfo::Impl
 
 public:
     /// constructs a assetinfo
-    explicit Impl(const std::filesystem::path &path) : mPath(path), mUUID(UUID_INVALID), mType(HASH_INVALID) {}
+    explicit Impl(const std::filesystem::path &path) : mPath(path), mUUID(UUID_INVALID) {}
 
     /// initialize assetinfo
     void Initialize()
     {
         mUUID = UUIDGenerate();
-        mType = HASH_INVALID;  // TODO use path to determine type
     }
 
     /// get path
@@ -37,40 +36,21 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        if (packed)
-        {
-            Serialized::SerializeValue(out, true, Serialized::cTypeToken, Serialized::cTypeTokenPacked, mType);
-        }
-        else
-        {
-#ifdef TYPEINFO
-            Serialized::SerializeValue(out, false, Serialized::cTypeToken, Serialized::cTypeTokenPacked, DecodeType(mType));
-#else
-            Serialized::SerializeValue(out, false, Serialized::cTypeToken, Serialized::cTypeTokenPacked, mType);
-#endif
-        }
+        // \todo add serialize per type array of properties
+        out = Serialized::Type::object();
     }
 
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        Serialized::Type typeValue = {};
-        L_ASSERT(Serialized::DeserializeValue(in, packed, Serialized::cTypeToken, Serialized::cTypeTokenPacked, typeValue));
-        if (!typeValue.is_string())
-        {
-            mType = typeValue;
-        }
-        else
-        {
-            mType = EncodeType(typeValue.get<std::string>().c_str());
-        }
+        // \todo add deserialize per type array of properties
     }
 
     /// save assetinfo
     bool Save() const
     {
         std::filesystem::path infoFile = std::filesystem::path(mPath).concat(".info");
-        Lumen::DebugLog::Info("AssetInfo::Impl::Save {}", infoFile.string());
+        Lumen::DebugLog::Info("AssetInfo::Impl::Save {}", infoFile.generic_string());
 
         // serialize the assetinfo
         Serialized::Type data;
@@ -84,7 +64,7 @@ public:
     bool Load()
     {
         std::filesystem::path infoFile = std::filesystem::path(mPath).concat(".info");
-        Lumen::DebugLog::Info("AssetInfo::Impl::Load {}", infoFile.string());
+        Lumen::DebugLog::Info("AssetInfo::Impl::Load {}", infoFile.generic_string());
 
         // read the assetinfo
         Serialized::Type data;
@@ -113,10 +93,6 @@ private:
 
     /// assetinfo UUID
     Lumen::UUID mUUID;
-
-    /// assetinfo type
-    Hash mType;
-
 };
 
 //==============================================================================================================================================================================

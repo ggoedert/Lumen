@@ -25,8 +25,8 @@ public:
     /// get path
     [[nodiscard]] virtual std::string_view Path() const = 0;
 
-    /// import the asset
-    [[nodiscard]] virtual Expected<AssetPtr> Import(EngineWeakPtr &engine) = 0;
+    /// load the asset
+    [[nodiscard]] virtual Expected<AssetPtr> Load(EngineWeakPtr &engine) = 0;
 };
 
 /// SphereMeshInfo class
@@ -59,8 +59,8 @@ public:
         return "|Procedural|Sphere";
     }
 
-    /// import the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
+    /// load the sphere mesh
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
     {
         return Mesh::MakePtr(engine, Path());
     }
@@ -100,8 +100,8 @@ public:
         return "|Procedural|Checker-Gray";
     }
 
-    /// import the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
+    /// load the checker gray texture
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
     {
         Texture::Info textureInfo { 64, 64 };
         TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path(), textureInfo));
@@ -167,8 +167,8 @@ public:
         return "|Procedural|Simple-Diffuse";
     }
 
-    /// import the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine) override
+    /// load the simple diffuse shader
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
     {
         return Shader::MakePtr(engine, Path(), Name());
     }
@@ -212,25 +212,25 @@ public:
         return false;
     }
 
-    /// import asset
-    [[nodiscard]] Expected<AssetPtr> Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+    /// load asset
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
     {
         for (auto builtinInfo : mBuiltinInfos)
         {
             if ((builtinInfo->Type() == type) && (builtinInfo->Path() == path))
             {
-                auto assetExpected = builtinInfo->Import(engine);
+                auto assetExpected = builtinInfo->Load(engine);
                 if (assetExpected)
                 {
                     return assetExpected.Value();
                 }
                 else
                 {
-                    Lumen::DebugLog::Error("BuiltinResources import, {}", assetExpected.Error());
+                    Lumen::DebugLog::Error("BuiltinResources load, {}", assetExpected.Error());
                 }
             }
         }
-        return Expected<AssetPtr>::Unexpected(std::format("Unable to load builtin resource, {}", path.string()));
+        return Expected<AssetPtr>::Unexpected(std::format("Unable to load builtin resource, {}", path.generic_string()));
     }
 
 private:
@@ -255,8 +255,8 @@ AssetFactoryPtr BuiltinResources::MakePtr(float priority)
     return mImpl->Exists(path);
 }
 
-/// import asset
-Expected<AssetPtr> BuiltinResources::Import(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
+/// load asset
+Expected<AssetPtr> BuiltinResources::Load(EngineWeakPtr &engine, HashType type, const std::filesystem::path &path) const
 {
-    return mImpl->Import(engine, type, path);
+    return mImpl->Load(engine, type, path);
 }
