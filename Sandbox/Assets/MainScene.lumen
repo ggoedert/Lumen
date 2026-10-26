@@ -24,7 +24,7 @@
                 "Lumen::Mesh": "|Procedural|Sphere"
             },
             "Lumen::Renderer": {
-                "Lumen::Material": "Assets/Material.mat"
+                "Lumen::Material": "BuiltIn/Material/Default.material"
             },
             "SphereScript": {}
         }

@@ -21,7 +21,7 @@ namespace Lumen
         static IFileSystemPtr MakePtr(const std::filesystem::path &path);
 
         /// initialize file system
-        void Initialize() override;
+        void Initialize(bool packed) override;
 
         /// whether this file system is packed
         bool Packed() const override;
@@ -37,6 +37,9 @@ namespace Lumen
 
         /// get file attributes
         FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) override;
+
+        /// ensure a directory exists
+        bool EnsureDirectory(const std::filesystem::path &path) override;
 
         /// list files in a directory
         std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) override;

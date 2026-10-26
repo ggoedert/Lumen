@@ -484,6 +484,21 @@ FileSystem::FileAttributes FileSystem::GetAttributes(const std::filesystem::path
     return FileAttributes();
 }
 
+/// ensure a directory exists
+bool FileSystem::EnsureDirectory(const std::filesystem::path &path)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (Hidden::StartsWith(path, mountPoint))
+        {
+            std::filesystem::path relativePath = path.lexically_relative(mountPoint);
+            return fileSystem->EnsureDirectory(relativePath);
+        }
+    }
+    return false;
+}
+
 /// list files in a directory
 std::vector<FileSystem::FileEntry> FileSystem::ListFiles(const std::filesystem::path &path)
 {

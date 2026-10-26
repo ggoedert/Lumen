@@ -468,6 +468,7 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 void AssetManager::Scan()
 {
     Hidden::gAssetManagerImpl->Scan("Assets/");
+    Hidden::gAssetManagerImpl->Scan("BuiltIn/");
 }
 
 /// create or get cached assetinfo

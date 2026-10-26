@@ -21,7 +21,7 @@ namespace Lumen
         explicit FolderFileSystemWindows(const std::filesystem::path &path);
 
         /// initialize file system
-        void Initialize() override;
+        void Initialize(bool packed) override;
 
     private:
         /// get path

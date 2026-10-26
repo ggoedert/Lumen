@@ -23,26 +23,32 @@ class FolderFileSystem::Impl
 
 public:
     /// constructs a folder file system implementation
-    explicit Impl(FolderFileSystem &owner) : mOwner(owner) {}
+    explicit Impl(FolderFileSystem &owner) : mOwner(owner), mPacked(false) {}
 
     /// initialize file system
-    void Initialize()
+    void Initialize(bool packed)
     {
+        mPacked = packed;
 #ifdef EDITOR
         const std::filesystem::path &path = mOwner.Path();
-        std::vector<FileSystem::FileChange> fileBatch;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(path))
+        std::error_code ec;
+        std::filesystem::create_directories(path, ec);
+        if (!packed)
         {
-            if (entry.is_regular_file() || entry.is_directory())
+            std::vector<FileSystem::FileChange> fileBatch;
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(path))
             {
-                std::filesystem::path relativePath = entry.path().lexically_relative(path);
-                std::string filepath = (path / relativePath).lexically_normal().generic_string();
-                fileBatch.push_back({ FileSystem::Change::Added, GetAttributes(relativePath), filepath, "" });
+                if (entry.is_regular_file() || entry.is_directory())
+                {
+                    std::filesystem::path relativePath = entry.path().lexically_relative(path);
+                    std::string filepath = (path / relativePath).lexically_normal().generic_string();
+                    fileBatch.push_back({ FileSystem::Change::Added, GetAttributes(relativePath), filepath, "" });
+                }
             }
-        }
-        if (!fileBatch.empty())
-        {
-            FileSystem::PushFileChangeBatch(std::move(fileBatch));
+            if (!fileBatch.empty())
+            {
+                FileSystem::PushFileChangeBatch(std::move(fileBatch));
+            }
         }
 #endif
     }
@@ -50,7 +56,7 @@ public:
     /// whether this file system is packed
     bool Packed() const
     {
-        return false;
+        return mPacked;
     }
 
     /// whether this file system handles the specified file handle
@@ -93,6 +99,19 @@ public:
         return attributes;
     }
 
+    /// ensure a directory exists
+    bool EnsureDirectory(const std::filesystem::path &path)
+    {
+        const std::filesystem::path fullPath = mOwner.Path() / path;
+        if (std::filesystem::exists(fullPath))
+        {
+            return std::filesystem::is_directory(fullPath);
+        }
+        std::error_code ec;
+        std::filesystem::create_directories(fullPath, ec);
+        return !ec;
+    }
+
     /// list files in a directory
     std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path)
     {
@@ -102,7 +121,7 @@ public:
         {
             std::filesystem::path relativePath = entry.path().lexically_relative(fullPath);
             std::string filepath = (path / relativePath).lexically_normal().generic_string();
-            files.push_back({ GetAttributes(relativePath), filepath });
+            files.push_back({ GetAttributes(filepath), relativePath.generic_string() });
         }
         return files;
     }
@@ -256,6 +275,9 @@ private:
     /// owner
     FolderFileSystem &mOwner;
 
+    /// whether this file system is packed
+    bool mPacked;
+
     /// file state struct
     struct FileState
     {
@@ -276,9 +298,9 @@ FolderFileSystem::FolderFileSystem(const std::filesystem::path &path) : IFileSys
 FolderFileSystem::~FolderFileSystem() = default;
 
 /// initialize file system
-void FolderFileSystem::Initialize()
+void FolderFileSystem::Initialize(bool packed)
 {
-    return mImpl->Initialize();
+    mImpl->Initialize(packed);
 }
 
 /// whether this file system is packed
@@ -309,6 +331,12 @@ bool FolderFileSystem::Rename(const std::filesystem::path &oldPath, const std::f
 FileSystem::FileAttributes FolderFileSystem::GetAttributes(const std::filesystem::path &path)
 {
     return mImpl->GetAttributes(path);
+}
+
+/// ensure a directory exists
+bool FolderFileSystem::EnsureDirectory(const std::filesystem::path &path)
+{
+    return mImpl->EnsureDirectory(path);
 }
 
 /// list files in a directory
