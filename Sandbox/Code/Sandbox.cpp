@@ -47,13 +47,36 @@ void Sandbox::New()
 /// TEMP DELME!
 void Sandbox::Open()
 {
+
     if (auto engineLock = GetEngine().lock())
     {
         engineLock->New();
     }
+/*
+    bool loaded = false;
+    auto assetInfoExpected = Lumen::AssetManager::GetInfo("Assets/MainScene.lumen");
+    if (assetInfoExpected.HasValue())
+    {
+        mMainScene = Lumen::AssetManager::Load(assetInfoExpected.Value()->UUID());
+        loaded = Lumen::SceneManager::Load(mMainScene);
+    }
+    else
+    {
+    }
+
+    if (!loaded)
+    {
+        Lumen::DebugLog::Error("Unable to load Assets/MainScene.lumen asset");
+        Shutdown();
+    }
+*/
     mMainScene = Lumen::Scene::MakePtr(*this, "Assets/MainScene.lumen");
     if (!Lumen::SceneManager::Load(mMainScene))
     {
         Shutdown();
+    }
+    else
+    {
+        mMainScene->Save();
     }
 }

@@ -57,7 +57,7 @@ public:
     ~Impl();
 
     /// initialize file system
-    void Initialize();
+    void Initialize(bool packed);
 
     /// get path
     const std::filesystem::path &Path() const { return mPath; }
@@ -130,33 +130,36 @@ FolderFileSystemWindows::Impl::~Impl()
 }
 
 /// initialize file system
-void FolderFileSystemWindows::Impl::Initialize()
+void FolderFileSystemWindows::Impl::Initialize(bool packed)
 {
 #ifdef EDITOR
-    mDirHandle = CreateFileA(
-        mPath.generic_string().c_str(),
-        FILE_LIST_DIRECTORY,
-        FILE_SHARE_READ |
-        FILE_SHARE_WRITE |
-        FILE_SHARE_DELETE,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS |
-        FILE_FLAG_OVERLAPPED,
-        NULL
-    );
-
-    if (mDirHandle != INVALID_HANDLE_VALUE)
+    if (!packed)
     {
-        mOverlapped = {};
-        mOverlapped.hEvent = this; // store "this" so callback can find the object
+        mDirHandle = CreateFileA(
+            mPath.generic_string().c_str(),
+            FILE_LIST_DIRECTORY,
+            FILE_SHARE_READ |
+            FILE_SHARE_WRITE |
+            FILE_SHARE_DELETE,
+            NULL,
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS |
+            FILE_FLAG_OVERLAPPED,
+            NULL
+        );
 
-        // start watching
-        ArmWatcher();
-    }
-    else
-    {
-        Lumen::DebugLog::Error("Could not open directory to monitor: {}", mPath.generic_string());
+        if (mDirHandle != INVALID_HANDLE_VALUE)
+        {
+            mOverlapped = {};
+            mOverlapped.hEvent = this; // store "this" so callback can find the object
+
+            // start watching
+            ArmWatcher();
+        }
+        else
+        {
+            Lumen::DebugLog::Error("Could not open directory to monitor: {}", mPath.generic_string());
+        }
     }
 #endif
 }
@@ -299,10 +302,10 @@ IFileSystemPtr FolderFileSystem::MakePtr(const std::filesystem::path &path)
 }
 
 /// initialize file system
-void FolderFileSystemWindows::Initialize()
+void FolderFileSystemWindows::Initialize(bool packed)
 {
-    FolderFileSystem::Initialize();
-    mImpl->Initialize();
+    FolderFileSystem::Initialize(packed);
+    mImpl->Initialize(packed);
 }
 
 /// get path

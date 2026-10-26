@@ -6,16 +6,20 @@ Release/
 *.aps
 
 # Code::Blocks
+/External/Windows/NT6_1/microsoft.xaudio2.redist
 Bin/
-External/Windows/NT6_1/microsoft.xaudio2.redist
 *.depend
 *.layout
 
 # Sandbox automatic data
-Sandbox/SandboxEditor.log
-Sandbox/Data/
+/Sandbox/SandboxEditor.log
+/Sandbox/Data/
+/Sandbox/Library/
 
 # Local data
-scratch/
-html/
+/scratch/
+/html/
 User.settings
+
+# Any analysis output in the root directory
+/*.xml

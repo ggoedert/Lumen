@@ -118,6 +118,9 @@ namespace Lumen
         /// get file attributes
         FileAttributes GetAttributes(const std::filesystem::path &path);
 
+        /// ensure a directory exists
+        bool EnsureDirectory(const std::filesystem::path &path);
+
         /// list files in a directory
         std::vector<FileEntry> ListFiles(const std::filesystem::path &path);
 
@@ -156,7 +159,7 @@ namespace Lumen
 
     public:
         /// initialize file system
-        virtual void Initialize() = 0;
+        virtual void Initialize(bool packed) = 0;
 
         /// whether this file system is packed
         virtual bool Packed() const = 0;
@@ -172,6 +175,9 @@ namespace Lumen
 
         /// get file attributes
         virtual FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) = 0;
+
+        /// ensure a directory exists
+        virtual bool EnsureDirectory(const std::filesystem::path &path) = 0;
 
         /// list files in a directory
         virtual std::vector<FileSystem::FileEntry> ListFiles(const std::filesystem::path &path) = 0;

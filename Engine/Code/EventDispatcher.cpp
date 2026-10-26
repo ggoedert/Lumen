@@ -47,7 +47,8 @@ public:
     /// traverse all event receivers from top to bottom, stop if handled
     bool Traverse(const EventPtr &event) const
     {
-        for (const auto &receiver : mReceivers)
+        auto receiversCopy = mReceivers;
+        for (const auto &receiver : receiversCopy)
         {
             if (receiver->HandleEvent(event))
             {

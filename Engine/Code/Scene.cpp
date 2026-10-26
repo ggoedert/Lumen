@@ -85,12 +85,26 @@ public:
         const std::filesystem::path &path = mOwner.Path();
         Lumen::DebugLog::Info("Scene::Save {}", path.generic_string());
 
-        // serialize the scene
-        Serialized::Type data;
-        Serialize(data, FileSystem::IsPacked(path));
+        auto assetInfoExpected = AssetManager::GetInfo(path);
+        if (!assetInfoExpected.HasValue())
+        {
+            DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path.generic_string(), assetInfoExpected.Error());
+            return false;
+        }
+        AssetInfoPtr assetInfo = assetInfoExpected.Value();
 
-        // write the scene
-        return FileSystem::WriteSerializedData(path, data);
+        // serialize and write the scene to Assets
+        Serialized::Type assetsData;
+        Serialize(assetsData, FileSystem::IsPacked(path));
+        if (FileSystem::WriteSerializedData(path, assetsData))
+        {
+            // serialize and write the scene to Library
+            Serialized::Type libraryData;
+            Serialize(libraryData, FileSystem::IsPacked("Library/"));
+            return FileSystem::WriteSerializedData("Library/" + UUIDToString(assetInfo->UUID()), libraryData);
+        }
+
+        return false;
     }
 
     /// load scene

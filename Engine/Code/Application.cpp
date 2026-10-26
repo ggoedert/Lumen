@@ -92,6 +92,12 @@ private:
     /// assets file system
     IFileSystemPtr mAssetsFileSystem;
 
+    /// built-in file system
+    IFileSystemPtr mBuiltInFileSystem;
+
+    /// library file system
+    IFileSystemPtr mLibraryFileSystem;
+
 #ifndef EDITOR
     /// application previous state
     State mPreviousState { State::Running };
@@ -127,12 +133,23 @@ void Application::Impl::Initialize(const ApplicationWeakPtr &application)
 {
 #ifdef EDITOR
     mAssetsFileSystem = FolderFileSystem::MakePtr("Assets");
+    mAssetsFileSystem->Initialize(false);
 #else
     //@@REVIEW@@ in game mode this should be some pack file system, but for now we will use the folder file system
     mAssetsFileSystem = FolderFileSystem::MakePtr("Assets");
+    mAssetsFileSystem->Initialize(false);
 #endif
-    mAssetsFileSystem->Initialize();
     FileSystem::RegisterFileSystem("Assets", mAssetsFileSystem);
+
+    //@@REVIEW@@ this should be some specialized file system for procedurally generated assets, but for now we will use the folder file system
+    mBuiltInFileSystem = FolderFileSystem::MakePtr("BuiltIn");
+    mBuiltInFileSystem->Initialize(false);
+    FileSystem::RegisterFileSystem("BuiltIn", mBuiltInFileSystem);
+
+    mLibraryFileSystem = FolderFileSystem::MakePtr("Library");
+    mLibraryFileSystem->Initialize(true);
+    FileSystem::RegisterFileSystem("Library", mLibraryFileSystem);
+
 #ifdef EDITOR
     mEditor = Editor::MakePtr(application);
     mEditor->Initialize();
