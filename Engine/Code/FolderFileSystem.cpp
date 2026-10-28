@@ -29,14 +29,21 @@ public:
     void Initialize(bool packed)
     {
         mPacked = packed;
-#ifdef EDITOR
+
+        // the folder must exist, listing and cache writes rely on it
         const std::filesystem::path &path = mOwner.Path();
         std::error_code ec;
         std::filesystem::create_directories(path, ec);
+        if (ec)
+        {
+            Lumen::DebugLog::Error("Unable to create folder {}, {}", path.generic_string(), ec.message());
+        }
+
+#ifdef EDITOR
         if (!packed)
         {
             std::vector<FileSystem::FileChange> fileBatch;
-            for (const auto &entry : std::filesystem::recursive_directory_iterator(path))
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(path, ec))
             {
                 if (entry.is_regular_file() || entry.is_directory())
                 {
@@ -117,7 +124,10 @@ public:
     {
         std::vector<FileSystem::FileEntry> files;
         const std::filesystem::path fullPath = mOwner.Path() / path;
-        for (const auto &entry : std::filesystem::directory_iterator(fullPath))
+
+        // send std::error_code so we get empty listing for a missing or unreadable folder instead of throwing an exception
+        std::error_code ec;
+        for (const auto &entry : std::filesystem::directory_iterator(fullPath, ec))
         {
             std::filesystem::path relativePath = entry.path().lexically_relative(fullPath);
             std::string filepath = (path / relativePath).lexically_normal().generic_string();
@@ -130,14 +140,12 @@ public:
     Id::Type Open(const std::filesystem::path &path, bool write, bool binary)
     {
         const std::filesystem::path fullPath = mOwner.Path() / path;
-        if (!Exists(path))
-        {
-            std::ofstream file(fullPath, (binary ? std::ios::binary : (std::ios::openmode)0));
-        }
-        std::ios::openmode mode = std::ios::in | std::ios::out;
+        std::ios::openmode mode = std::ios::in;
         if (write)
         {
-            mode |= std::ios::trunc;
+            std::error_code ec;
+            std::filesystem::create_directories(fullPath.parent_path(), ec);
+            mode |= std::ios::out | std::ios::trunc;
         }
         if (binary)
         {
