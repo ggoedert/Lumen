@@ -271,6 +271,11 @@ bool FileSystem::ReadSerializedData(const std::filesystem::path &path, Serialize
                 result = false;
             }
         }
+        else
+        {
+            Lumen::DebugLog::Error("Unable to read serialized file {}, short read", path.generic_string());
+            result = false;
+        }
     }
     else
     {
@@ -299,18 +304,23 @@ bool FileSystem::WriteSerializedData(const std::filesystem::path &path, const Se
         return false;
     }
 
+    bool result = true;
     if (binary)
     {
         std::vector<uint8_t> serData = Serialized::Type::to_cbor(data);
-        FileSystem::WriteBytes(file, serData.data(), serData.size());
+        result = FileSystem::WriteBytes(file, serData.data(), serData.size());
     }
     else
     {
-        FileSystem::WriteText(file, data.dump(4));
+        result = FileSystem::WriteText(file, data.dump(4));
     }
 
     FileSystem::Close(file);
-    return true;
+    if (!result)
+    {
+        Lumen::DebugLog::Error("Unable to write serialized file {}", path.generic_string());
+    }
+    return result;
 }
 
 /// read asset info from a path
@@ -344,6 +354,11 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
                 uuid = static_cast<UUID>((uuid << 8) | static_cast<UUID>(u[i]));
             }
         }
+        else
+        {
+            FileSystem::Close(file);
+            return false;
+        }
 
         if (data)
         {
@@ -368,7 +383,14 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
     }
     else
     {
+        // first line is: "<uuid>": <start of the json data>
         std::string uuidText = FileSystem::ReadText(file, 1);
+        if (uuidText.length() < 16)
+        {
+            Lumen::DebugLog::Error("Asset info file {} is damaged", path.generic_string());
+            FileSystem::Close(file);
+            return false;
+        }
         uuid = UUIDFromString(uuidText.substr(1, uuidText.length() - 6));
         uuidText = uuidText.substr(16);
 
@@ -400,6 +422,7 @@ bool FileSystem::WriteAssetInfo(const std::filesystem::path &path, UUID uuid, co
         return false;
     }
 
+    bool result = true;
     if (binary)
     {
         std::vector<uint8_t> serUUID(sizeof(UUID));
@@ -407,19 +430,16 @@ bool FileSystem::WriteAssetInfo(const std::filesystem::path &path, UUID uuid, co
         {
             serUUID[i] = static_cast<uint8_t>((uuid >> ((sizeof(UUID) - 1 - i) * 8)) & 0xff);
         }
-        FileSystem::WriteBytes(file, serUUID.data(), serUUID.size());
-
         std::vector<uint8_t> serData = Serialized::Type::to_cbor(data);
-        FileSystem::WriteBytes(file, serData.data(), serData.size());
+        result = FileSystem::WriteBytes(file, serUUID.data(), serUUID.size()) && FileSystem::WriteBytes(file, serData.data(), serData.size());
     }
     else
     {
-        FileSystem::WriteText(file, "\"" + UUIDToString(uuid) + "\": ");
-        FileSystem::WriteText(file, data.dump(4));
+        result = FileSystem::WriteText(file, "\"" + UUIDToString(uuid) + "\": ") && FileSystem::WriteText(file, data.dump(4));
     }
 
     FileSystem::Close(file);
-    return true;
+    return result;
 }
 
 /// checks if a path is packed
