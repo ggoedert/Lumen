@@ -46,7 +46,7 @@ namespace Lumen
         const std::filesystem::path &Path() const;
 
         /// get UUID
-        const UUID UUID() const;
+        Lumen::UUID UUID() const;
 
     private:
         /// constructs an assetinfo

@@ -24,11 +24,15 @@ public:
     /// initialize assetinfo
     void Initialize()
     {
-        mUUID = UUIDGenerate();
+        // zero is the invalid UUID
+        do
+        {
+            mUUID = UUIDGenerate();
+        } while (mUUID == UUID_INVALID);
     }
 
     /// get path
-    const std::filesystem::path &Path() { return mPath; }
+    const std::filesystem::path &Path() const { return mPath; }
 
     /// get UUID
     const Lumen::UUID UUID() const { return mUUID; }
@@ -134,7 +138,7 @@ const std::filesystem::path &AssetInfo::Path() const
 }
 
 /// get UUID
-const UUID AssetInfo::UUID() const
+Lumen::UUID AssetInfo::UUID() const
 {
     return mImpl->UUID();
 }

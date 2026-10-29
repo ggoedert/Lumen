@@ -151,6 +151,13 @@ namespace Lumen
     {
         return RemoveFromVectorIf(vec, [&value](const T &element) { return element == value; });
     }
+
+    /// lower case copy of a string (ASCII)
+    inline std::string ToLower(std::string text)
+    {
+        std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return text;
+    }
 }
 
 /// disable warning helpers
