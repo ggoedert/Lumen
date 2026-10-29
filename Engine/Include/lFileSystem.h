@@ -40,6 +40,9 @@ namespace Lumen
 
             /// last write time
             std::filesystem::file_time_type mLastWrite = {};
+
+            /// size in bytes (0 for directories or when unknown)
+            std::size_t mSize = 0;
         };
 
         /// FileEntry struct
@@ -115,6 +118,9 @@ namespace Lumen
         /// rename a file
         bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
+        /// delete a file or an empty directory
+        bool Delete(const std::filesystem::path &path);
+
         /// get file attributes
         FileAttributes GetAttributes(const std::filesystem::path &path);
 
@@ -161,6 +167,9 @@ namespace Lumen
         /// initialize file system
         virtual void Initialize(bool packed) = 0;
 
+        /// shutdown file system, stops any background activity (file watchers) that reports into the FileSystem namespace
+        virtual void Shutdown() = 0;
+
         /// whether this file system is packed
         virtual bool Packed() const = 0;
 
@@ -172,6 +181,9 @@ namespace Lumen
 
         /// rename a file
         virtual bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) = 0;
+
+        /// delete a file or an empty directory
+        virtual bool Delete(const std::filesystem::path &path) = 0;
 
         /// get file attributes
         virtual FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) = 0;

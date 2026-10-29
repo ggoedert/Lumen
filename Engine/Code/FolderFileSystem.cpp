@@ -45,11 +45,12 @@ public:
             std::vector<FileSystem::FileChange> fileBatch;
             for (const auto &entry : std::filesystem::recursive_directory_iterator(path, ec))
             {
-                if (entry.is_regular_file() || entry.is_directory())
+                FileSystem::FileAttributes attributes = AttributesFromEntry(entry);
+                if (attributes.mFlags.Has(FileSystem::Flag::File) || attributes.mFlags.Has(FileSystem::Flag::Directory))
                 {
                     std::filesystem::path relativePath = entry.path().lexically_relative(path);
                     std::string filepath = (path / relativePath).lexically_normal().generic_string();
-                    fileBatch.push_back({ FileSystem::Change::Added, GetAttributes(relativePath), filepath, "" });
+                    fileBatch.push_back({ FileSystem::Change::Added, attributes, filepath, "" });
                 }
             }
             if (!fileBatch.empty())
@@ -58,6 +59,39 @@ public:
             }
         }
 #endif
+    }
+
+    /// shutdown file system, the plain folder file system has no background activity
+    void Shutdown() {}
+
+    /// build file attributes from a directory entry, uses the data the directory iterator already has (no extra stat per entry)
+    static FileSystem::FileAttributes AttributesFromEntry(const std::filesystem::directory_entry &entry)
+    {
+        FileSystem::FileAttributes attributes;
+        std::error_code ec;
+        if (entry.is_directory(ec))
+        {
+            attributes.mFlags = FileSystem::Flag::Directory;
+        }
+        else if (entry.is_regular_file(ec))
+        {
+            attributes.mFlags = FileSystem::Flag::File;
+            attributes.mSize = entry.file_size(ec);
+            if (ec)
+            {
+                attributes.mSize = 0;
+            }
+        }
+        else
+        {
+            return attributes;
+        }
+        attributes.mLastWrite = entry.last_write_time(ec);
+        if (ec)
+        {
+            attributes.mLastWrite = {};
+        }
+        return attributes;
     }
 
     /// whether this file system is packed
@@ -93,17 +127,21 @@ public:
         return !ec;
     }
 
+    /// delete a file or an empty directory
+    bool Delete(const std::filesystem::path &path)
+    {
+        const std::filesystem::path fullPath = mOwner.Path() / path;
+        std::error_code ec;
+        return std::filesystem::remove(fullPath, ec) && !ec;
+    }
+
     /// get file attributes
     FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path)
     {
-        FileSystem::FileAttributes attributes;
+        // single status query, error code overloads so a file deleted in between never throws
         const std::filesystem::path fullPath = mOwner.Path() / path;
-        if (std::filesystem::exists(fullPath))
-        {
-            attributes.mFlags = std::filesystem::is_directory(fullPath) ? FileSystem::Flag::Directory : FileSystem::Flag::File;
-            attributes.mLastWrite = std::filesystem::last_write_time(fullPath);
-        }
-        return attributes;
+        std::error_code ec;
+        return AttributesFromEntry(std::filesystem::directory_entry(fullPath, ec));
     }
 
     /// ensure a directory exists
@@ -129,9 +167,11 @@ public:
         std::error_code ec;
         for (const auto &entry : std::filesystem::directory_iterator(fullPath, ec))
         {
-            std::filesystem::path relativePath = entry.path().lexically_relative(fullPath);
-            std::string filepath = (path / relativePath).lexically_normal().generic_string();
-            files.push_back({ GetAttributes(filepath), relativePath.generic_string() });
+            FileSystem::FileAttributes attributes = AttributesFromEntry(entry);
+            if (attributes.mFlags.Has(FileSystem::Flag::File) || attributes.mFlags.Has(FileSystem::Flag::Directory))
+            {
+                files.push_back({ attributes, entry.path().filename().generic_string() });
+            }
         }
         return files;
     }
@@ -311,6 +351,12 @@ void FolderFileSystem::Initialize(bool packed)
     mImpl->Initialize(packed);
 }
 
+/// shutdown file system
+void FolderFileSystem::Shutdown()
+{
+    mImpl->Shutdown();
+}
+
 /// whether this file system is packed
 bool FolderFileSystem::Packed() const
 {
@@ -333,6 +379,12 @@ bool FolderFileSystem::Exists(const std::filesystem::path &path)
 bool FolderFileSystem::Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
 {
     return mImpl->Rename(oldPath, newPath);
+}
+
+/// delete a file or an empty directory
+bool FolderFileSystem::Delete(const std::filesystem::path &path)
+{
+    return mImpl->Delete(path);
 }
 
 /// get file attributes

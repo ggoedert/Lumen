@@ -105,8 +105,8 @@ public:
         }
 
         SceneManager::Shutdown();
-        FileSystem::Shutdown();
         AssetManager::Shutdown();
+        FileSystem::Shutdown();
 
         mPlatform->Shutdown();
     }

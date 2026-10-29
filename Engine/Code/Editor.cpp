@@ -223,13 +223,15 @@ void Editor::Impl::Shutdown()
         }
     }
     std::ofstream file(outFile);
-    if (!file.is_open())
+    if (file.is_open())
+    {
+        file << out.dump(4);
+        file.close();
+    }
+    else
     {
         Lumen::DebugLog::Error("Unable to open user settings file for writing, {}", outFile.generic_string());
-        return;
     }
-    file << out.dump(4);
-    file.close();
 
     // shut down any component that needs to cleanup before the engine is destroyed
     mEditorContent->Shutdown();

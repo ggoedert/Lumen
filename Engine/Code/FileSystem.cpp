@@ -29,11 +29,30 @@ namespace Lumen::Hidden
         StringMap<IFileSystemPtr> mFileSystems;
 
 #ifdef EDITOR
+        /// delayed file batch type, ordered by the time the change is allowed to be processed
+        using DelayedFileBatch = std::multimap<steady_clock::time_point, FileSystem::FileChange>;
+
+        /// per file name bookkeeping of the delayed batch, keeps the per change lookups O(1)
+        struct DelayedName
+        {
+            /// pending Added / Modified change of this name (at most one, further ones are coalesced into it), std::nullopt if Renamed / Removed
+            std::optional<DelayedFileBatch::iterator> mPending;
+
+            /// latest process time of any pending change of this name, changes of one name are never reordered
+            steady_clock::time_point mLastTime;
+
+            /// number of pending changes of this name
+            size_t mCount = 0;
+        };
+
         /// file batch queue
         ConcurrentBatchQueue<FileSystem::FileChange> mFileBatchQueue;
 
         // delayed file batch
-        std::multimap<steady_clock::time_point, FileSystem::FileChange> mDelayedFileBatch;
+        DelayedFileBatch mDelayedFileBatch;
+
+        /// delayed file batch index by name
+        std::unordered_map<std::string, DelayedName> mDelayedNames;
 #endif
     };
 
@@ -108,6 +127,13 @@ void FileSystem::Initialize(const EngineWeakPtr &engine)
 void FileSystem::Shutdown()
 {
     L_ASSERT(Hidden::gFileSytemState);
+
+    // the file systems are owned elsewhere and can outlive this state, stop them first so file watchers
+    // can no longer report into a state that is about to be destroyed
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        fileSystem->Shutdown();
+    }
     Hidden::gFileSytemState.reset();
 }
 
@@ -155,16 +181,16 @@ void FileSystem::ProcessFileChanges()
 {
     L_ASSERT(Hidden::gFileSytemState);
 
-    std::vector<FileChange> fileBatch;
     steady_clock::time_point now = steady_clock::now();
 
     // pop file changes from the queue
+    auto &state = *Hidden::gFileSytemState;
     std::list<std::vector<FileChange>> fileBatchQueue;
-    if (Hidden::gFileSytemState->mFileBatchQueue.PopBatchQueue(fileBatchQueue))
+    if (state.mFileBatchQueue.PopBatchQueue(fileBatchQueue))
     {
-        for (auto &fileBatch : fileBatchQueue)
+        for (auto &incoming : fileBatchQueue)
         {
-            for (auto &fileChange : fileBatch)
+            for (auto &fileChange : incoming)
             {
                 // ignore directory modified events
                 if ((fileChange.mChange == Change::Modified) && (fileChange.mAttributes.mFlags.Has(Flag::Directory)))
@@ -172,47 +198,67 @@ void FileSystem::ProcessFileChanges()
                     continue;
                 }
 
-                // check if the file change is already in the delayed batch
-                bool inserted = false;
-                if ((fileChange.mChange == Change::Added) || (fileChange.mChange == Change::Modified))
-                {
-                    auto it = std::find_if(Hidden::gFileSytemState->mDelayedFileBatch.begin(), Hidden::gFileSytemState->mDelayedFileBatch.end(), [&](const auto &pair)
-                    {
-                        return (pair.second.mName == fileChange.mName) && ((pair.second.mChange == Change::Added) || (pair.second.mChange == Change::Modified));
-                    });
-                    if (it != Hidden::gFileSytemState->mDelayedFileBatch.end())
-                    {
-                        it->second.mAttributes.mLastWrite = fileChange.mAttributes.mLastWrite;
-                        inserted = true;
-                    }
-                }
+                const bool addedOrModified = (fileChange.mChange == Change::Added) || (fileChange.mChange == Change::Modified);
+                auto &nameState = state.mDelayedNames[fileChange.mName];
 
-                // if the file change is not already in the delayed batch, insert it with a delay
-                if (!inserted)
+                // coalesce added / modified changes into the pending added / modified change of the same name
+                if (addedOrModified && nameState.mPending.has_value())
                 {
+                    auto it = nameState.mPending.value();
+                    it->second.mAttributes.mLastWrite = fileChange.mAttributes.mLastWrite;
+                    it->second.mAttributes.mSize = fileChange.mAttributes.mSize;
+                }
+                else
+                {
+                    // otherwise insert it with a delay, never before an earlier pending change of the same name
                     steady_clock::time_point insertTime = now;
-                    if ((fileChange.mChange == Change::Added) || (fileChange.mChange == Change::Modified))
-                        insertTime += milliseconds(100);
-                    for (auto &pair : Hidden::gFileSytemState->mDelayedFileBatch)
+                    if (addedOrModified)
                     {
-                        if (pair.second.mName == fileChange.mName)
-                        {
-                            insertTime = std::max(pair.first, insertTime);
-                        }
+                        insertTime += milliseconds(100);
                     }
-                    Hidden::gFileSytemState->mDelayedFileBatch.emplace(insertTime, fileChange);
+                    if (nameState.mCount > 0)
+                    {
+                        insertTime = std::max(nameState.mLastTime, insertTime);
+                    }
+                    auto inserted = state.mDelayedFileBatch.emplace(insertTime, std::move(fileChange));
+
+                    nameState.mLastTime = insertTime;
+                    ++nameState.mCount;
+
+                    if (addedOrModified)
+                    {
+                        nameState.mPending = inserted;
+                    }
+                    else
+                    {
+                        // a removed or renamed event breaks the modification chain, we must clear the pending iterator so future additions don't coalesce backwards
+                        nameState.mPending = std::nullopt;
+                    }
                 }
             }
         }
     }
 
     // process delayed file changes that are ready
-    auto cutoff = Hidden::gFileSytemState->mDelayedFileBatch.upper_bound(now);
-    for (auto it = Hidden::gFileSytemState->mDelayedFileBatch.begin(); it != cutoff; ++it)
+    std::vector<FileChange> fileBatch;
+    auto cutoff = state.mDelayedFileBatch.upper_bound(now);
+    for (auto it = state.mDelayedFileBatch.begin(); it != cutoff; ++it)
     {
+        auto nameIt = state.mDelayedNames.find(it->second.mName);
+        if (nameIt != state.mDelayedNames.end())
+        {
+            if (nameIt->second.mPending.has_value() && (nameIt->second.mPending.value() == it))
+            {
+                nameIt->second.mPending = std::nullopt;
+            }
+            if (--nameIt->second.mCount == 0)
+            {
+                state.mDelayedNames.erase(nameIt);
+            }
+        }
         fileBatch.push_back(std::move(it->second));
     }
-    Hidden::gFileSytemState->mDelayedFileBatch.erase(Hidden::gFileSytemState->mDelayedFileBatch.begin(), cutoff);
+    state.mDelayedFileBatch.erase(state.mDelayedFileBatch.begin(), cutoff);
 
     // process file changes (process even if empty to allow for asset manager to process delayed changes)
     for (auto &fileChange : fileBatch)
@@ -486,6 +532,22 @@ bool FileSystem::Rename(const std::filesystem::path &oldPath, const std::filesys
         }
     }
     Lumen::DebugLog::Error("No registered file system for path {}", oldPath.generic_string());
+    return false;
+}
+
+/// delete a file or an empty directory
+bool FileSystem::Delete(const std::filesystem::path &path)
+{
+    L_ASSERT(Hidden::gFileSytemState);
+    for (auto &[mountPoint, fileSystem] : Hidden::gFileSytemState->mFileSystems)
+    {
+        if (Hidden::StartsWith(path, mountPoint))
+        {
+            std::filesystem::path relativePath = path.lexically_relative(mountPoint);
+            return fileSystem->Delete(relativePath);
+        }
+    }
+    Lumen::DebugLog::Error("No registered file system for path {}", path.generic_string());
     return false;
 }
 

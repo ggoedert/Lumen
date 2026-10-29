@@ -23,6 +23,9 @@ namespace Lumen
         /// initialize file system
         void Initialize(bool packed) override;
 
+        /// shutdown file system
+        void Shutdown() override;
+
         /// whether this file system is packed
         bool Packed() const override;
 
@@ -34,6 +37,9 @@ namespace Lumen
 
         /// rename a file
         bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) override;
+
+        /// delete a file or an empty directory
+        bool Delete(const std::filesystem::path &path) override;
 
         /// get file attributes
         FileSystem::FileAttributes GetAttributes(const std::filesystem::path &path) override;

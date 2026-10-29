@@ -59,6 +59,9 @@ public:
     /// initialize file system
     void Initialize(bool packed);
 
+    /// stop watching for file changes, safe to call more than once
+    void StopWatching();
+
     /// get path
     const std::filesystem::path &Path() const { return mPath; }
 
@@ -99,6 +102,12 @@ FolderFileSystemWindows::Impl::Impl(const std::filesystem::path &path) : mPath(p
 
 /// destroys folder file system
 FolderFileSystemWindows::Impl::~Impl()
+{
+    StopWatching();
+}
+
+/// stop watching for file changes, safe to call more than once
+void FolderFileSystemWindows::Impl::StopWatching()
 {
 #ifdef EDITOR
     // stop ReadDirectoryChangesW
@@ -234,6 +243,12 @@ void FolderFileSystemWindows::Impl::FileChangeCallback()
                 // convert attr.ftLastWriteTime to std::filesystem::file_time_type, file_time_type ticks are 100ns since 1601-01-01, same as windows FILETIME
                 ULARGE_INTEGER uliLastWrite { attr.ftLastWriteTime.dwLowDateTime, attr.ftLastWriteTime.dwHighDateTime };
                 attributes.mLastWrite = std::filesystem::file_time_type { std::filesystem::file_time_type::duration{ static_cast<int64_t>(uliLastWrite.QuadPart) } };
+
+                // file size, zero for directories
+                if (attributes.mFlags.Has(FileSystem::Flag::File))
+                {
+                    attributes.mSize = (static_cast<std::size_t>(attr.nFileSizeHigh) << 32) | static_cast<std::size_t>(attr.nFileSizeLow);
+                }
             }
 
             name = FileSystem::NormalizeFilePath(mPath / filename).generic_string();
@@ -306,6 +321,13 @@ void FolderFileSystemWindows::Initialize(bool packed)
 {
     FolderFileSystem::Initialize(packed);
     mImpl->Initialize(packed);
+}
+
+/// shutdown file system
+void FolderFileSystemWindows::Shutdown()
+{
+    mImpl->StopWatching();
+    FolderFileSystem::Shutdown();
 }
 
 /// get path
