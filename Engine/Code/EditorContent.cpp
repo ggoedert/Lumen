@@ -53,8 +53,9 @@ public:
     /// shutdown editor content
     void Shutdown()
     {
-        // asset infos need to be delete before the engine is destroyed
-        mVisibleAssetInfo.clear();
+        // nothing in here may outlive the engine
+        mVisibleAssets.clear();
+        mVisibleDirty = true;
     }
 
     /// editor content dialog name
@@ -125,7 +126,7 @@ public:
             if (ImGui::IsItemFocused() && mVisibleKey != key)
             {
                 mVisibleKey = key;
-                mVisibleAssetInfo.clear();
+                mVisibleDirty = true;
             }
             if (node_open)
             {
@@ -139,11 +140,11 @@ public:
         }
     }
 
-    /// draw asset browser
-    void DrawAssetBrowser()
+    /// rebuild the list of assets of the visible folder, only needed when the visible folder or the asset tree changed
+    void RebuildVisibleAssets()
     {
         // gather assets to display
-        std::vector<Asset> assets;
+        mVisibleAssets.clear();
         auto visibleNodeIt = mAssetTree.find(mVisibleKey);
         if (visibleNodeIt != mAssetTree.end())
         {
@@ -170,41 +171,48 @@ public:
                         path = path.substr(2);
                     }
 
-                    // cache visible asset info
-                    if (mVisibleAssetInfo.find(path) == mVisibleAssetInfo.end())
+                    // make sure the visible asset has an asset info (created on first sight in the editor)
+                    auto assetInfoExpected = AssetManager::GetInfo(path);
+                    if (!assetInfoExpected.HasValue())
                     {
-                        auto assetInfoExpected = AssetManager::GetInfo(path);
-                        if (!assetInfoExpected.HasValue())
-                        {
-                            DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
-                            continue;
-                        }
-                        mVisibleAssetInfo[path] = assetInfoExpected.Value();
+                        DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
+                        continue;
                     }
 
                     // @@REVIEW@@ we should not rely on the name to determine the type, we should store the type in the data, but for now this is just a test
                     if (child.mData.mIsFolder)
                     {
-                        assets.push_back({ MATERIAL_ICONS_FOLDER, child.mData.mFilename });
+                        mVisibleAssets.push_back({ MATERIAL_ICONS_FOLDER, child.mData.mFilename });
                     }
                     else if (std::string(child.mData.mFilename).ends_with("0"))
                     {
-                        assets.push_back({ MATERIAL_ICONS_ASSET, child.mData.mFilename });
+                        mVisibleAssets.push_back({ MATERIAL_ICONS_ASSET, child.mData.mFilename });
                     }
                     else if (std::string(child.mData.mFilename).ends_with("1"))
                     {
-                        assets.push_back({ MATERIAL_ICONS_SCRIPT, child.mData.mFilename });
+                        mVisibleAssets.push_back({ MATERIAL_ICONS_SCRIPT, child.mData.mFilename });
                     }
                     else
                     {
-                        assets.push_back({ MATERIAL_ICONS_FILE, child.mData.mFilename });
+                        mVisibleAssets.push_back({ MATERIAL_ICONS_FILE, child.mData.mFilename });
                     }
                 }
             }
         }
 
         // sort assets alphabetically by name
-        std::sort(assets.begin(), assets.end(), [](const Asset &a, const Asset &b) { return a.mName < b.mName; });
+        std::sort(mVisibleAssets.begin(), mVisibleAssets.end(), [](const Asset &a, const Asset &b) { return a.mName < b.mName; });
+        mVisibleDirty = false;
+    }
+
+    /// draw asset browser
+    void DrawAssetBrowser()
+    {
+        // the list is rebuilt when the visible folder or the tree changed, not on every frame
+        if (mVisibleDirty)
+        {
+            RebuildVisibleAssets();
+        }
 
         // draw assets in a grid
         static int selected = -1;
@@ -225,9 +233,9 @@ public:
         ImVec2 cursor = start_pos;
         int col = 0;
 
-        for (int i = 0; i < assets.size(); i++)
+        for (int i = 0; i < mVisibleAssets.size(); i++)
         {
-            Asset &asset = assets[i];
+            Asset &asset = mVisibleAssets[i];
             ImGui::PushID(i);
 
             ImVec2 cell_min = cursor;
@@ -393,6 +401,9 @@ public:
     /// process asset changes
     void ProcessAssetChanges(std::vector<AssetManager::AssetChange> &&assetBatch)
     {
+        // the visible folder may have changed
+        mVisibleDirty = true;
+
         for (auto item : assetBatch)
         {
             std::filesystem::path oldFilePath = item.mOldName;
@@ -545,8 +556,11 @@ private:
     /// currently visible node key
     AssetTree::KeyType mVisibleKey = AssetTree::NoKey;
 
-    /// visible asset info cache
-    std::unordered_map<std::string, AssetInfoPtr> mVisibleAssetInfo;
+    /// assets of the visible folder, sorted by name
+    std::vector<Asset> mVisibleAssets;
+
+    /// whether mVisibleAssets needs to be rebuilt
+    bool mVisibleDirty = true;
 
     /// window open bool
     bool mWindowOpen;

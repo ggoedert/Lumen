@@ -31,26 +31,54 @@ public:
     /// detach an event receiver
     void Detach(const EventReceiverPtr &receiver)
     {
-        Lumen::RemoveFromVector(mReceivers, receiver);
+        if (mDispatchDepth > 0)
+        {
+            // a dispatch is walking the receivers by index, erasing would shift them under it:
+            // clear the slot now (dispatching skips empty slots) and compact when the outermost dispatch ends
+            for (auto &slot : mReceivers)
+            {
+                if (slot == receiver)
+                {
+                    slot.reset();
+                    mCompact = true;
+                }
+            }
+        }
+        else
+        {
+            Lumen::RemoveFromVector(mReceivers, receiver);
+        }
         receiver->HandleEvent(Event::MakePtr(DettachType));
     }
 
     /// broadcast to all event receivers, ignore if handled
     void Broadcast(const EventPtr &event) const
     {
-        for (const auto &receiver : mReceivers)
+        DispatchScope scope(*this);
+
+        // receivers attached while dispatching do not see this event
+        const size_t count = mReceivers.size();
+        for (size_t i = 0; i < count; ++i)
         {
-            receiver->HandleEvent(event);
+            // one reference count bump per receiver (no copy of the receiver list), keeps a receiver that detaches itself alive while it handles the event
+            const EventReceiverPtr receiver = mReceivers[i];
+            if (receiver)
+            {
+                receiver->HandleEvent(event);
+            }
         }
     }
 
     /// traverse all event receivers from top to bottom, stop if handled
     bool Traverse(const EventPtr &event) const
     {
-        auto receiversCopy = mReceivers;
-        for (const auto &receiver : receiversCopy)
+        DispatchScope scope(*this);
+
+        const size_t count = mReceivers.size();
+        for (size_t i = 0; i < count; ++i)
         {
-            if (receiver->HandleEvent(event))
+            const EventReceiverPtr receiver = mReceivers[i];
+            if (receiver && receiver->HandleEvent(event))
             {
                 return true;
             }
@@ -61,9 +89,12 @@ public:
     /// traverse all event receivers from bottom to top, stop if handled
     bool ReverseTraverse(const EventPtr &event) const
     {
-        for (auto it = mReceivers.rbegin(); it != mReceivers.rend(); ++it)
+        DispatchScope scope(*this);
+
+        for (size_t i = mReceivers.size(); i-- > 0;)
         {
-            if ((*it)->HandleEvent(event))
+            const EventReceiverPtr receiver = mReceivers[i];
+            if (receiver && receiver->HandleEvent(event))
             {
                 return true;
             }
@@ -72,11 +103,41 @@ public:
     }
 
 private:
+    /// marks a dispatch in progress, detaching during a dispatch is deferred until the outermost dispatch ends
+    class DispatchScope
+    {
+        CLASS_NO_COPY_MOVE(DispatchScope);
+
+    public:
+        /// enter a dispatch
+        explicit DispatchScope(const Impl &impl) : mImpl(impl) { ++mImpl.mDispatchDepth; }
+
+        /// leave a dispatch
+        ~DispatchScope()
+        {
+            if ((--mImpl.mDispatchDepth == 0) && mImpl.mCompact)
+            {
+                mImpl.mCompact = false;
+                std::erase_if(mImpl.mReceivers, [](const EventReceiverPtr &receiver) { return !receiver; });
+            }
+        }
+
+    private:
+        /// dispatcher implementation
+        const Impl &mImpl;
+    };
+
     /// owner
     EventDispatcher &mOwner;
 
-    /// receivers
-    std::vector<EventReceiverPtr> mReceivers;
+    /// receivers, a slot is empty when its receiver detached during a dispatch (mutable: dispatching is logically const, it only compacts the list)
+    mutable std::vector<EventReceiverPtr> mReceivers;
+
+    /// number of dispatches in progress
+    mutable int mDispatchDepth = 0;
+
+    /// whether empty slots need to be removed once the dispatches are done
+    mutable bool mCompact = false;
 };
 
 //==============================================================================================================================================================================
