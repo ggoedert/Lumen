@@ -23,6 +23,9 @@ namespace Lumen
         /// initialize file system
         void Initialize(bool packed) override;
 
+        /// shutdown file system, stops the file watcher
+        void Shutdown() override;
+
     private:
         /// get path
         const std::filesystem::path &Path() const override;
