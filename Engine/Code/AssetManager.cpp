@@ -21,6 +21,18 @@ namespace Lumen::Hidden
 {
     CLASS_UNIQUE_PTR_DEF(AssetManagerImpl);
 
+    /// normalizes a path to the key used by every cache of the asset manager: lexically normalized, forward slashes
+    inline std::string Normalize(const std::filesystem::path &path)
+    {
+        return FileSystem::NormalizeFilePath(path).generic_string();
+    }
+
+    /// whether a file name is an asset info file
+    inline bool IsInfoName(const std::string &name)
+    {
+        return (name.size() > 5) && (ToLower(name.substr(name.size() - 5)) == ".info");
+    }
+
     /// AssetManagerImpl class
     class AssetManagerImpl
     {
@@ -38,10 +50,19 @@ namespace Lumen::Hidden
         /// scan asset info files
         void Scan(const std::filesystem::path &path)
         {
-            for (const auto &entry : FileSystem::ListFiles(path))
+            // one listing per folder, the sibling .info files are looked up in memory
+            const std::vector<FileSystem::FileEntry> entries = FileSystem::ListFiles(path);
+            std::unordered_set<std::string> names;
+            names.reserve(entries.size());
+            for (const auto &entry : entries)
             {
-                auto entryPath = FileSystem::NormalizeFilePath(path / entry.mName);
-                if (entryPath.extension() != ".info" && FileSystem::Exists(std::filesystem::path(entryPath).concat(".info")))
+                names.insert(entry.mName);
+            }
+
+            for (const auto &entry : entries)
+            {
+                const std::string entryPath = Normalize(path / entry.mName);
+                if (!IsInfoName(entry.mName) && names.contains(entry.mName + ".info"))
                 {
                     Register(entryPath);
                 }
@@ -52,26 +73,66 @@ namespace Lumen::Hidden
             }
         }
 
-        /// register asset info
-        void Register(const std::filesystem::path &path)
+        /// generates a UUID that is not used by any known asset
+        UUID NewUUID() const
         {
-            auto assetUUIDIt = mAssetUUIDs.find(path);
-            if (assetUUIDIt == mAssetUUIDs.end())
+            UUID uuid;
+            do
             {
-                Lumen::UUID uuid;
-                if (FileSystem::ReadAssetInfo(std::filesystem::path(path).concat(".info"), uuid, nullptr))
-                {
-                    mAssetPaths[uuid] = path;
-                    mAssetUUIDs[path] = uuid;
-                }
+                uuid = UUIDGenerate();
+            } while ((uuid == UUID_INVALID) || mAssetPaths.contains(uuid));
+            return uuid;
+        }
+
+        /// register asset info, reads the UUID from the .info file and maps it to the asset
+        void Register(const std::string &path)
+        {
+            const std::string key = Normalize(path);
+            if (mAssetUUIDs.contains(key))
+            {
+                return;
             }
+
+            const std::filesystem::path infoFile = std::filesystem::path(key).concat(".info");
+            Lumen::UUID uuid = UUID_INVALID;
+            Serialized::Type data;
+            if (!FileSystem::ReadAssetInfo(infoFile, uuid, &data) || (uuid == UUID_INVALID))
+            {
+                Lumen::DebugLog::Warning("Unable to register asset info {}", infoFile.generic_string());
+                return;
+            }
+
+            // a UUID must identify one asset, copying an asset together with its .info file creates a duplicate
+            auto owner = mAssetPaths.find(uuid);
+            if ((owner != mAssetPaths.end()) && (owner->second != key) && FileSystem::Exists(owner->second))
+            {
+#ifdef EDITOR
+                const Lumen::UUID fresh = NewUUID();
+                if (!FileSystem::WriteAssetInfo(infoFile, fresh, data))
+                {
+                    Lumen::DebugLog::Error("Duplicate UUID of {} and {}, unable to assign a new UUID to {}", owner->second, key, key);
+                    return;
+                }
+                Lumen::DebugLog::Warning("Duplicate UUID of {} and {}, {} got a new UUID", owner->second, key, key);
+                uuid = fresh;
+#else
+                Lumen::DebugLog::Error("Duplicate UUID of {} and {}, ignoring {}", owner->second, key, key);
+                return;
+#endif
+            }
+
+            mAssetPaths[uuid] = key;
+            mAssetUUIDs[key] = uuid;
         }
 
         /// rename asset info
-        void Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath)
+        void Rename(const std::string &oldPath, const std::string &newPath)
         {
-            // find old path
-            auto assetUUIDIt = mAssetUUIDs.find(oldPath);
+            const std::string oldKey = Normalize(oldPath);
+            const std::string newKey = Normalize(newPath);
+
+            // the UUID stays
+            auto assetUUIDIt = mAssetUUIDs.find(oldKey);
             if (assetUUIDIt != mAssetUUIDs.end())
             {
                 // save mapped uuid and erase old path from cache
@@ -83,21 +144,22 @@ namespace Lumen::Hidden
                 if (assetPathIt != mAssetPaths.end())
                 {
                     // update mapped path and insert uuid to cache
-                    assetPathIt->second = newPath;
-                    mAssetUUIDs[newPath] = uuid;
+                    assetPathIt->second = newKey;
+                    mAssetUUIDs[newKey] = uuid;
                 }
             }
         }
 
         /// remove asset info
-        void Remove(const std::filesystem::path &path)
+        void Remove(const std::string &path)
         {
-            // find path
-            auto assetUUIDIt = mAssetUUIDs.find(path);
+            const std::string key = Normalize(path);
+
+            auto assetUUIDIt = mAssetUUIDs.find(key);
             if (assetUUIDIt != mAssetUUIDs.end())
             {
-                // erase uuid and path from cache
-                mAssetPaths.erase(assetUUIDIt->second);
+                const Lumen::UUID uuid = assetUUIDIt->second;
+                mAssetPaths.erase(uuid);
                 mAssetUUIDs.erase(assetUUIDIt);
             }
         }
@@ -105,7 +167,8 @@ namespace Lumen::Hidden
         /// create or get assetinfo
         Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path)
         {
-            auto assetInfoIt = mAssetInfos.find(path);
+            const std::string key = Normalize(path);
+            auto assetInfoIt = mAssetInfos.find(key);
             if (assetInfoIt != mAssetInfos.end())
             {
                 if (auto ptr = assetInfoIt->second.lock())
@@ -116,38 +179,48 @@ namespace Lumen::Hidden
             }
 
             // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
-            auto deleter = [this, path](AssetInfo *ptr)
+            auto deleter = [this, key](AssetInfo *ptr)
             {
                 delete ptr;
-                mAssetInfos.erase(path);
+                mAssetInfos.erase(key);
             };
-            auto assetInfoPtr = AssetInfo::MakePtr(path, deleter);
+            AssetInfoPtr assetInfoPtr = AssetInfo::MakePtr(key, deleter);
 
-            std::filesystem::path infoFile = std::filesystem::path(path).concat(".info");
+            const std::filesystem::path infoFile = std::filesystem::path(key).concat(".info");
             if (!FileSystem::Exists(infoFile))
             {
+#ifdef EDITOR
                 // register assetinfo
-                assetInfoPtr->Initialize();
+                do
+                {
+                    assetInfoPtr->Initialize();
+                } while (mAssetPaths.contains(assetInfoPtr->UUID()));
                 if (!assetInfoPtr->Save())
                 {
                     return Expected<AssetInfoPtr>::Unexpected("Failed to save asset info");
                 }
 
                 // register assetinfo in caches
-                mAssetPaths[assetInfoPtr->UUID()] = assetInfoPtr->Path();
-                mAssetUUIDs[assetInfoPtr->Path()] = assetInfoPtr->UUID();
+                mAssetPaths[assetInfoPtr->UUID()] = key;
+                mAssetUUIDs[key] = assetInfoPtr->UUID();
 
-                DebugLog::Info("Created asset info file in Assets folder: {}", infoFile.generic_string());
+                DebugLog::Info("Created asset info file: {}", infoFile.generic_string());
+#else
+                // a game build never writes into the assets
+                return Expected<AssetInfoPtr>::Unexpected(std::format("Missing asset info file, {}", infoFile.generic_string()));
+#endif
             }
             else
             {
+                // resolves a duplicate UUID (which rewrites the .info file) before the info is read
+                Register(key);
                 if (!assetInfoPtr->Load())
                 {
                     return Expected<AssetInfoPtr>::Unexpected("Failed to load asset info");
                 }
             }
 
-            mAssetInfos[path] = assetInfoPtr;
+            mAssetInfos[key] = assetInfoPtr;
             return assetInfoPtr;
         }
 
@@ -173,28 +246,28 @@ namespace Lumen::Hidden
         /// load asset
         Expected<AssetPtr> Load(HashType type, const std::filesystem::path &path)
         {
-            // normalize the path
-            std::string normalizedPath = FileSystem::NormalizeFilePath(path).generic_string();
+            const std::string key = Normalize(path);
 
             //@@REVIEW@@
             //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
 
-            // get asset infos that are on the path from all factories
+            // ask the factories in priority order, keep the reason of the last failure
+            std::string lastError;
             for (auto &priorityFactory : mAssetFactories)
             {
                 auto &assetFactory = priorityFactory.second;
-                if (assetFactory->Exists(normalizedPath))
+                if (assetFactory->Exists(key))
                 {
-                    auto assetExpected = assetFactory->Load(mEngine, type, normalizedPath);
+                    auto assetExpected = assetFactory->Load(mEngine, type, key);
                     if (assetExpected)
                     {
                         return assetExpected.Value();
                     }
+                    lastError = assetExpected.Error();
                 }
             }
 
-            // not found
-            return Expected<AssetPtr>::Unexpected("Asset not found");
+            return Expected<AssetPtr>::Unexpected(lastError.empty() ? std::format("Asset not found, {}", key) : lastError);
         }
 
 #ifdef EDITOR
@@ -421,13 +494,13 @@ namespace Lumen::Hidden
         std::multimap<float, AssetFactoryPtr, std::greater<float>> mAssetFactories;
 
         /// asset infos
-        std::unordered_map<std::filesystem::path, AssetInfoWeakPtr> mAssetInfos;
+        std::unordered_map<std::string, AssetInfoWeakPtr> mAssetInfos;
 
-        /// asset info paths
-        std::unordered_map<Lumen::UUID, std::filesystem::path> mAssetPaths;
+        /// asset info paths by UUID (normalized paths)
+        std::unordered_map<Lumen::UUID, std::string> mAssetPaths;
 
-        /// asset info uuids
-        std::unordered_map<std::filesystem::path, Lumen::UUID> mAssetUUIDs;
+        /// asset info uuids by normalized path
+        std::unordered_map<std::string, Lumen::UUID> mAssetUUIDs;
 
 #ifdef EDITOR
         /// temporary skip changes list, used to avoid processing the same file change multiple times during renames or similar
