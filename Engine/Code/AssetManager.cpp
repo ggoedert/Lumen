@@ -73,6 +73,19 @@ namespace Lumen::Hidden
             }
         }
 
+        /// register an asset factory
+        void RegisterFactory(const AssetFactoryPtr &assetFactory)
+        {
+            // insert asset factory with the given priority
+            mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
+        }
+
+        /// register the asset type of an extension
+        void RegisterType(std::string_view extension, HashType type)
+        {
+            mAssetTypes.insert_or_assign(ToLower(std::string(extension)), type);
+        }
+
         /// generates a UUID that is not used by any known asset
         UUID NewUUID() const
         {
@@ -125,28 +138,32 @@ namespace Lumen::Hidden
             mAssetUUIDs[key] = uuid;
         }
 
+        /// drops what is cached for a path that changed on disk: the loaded instance and the asset info
+        void Invalidate(const std::string &path)
+        {
+            const std::string key = Normalize(path);
+            mLoaded.erase(key);
+            mAssetInfos.erase(key);
+        }
+
         /// rename asset info
         void Rename(const std::string &oldPath, const std::string &newPath)
         {
             const std::string oldKey = Normalize(oldPath);
             const std::string newKey = Normalize(newPath);
 
+            // instances and infos are keyed by path (and an asset knows its path), they are recreated on demand
+            Invalidate(oldKey);
+            Invalidate(newKey);
+
             // the UUID stays
             auto assetUUIDIt = mAssetUUIDs.find(oldKey);
             if (assetUUIDIt != mAssetUUIDs.end())
             {
-                // save mapped uuid and erase old path from cache
-                Lumen::UUID uuid = assetUUIDIt->second;
+                const Lumen::UUID uuid = assetUUIDIt->second;
                 mAssetUUIDs.erase(assetUUIDIt);
-
-                // find uuid in cache
-                auto assetPathIt = mAssetPaths.find(uuid);
-                if (assetPathIt != mAssetPaths.end())
-                {
-                    // update mapped path and insert uuid to cache
-                    assetPathIt->second = newKey;
-                    mAssetUUIDs[newKey] = uuid;
-                }
+                mAssetUUIDs[newKey] = uuid;
+                mAssetPaths[uuid] = newKey;
             }
         }
 
@@ -154,6 +171,7 @@ namespace Lumen::Hidden
         void Remove(const std::string &path)
         {
             const std::string key = Normalize(path);
+            Invalidate(key);
 
             auto assetUUIDIt = mAssetUUIDs.find(key);
             if (assetUUIDIt != mAssetUUIDs.end())
@@ -236,41 +254,101 @@ namespace Lumen::Hidden
             return true;
         }
 
-        /// register an asset factory
-        void RegisterFactory(const AssetFactoryPtr &assetFactory)
-        {
-            // insert asset factory with the given priority
-            mAssetFactories.emplace(assetFactory->Priority(), assetFactory);
-        }
-
         /// load asset
         Expected<AssetPtr> Load(HashType type, const std::filesystem::path &path)
         {
             const std::string key = Normalize(path);
 
-            //@@REVIEW@@
-            //cache asset in some map? make some mechanism that purges or keeps assets around depending on whats happening?
+            // shared instance still alive?
+            auto loadedIt = mLoaded.find(key);
+            if (loadedIt != mLoaded.end())
+            {
+                if (AssetPtr loaded = loadedIt->second.lock())
+                {
+                    if (static_cast<Hash>(loaded->Type()) == static_cast<Hash>(type))
+                    {
+                        return loaded;
+                    }
+                }
+                else
+                {
+                    mLoaded.erase(loadedIt);
+                }
+            }
 
             // ask the factories in priority order, keep the reason of the last failure
             std::string lastError;
             for (auto &priorityFactory : mAssetFactories)
             {
                 auto &assetFactory = priorityFactory.second;
-                if (assetFactory->Exists(key))
+                if (!assetFactory->Exists(key))
                 {
-                    auto assetExpected = assetFactory->Load(mEngine, type, key);
-                    if (assetExpected)
-                    {
-                        return assetExpected.Value();
-                    }
-                    lastError = assetExpected.Error();
+                    continue;
                 }
+                auto assetExpected = assetFactory->Load(mEngine, type, key);
+                if (!assetExpected)
+                {
+                    lastError = assetExpected.Error();
+                    continue;
+                }
+
+                AssetPtr asset = assetExpected.Value();
+                auto uuidIt = mAssetUUIDs.find(key);
+                if (uuidIt != mAssetUUIDs.end())
+                {
+                    asset->SetUUID(uuidIt->second);
+                }
+                if (asset->Shareable())
+                {
+                    PurgeLoaded();
+                    mLoaded[key] = asset;
+                }
+                return asset;
             }
 
             return Expected<AssetPtr>::Unexpected(lastError.empty() ? std::format("Asset not found, {}", key) : lastError);
         }
 
+        /// load asset from asset info
+        Expected<AssetPtr> Load(const AssetInfoPtr &assetInfo)
+        {
+            if (!assetInfo)
+            {
+                return Expected<AssetPtr>::Unexpected("Invalid asset info");
+            }
+            const std::string extension = ToLower(assetInfo->Path().extension().generic_string());
+            auto typeIt = mAssetTypes.find(extension);
+            if (typeIt == mAssetTypes.end())
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("No asset type registered for '{}', {}", extension, assetInfo->Path().generic_string()));
+            }
+            return Load(typeIt->second, assetInfo->Path());
+        }
+
 #ifdef EDITOR
+        /// register an importer
+        void RegisterImporter(std::string_view extension, AssetManager::Importer importer)
+        {
+            mImporters.insert_or_assign(ToLower(std::string(extension)), std::move(importer));
+        }
+
+        /// import asset
+        bool Import(const AssetInfoPtr &assetInfo)
+        {
+            if (!assetInfo)
+            {
+                return false;
+            }
+            auto importerIt = mImporters.find(ToLower(assetInfo->Path().extension().generic_string()));
+            if (importerIt != mImporters.end())
+            {
+                return importerIt->second(assetInfo);
+            }
+
+            // no importer found
+            return false;
+        }
+
         /// process file changes
         void ProcessFileChanges(std::vector<FileSystem::FileChange> &&fileBatch)
         {
@@ -350,6 +428,8 @@ namespace Lumen::Hidden
                     {
                         if (hasInfo)
                         {
+                            // the source changed, the loaded instance and the cached info are out of date
+                            Invalidate(fileChange.mName);
                             assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mAttributes, fileChange.mName, "" });
                         }
                         else
@@ -363,6 +443,7 @@ namespace Lumen::Hidden
                         if (hasBase)
                         {
                             std::string name = fileChange.mName.substr(0, fileChange.mName.size() - 5);
+                            Invalidate(name);
                             assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mAttributes, name, "" });
                         }
                     }
@@ -487,14 +568,34 @@ namespace Lumen::Hidden
 #endif
 
     private:
+        /// drop expired instances when the cache has grown a lot, keeps the cost of the cache bounded without scanning on every load
+        void PurgeLoaded()
+        {
+            if (mLoaded.size() < mPurgeThreshold)
+            {
+                return;
+            }
+            std::erase_if(mLoaded, [](const auto &entry) { return entry.second.expired(); });
+            mPurgeThreshold = std::max<size_t>(64, mLoaded.size() * 2);
+        }
+
         /// engine pointer
         EngineWeakPtr mEngine;
 
         /// asset factories
         std::multimap<float, AssetFactoryPtr, std::greater<float>> mAssetFactories;
 
+        /// asset types by (lower case) extension
+        std::unordered_map<std::string, HashType> mAssetTypes;
+
         /// asset infos
         std::unordered_map<std::string, AssetInfoWeakPtr> mAssetInfos;
+
+        /// shared assets that are still alive by normalized path
+        std::unordered_map<std::string, AssetWeakPtr> mLoaded;
+
+        /// size of mLoaded that triggers the next purge of expired entries
+        size_t mPurgeThreshold = 64;
 
         /// asset info paths by UUID (normalized paths)
         std::unordered_map<Lumen::UUID, std::string> mAssetPaths;
@@ -503,6 +604,9 @@ namespace Lumen::Hidden
         std::unordered_map<std::string, Lumen::UUID> mAssetUUIDs;
 
 #ifdef EDITOR
+        /// importers by (lower case) extension
+        std::unordered_map<std::string, AssetManager::Importer> mImporters;
+
         /// temporary skip changes list, used to avoid processing the same file change multiple times during renames or similar
         std::unordered_set<std::string> mSkipChanges;
 
@@ -537,6 +641,12 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
     Hidden::gAssetManagerImpl->RegisterFactory(assetFactory);
 }
 
+/// register the asset type stored in files with the given extension
+void AssetManager::RegisterType(std::string_view extension, HashType type)
+{
+    Hidden::gAssetManagerImpl->RegisterType(extension, type);
+}
+
 /// scan assets
 void AssetManager::Scan()
 {
@@ -556,16 +666,23 @@ Expected<AssetPtr> AssetManager::Load(HashType type, const std::filesystem::path
     return Hidden::gAssetManagerImpl->Load(type, path);
 }
 
-#ifdef EDITOR
-/// register an importer for a specific asset type
-void AssetManager::RegisterImporter(std::string &extension, Importer importer)
+/// load asset from asset info
+Expected<AssetPtr> AssetManager::Load(const AssetInfoPtr &assetInfo)
 {
+    return Hidden::gAssetManagerImpl->Load(assetInfo);
+}
+
+#ifdef EDITOR
+/// register an importer for a specific asset extension
+void AssetManager::RegisterImporter(std::string_view extension, Importer importer)
+{
+    Hidden::gAssetManagerImpl->RegisterImporter(extension, std::move(importer));
 }
 
 /// import asset
 bool AssetManager::Import(const AssetInfoPtr &assetInfo)
 {
-    return false;
+    return Hidden::gAssetManagerImpl->Import(assetInfo);
 }
 
 /// process file changes

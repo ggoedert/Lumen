@@ -6,6 +6,8 @@
 
 #include "lExpected.h"
 #include "lMaterial.h"
+#include "lScene.h"
+#include "lEngine.h"
 #include "lFileSystem.h"
 #include "lFileSystemResources.h"
 
@@ -45,6 +47,22 @@ public:
                 return Expected<AssetPtr>::Unexpected(std::format("Unable to load material resource, {}", path.generic_string()));
             }
             return materialExpected;
+        }
+        else if (type == Scene::Type())
+        {
+            // a scene needs the application it is loaded into
+            auto engineLock = engine.lock();
+            auto applicationLock = engineLock ? engineLock->GetApplication().lock() : nullptr;
+            if (!applicationLock)
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("Unable to load scene resource, no application, {}", path.generic_string()));
+            }
+            ScenePtr scene = Scene::MakePtr(*applicationLock, path);
+            if (!scene->Load())
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("Unable to load scene resource, {}", path.generic_string()));
+            }
+            return scene;
         }
         else if (type == Texture::Type())
         {

@@ -144,6 +144,12 @@ Expected<std::string_view> Shader::Find(std::string_view name)
     return Shader::Impl::Find(name);
 }
 
+/// shaders are shared between all users of the same path
+bool Shader::Shareable() const
+{
+    return true;
+}
+
 /// save a shader
 bool Shader::Save() const
 {

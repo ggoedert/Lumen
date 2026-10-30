@@ -11,6 +11,10 @@
 #include "lFileSystem.h"
 #include "lAssetInfo.h"
 
+/// \cond
+#include <functional>
+/// \endcond
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -53,24 +57,27 @@ namespace Lumen
         /// register an asset factory
         void RegisterFactory(const AssetFactoryPtr &assetFactory);
 
+        /// register the asset type stored in files with the given extension
+        void RegisterType(std::string_view extension, HashType type);
+
         /// scan assets
         void Scan();
 
         /// create or get assetinfo
         Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path);
 
-        /// load asset
+        /// load asset, assets that are shareable are returned from the instance cache while someone still holds them
         Expected<AssetPtr> Load(HashType type, const std::filesystem::path &path);
 
-        /// load asset
+        /// load asset from its asset info
         Expected<AssetPtr> Load(const AssetInfoPtr &assetInfo);
 
 #ifdef EDITOR
         /// custom Importer type
-        using Importer = std::function<void(const AssetInfoPtr &assetInfo)>;
+        using Importer = std::function<bool(const AssetInfoPtr &assetInfo)>;
 
         /// register an importer for a specific asset type
-        void RegisterImporter(std::string &extension, Importer importer);
+        void RegisterImporter(std::string_view extension, Importer importer);
 
         /// import asset
         bool Import(const AssetInfoPtr &assetInfo);
