@@ -36,6 +36,9 @@ namespace Lumen
         /// destroys shader
         ~Shader() override;
 
+        /// shaders are shared between all users of the same path
+        [[nodiscard]] bool Shareable() const override;
+
         /// save a shader
         bool Save() const override;
 

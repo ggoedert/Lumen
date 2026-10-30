@@ -36,6 +36,9 @@ namespace Lumen
         /// find mesh path from name
         static Expected<std::string_view> Find(std::string_view name);
 
+        /// meshs are shared between all users of the same path
+        [[nodiscard]] bool Shareable() const override;
+
         /// save a mesh
         bool Save() const override;
 

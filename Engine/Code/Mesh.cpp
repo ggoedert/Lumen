@@ -123,6 +123,12 @@ Expected<std::string_view> Mesh::Find(std::string_view name)
     return Mesh::Impl::Find(name);
 }
 
+/// meshs are shared between all users of the same path
+bool Mesh::Shareable() const
+{
+    return true;
+}
+
 /// save a mesh
 bool Mesh::Save() const
 {

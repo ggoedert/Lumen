@@ -23,11 +23,20 @@ public:
     ~Impl() = default;
 
     /// get path
-    const std::filesystem::path &Path() { return mPath; }
+    const std::filesystem::path &Path() const { return mPath; }
+
+    /// get UUID
+    UUID GetUUID() const { return mUUID; }
+
+    /// set UUID
+    void SetUUID(UUID uuid) { mUUID = uuid; }
 
 private:
     /// path
     const std::filesystem::path mPath;
+
+    /// UUID of the asset info
+    UUID mUUID = UUID_INVALID;
 };
 
 //==============================================================================================================================================================================
@@ -39,7 +48,19 @@ Asset::Asset(HashType type, const std::filesystem::path &path) : Object(type), m
 Asset::~Asset() = default;
 
 /// get path
-const std::filesystem::path &Asset::Path()
+const std::filesystem::path &Asset::Path() const
 {
     return mImpl->Path();
+}
+
+/// get UUID
+UUID Asset::GetUUID() const
+{
+    return mImpl->GetUUID();
+}
+
+/// set UUID
+void Asset::SetUUID(UUID uuid)
+{
+    mImpl->SetUUID(uuid);
 }

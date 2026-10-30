@@ -43,6 +43,9 @@ namespace Lumen
         /// find texture path from name
         static Expected<std::string_view> Find(std::string_view name);
 
+        /// textures are shared between all users of the same path
+        [[nodiscard]] bool Shareable() const override;
+
         /// save a texture
         bool Save() const override;
 

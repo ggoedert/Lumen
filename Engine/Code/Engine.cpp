@@ -8,6 +8,11 @@
 #include "lSceneManager.h"
 #include "lFileSystemResources.h"
 #include "lBuiltinResources.h"
+#include "lScene.h"
+#include "lMaterial.h"
+#include "lTexture.h"
+#include "lMesh.h"
+#include "lShader.h"
 
 #include "EnginePlatform.h"
 
@@ -53,6 +58,13 @@ public:
         AssetManager::Initialize(mOwner);
         AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
         AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
+
+        // the asset type of each source file extension, lets an asset be loaded from its asset info alone
+        AssetManager::RegisterType(".lumen", Scene::Type());
+        AssetManager::RegisterType(".material", Material::Type());
+        AssetManager::RegisterType(".texture", Texture::Type());
+        AssetManager::RegisterType(".mesh", Mesh::Type());
+        AssetManager::RegisterType(".shader", Shader::Type());
 
         SceneManager::Initialize();
 

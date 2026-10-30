@@ -140,6 +140,12 @@ Expected<std::string_view> Texture::Find(std::string_view name)
     return Texture::Impl::Find(name);
 }
 
+/// textures are shared between all users of the same path
+bool Texture::Shareable() const
+{
+    return true;
+}
+
 /// save a texture
 bool Texture::Save() const
 {

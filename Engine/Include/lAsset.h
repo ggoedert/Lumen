@@ -34,8 +34,26 @@ namespace Lumen
         /// release a asset
         virtual void Release() = 0;
 
+        /// whether the serialized form of this asset can be cached in the Library
+        [[nodiscard]] virtual bool SupportsLibrary() const { return false; }
+
+        /// whether loads of the same path can share one instance
+        [[nodiscard]] virtual bool Shareable() const { return false; }
+
+        /// serialize
+        virtual void Serialize(Serialized::Type &out, bool packed) const {}
+
+        /// deserialize
+        virtual void Deserialize(const Serialized::Type &in, bool packed) {}
+
         /// get path
-        const std::filesystem::path &Path();
+        const std::filesystem::path &Path() const;
+
+        /// get the UUID
+        [[nodiscard]] UUID GetUUID() const;
+
+        /// set the UUID
+        void SetUUID(UUID uuid);
 
     protected:
         /// constructs a asset
