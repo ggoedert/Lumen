@@ -163,7 +163,7 @@ public:
         std::vector<FileSystem::FileEntry> files;
         const std::filesystem::path fullPath = mOwner.Path() / path;
 
-        // send std::error_code so we get empty listing for a missing or unreadable folder instead of throwing an exception
+        // try to list files, if the folder does not exist or is not readable, return an empty list
         std::error_code ec;
         for (const auto &entry : std::filesystem::directory_iterator(fullPath, ec))
         {

@@ -37,6 +37,15 @@ namespace Lumen
         /// find material path from name
         static Expected<std::string_view> Find(std::string_view name);
 
+        /// materials are cached in the Library
+        [[nodiscard]] bool SupportsLibrary() const override;
+
+        /// serialize
+        void Serialize(Serialized::Type &out, bool packed) const override;
+
+        /// deserialize, on failure the material is left without shader and properties
+        void Deserialize(const Serialized::Type &in, bool packed) override;
+
         /// save material
         bool Save() const override;
 

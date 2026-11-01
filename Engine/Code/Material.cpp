@@ -10,6 +10,7 @@
 #include "lTexture.h"
 #include "lRenderer.h"
 #include "lShader.h"
+#include "lAssetManager.h"
 
 using namespace Lumen;
 
@@ -149,33 +150,37 @@ public:
     }
 
     /// save material
-    bool Save() const { return true; }
+    bool Save() const
+    {
+        const std::filesystem::path &path = mOwner.Path();
+        Lumen::DebugLog::Info("Material::Impl::Save {}", path.generic_string());
+        if (!mShader)
+        {
+            Lumen::DebugLog::Error("Unable to save material {}, it has no shader", path.generic_string());
+            return false;
+        }
+
+        // write the source, then refresh the Library (best effort)
+        Serialized::Type data;
+        Serialize(data, FileSystem::IsPacked(path));
+        if (!FileSystem::WriteSerializedData(path, data))
+        {
+            return false;
+        }
+        if (!AssetManager::UpdateLibrary(mOwner))
+        {
+            Lumen::DebugLog::Warning("Unable to update the Library entry of {}", path.generic_string());
+        }
+        return true;
+    }
 
     /// load material
     bool Load()
     {
-        const std::filesystem::path &path = mOwner.Path();
-        Lumen::DebugLog::Info("Material::Impl::Load {}", path.generic_string());
+        Lumen::DebugLog::Info("Material::Impl::Load {}", mOwner.Path().generic_string());
 
-        // read the material
-        Serialized::Type data;
-        if (!FileSystem::ReadSerializedData(path, data))
-        {
-            Lumen::DebugLog::Error("Unable to read the material");
-            return false;
-        }
-
-        // deserialize the material
-        try
-        {
-            Deserialize(data, FileSystem::IsPacked(path));
-        }
-        catch (const std::exception &e)
-        {
-            Lumen::DebugLog::Error("{}", e.what());
-            return false;
-        }
-        return true;
+        // Library first, then the source (which refreshes the Library)
+        return AssetManager::LoadSerialized(mOwner);
     }
 
     /// release material
@@ -224,6 +229,24 @@ void Material::Register(std::string_view name, std::string_view path)
 Expected<std::string_view> Material::Find(std::string_view name)
 {
     return Material::Impl::Find(name);
+}
+
+/// materials are cached in the Library
+bool Material::SupportsLibrary() const
+{
+    return true;
+}
+
+/// serialize
+void Material::Serialize(Serialized::Type &out, bool packed) const
+{
+    mImpl->Serialize(out, packed);
+}
+
+/// deserialize
+void Material::Deserialize(const Serialized::Type &in, bool packed)
+{
+    mImpl->Deserialize(in, packed);
 }
 
 /// save material

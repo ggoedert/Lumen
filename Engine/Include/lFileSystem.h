@@ -115,7 +115,7 @@ namespace Lumen
         /// check if a file exists
         bool Exists(const std::filesystem::path &path);
 
-        /// rename a file
+        /// rename a file, an existing destination file is replaced
         bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath);
 
         /// delete a file or an empty directory
@@ -179,7 +179,7 @@ namespace Lumen
         /// check if a file exists
         virtual bool Exists(const std::filesystem::path &path) = 0;
 
-        /// rename a file
+        /// rename a file, an existing destination file is replaced
         virtual bool Rename(const std::filesystem::path &oldPath, const std::filesystem::path &newPath) = 0;
 
         /// delete a file or an empty directory

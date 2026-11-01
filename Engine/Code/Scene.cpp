@@ -70,12 +70,22 @@ public:
     /// deserialize
     void Deserialize(const Serialized::Type &in, bool packed)
     {
-        for (auto &entity : in.items())
+        // all or nothing: a failure part way (damaged Library entry, missing asset) must not leave a half built scene behind,
+        // the caller falls back to the source and needs an empty scene to do so
+        try
         {
-            if (auto entityLock = mEntities.emplace_back(Lumen::Entity::MakePtr(mApplication, entity.key())).lock())
+            for (auto &entity : in.items())
             {
-                entityLock->Deserialize(entity.value(), packed);
+                if (auto entityLock = mEntities.emplace_back(Lumen::Entity::MakePtr(mApplication, entity.key())).lock())
+                {
+                    entityLock->Deserialize(entity.value(), packed);
+                }
             }
+        }
+        catch (...)
+        {
+            Release();
+            throw;
         }
     }
 
@@ -85,26 +95,20 @@ public:
         const std::filesystem::path &path = mOwner.Path();
         Lumen::DebugLog::Info("Scene::Save {}", path.generic_string());
 
-        auto assetInfoExpected = AssetManager::GetInfo(path);
-        if (!assetInfoExpected.HasValue())
-        {
-            DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path.generic_string(), assetInfoExpected.Error());
-            return false;
-        }
-        AssetInfoPtr assetInfo = assetInfoExpected.Value();
-
-        // serialize and write the scene to Assets
+        // serialize and write the scene to Assets, the source of truth
         Serialized::Type assetsData;
         Serialize(assetsData, FileSystem::IsPacked(path));
-        if (FileSystem::WriteSerializedData(path, assetsData))
+        if (!FileSystem::WriteSerializedData(path, assetsData))
         {
-            // serialize and write the scene to Library
-            Serialized::Type libraryData;
-            Serialize(libraryData, FileSystem::IsPacked("Library/"));
-            return FileSystem::WriteSerializedData("Library/" + UUIDToString(assetInfo->UUID()), libraryData);
+            return false;
         }
 
-        return false;
+        // refresh the Library cache, best effort: the scene is saved either way, a failed cache write only means the next load reads the source
+        if (!AssetManager::UpdateLibrary(mOwner))
+        {
+            DebugLog::Warning("Unable to update the Library entry of {}", path.generic_string());
+        }
+        return true;
     }
 
     /// load scene
@@ -113,26 +117,11 @@ public:
         const std::filesystem::path &path = mOwner.Path();
         Lumen::DebugLog::Info("Scene::Load {}", path.generic_string());
 
-        // read the scene
-        Serialized::Type data;
-        if (!FileSystem::ReadSerializedData(path, data))
-        {
-            Lumen::DebugLog::Error("Unable to read the scene");
-            return false;
-        }
+        // loading twice must not duplicate the entities
+        Release();
 
-        // deserialize the scene
-        try
-        {
-            Deserialize(data, FileSystem::IsPacked(path));
-        }
-        catch (const std::exception &e)
-        {
-            Lumen::DebugLog::Error("{}", e.what());
-            return false;
-        }
-
-        return true;
+        // Library first, then the source (which refreshes the Library)
+        return AssetManager::LoadSerialized(mOwner);
     }
 
     /// release scene
@@ -191,6 +180,12 @@ void Scene::Register(std::string_view name, std::string_view path)
 Expected<std::string_view> Scene::Find(std::string_view name)
 {
     return Scene::Impl::Find(name);
+}
+
+/// scenes are cached in the Library
+bool Scene::SupportsLibrary() const
+{
+    return true;
 }
 
 /// serialize

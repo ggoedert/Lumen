@@ -36,11 +36,14 @@ namespace Lumen
         /// find scene path from name
         static Expected<std::string_view> Find(std::string_view name);
 
-        /// serialize
-        void Serialize(Serialized::Type &out, bool packed) const;
+        /// scenes are cached in the Library
+        [[nodiscard]] bool SupportsLibrary() const override;
 
-        /// deserialize
-        void Deserialize(const Serialized::Type &in, bool packed);
+        /// serialize
+        void Serialize(Serialized::Type &out, bool packed) const override;
+
+        /// deserialize, on failure the scene is left empty
+        void Deserialize(const Serialized::Type &in, bool packed) override;
 
         /// save scene
         bool Save() const override;

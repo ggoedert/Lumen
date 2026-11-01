@@ -47,36 +47,17 @@ void Sandbox::New()
 /// TEMP DELME!
 void Sandbox::Open()
 {
-
     if (auto engineLock = GetEngine().lock())
     {
         engineLock->New();
     }
-/*
-    bool loaded = false;
-    auto assetInfoExpected = Lumen::AssetManager::GetInfo("Assets/MainScene.lumen");
-    if (assetInfoExpected.HasValue())
-    {
-        mMainScene = Lumen::AssetManager::Load(assetInfoExpected.Value()->UUID());
-        loaded = Lumen::SceneManager::Load(mMainScene);
-    }
-    else
-    {
-    }
 
-    if (!loaded)
-    {
-        Lumen::DebugLog::Error("Unable to load Assets/MainScene.lumen asset");
-        Shutdown();
-    }
-*/
+    // Scene::Load reads the Library entry when it is valid, otherwise the source in Assets (which then refreshes the Library),
+    // the source is only written when the scene is saved
     mMainScene = Lumen::Scene::MakePtr(*this, "Assets/MainScene.lumen");
     if (!Lumen::SceneManager::Load(mMainScene))
     {
+        Lumen::DebugLog::Error("Unable to load Assets/MainScene.lumen");
         Shutdown();
-    }
-    else
-    {
-        mMainScene->Save();
     }
 }

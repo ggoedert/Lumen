@@ -6,9 +6,11 @@
 
 #include "lExpected.h"
 #include "lMaterial.h"
+#include "lTexture.h"
 #include "lScene.h"
 #include "lEngine.h"
 #include "lFileSystem.h"
+#include "lAssetManager.h"
 #include "lFileSystemResources.h"
 
 using namespace Lumen;
@@ -70,6 +72,14 @@ public:
             TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, path, textureInfo));
             texture->Load();
 
+            // the pixels come from the Library when it has a valid entry for this texture
+            if (AssetManager::LoadFromLibrary(*texture))
+            {
+                return texture;
+            }
+
+            //@@REVIEW@@ placeholder: there is no texture source format yet, every texture is the checker pattern, a real importer
+            // (decode the source file here, or register one with AssetManager::RegisterImporter) replaces the generation below
             UniqueByteArray textureData(textureInfo.mWidth * textureInfo.mHeight * 4);
             int textureDataPitch = textureInfo.mWidth * 4;
             for (int y = 0; y < textureInfo.mHeight; y++)
@@ -92,6 +102,9 @@ public:
                 }
             }
             texture->PushTextureData(std::move(textureData));
+
+            // cache the pixels, this must happen before the renderer consumes them
+            AssetManager::UpdateLibrary(*texture);
 
             return texture;
         }

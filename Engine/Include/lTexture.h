@@ -46,13 +46,25 @@ namespace Lumen
         /// textures are shared between all users of the same path
         [[nodiscard]] bool Shareable() const override;
 
-        /// save a texture
+        /// textures are cached in the Library
+        [[nodiscard]] bool SupportsLibrary() const override;
+
+        /// serialize texture, throws if not available
+        void Serialize(Serialized::Type &out, bool packed) const override;
+
+        /// deserialize texture
+        void Deserialize(const Serialized::Type &in, bool packed) override;
+
+        /// whether the pixels are available (not yet consumed by the upload to the GPU)
+        [[nodiscard]] bool HasTextureData() const;
+
+        /// save texture
         bool Save() const override;
 
-        /// load a texture
+        /// load texture
         bool Load() override;
 
-        /// release a texture
+        /// release texture
         void Release() override;
 
         /// get texture id
@@ -65,7 +77,7 @@ namespace Lumen
         UniqueByteArray PopTextureData();
 
     private:
-        /// constructs a texture
+        /// constructs texture
         explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
 
         /// private implementation

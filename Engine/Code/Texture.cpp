@@ -8,6 +8,10 @@
 #include "lStringMap.h"
 #include "lEngine.h"
 
+/// \cond
+#include <cstring>
+/// \endcond
+
 using namespace Lumen;
 
 /// Texture::Impl class
@@ -19,7 +23,7 @@ class Texture::Impl
     friend class Texture;
 
 public:
-    /// constructs a texture
+    /// constructs texture
     explicit Impl(Texture &owner, const EngineWeakPtr &engine, const Info &info) : mOwner(owner), mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
 
     /// destructor
@@ -46,18 +50,18 @@ public:
         return Expected<std::string_view>::Unexpected(std::format("Texture path for '{}' not found", name));
     }
 
-    /// save a texture
+    /// save texture
     bool Save() const
     {
         return true;
     }
 
-    /// load a texture
+    /// load texture
     bool Load() {
         return true;
     }
 
-    /// release a texture
+    /// release texture
     void Release()
     {
         if (Id::Invalid != mTextureId)
@@ -69,6 +73,51 @@ public:
                 engineLock->ReleaseTexture(textureId);
             }
         }
+    }
+
+    /// serialize texture, throws if not available
+    void Serialize(Serialized::Type &out, bool packed) const
+    {
+        if (!mTextureData.Valid())
+        {
+            throw std::runtime_error("texture pixels are not available");
+        }
+        const byte *begin = mTextureData.data();
+        out = Serialized::Type::object();
+        out["Width"] = mInfo.mWidth;
+        out["Height"] = mInfo.mHeight;
+        out["Pixels"] = Serialized::Type::binary(std::vector<byte>(begin, begin + mTextureData.size()));
+    }
+
+    /// deserialize texture
+    void Deserialize(const Serialized::Type &in, bool packed)
+    {
+        if (!in.is_object() || !in.contains("Width") || !in.contains("Height") || !in.contains("Pixels"))
+        {
+            throw std::runtime_error("texture data is incomplete");
+        }
+        const int width = in["Width"].get<int>();
+        const int height = in["Height"].get<int>();
+        const auto &pixels = in["Pixels"];
+        if ((width <= 0) || (height <= 0) || !pixels.is_binary())
+        {
+            throw std::runtime_error("texture data is invalid");
+        }
+
+        // the GPU texture was created with the size of mInfo when the asset was made, recreating it needs the shared pointer of the owner (see MakePtr)
+        if ((width != mInfo.mWidth) || (height != mInfo.mHeight))
+        {
+            throw std::runtime_error(std::format("texture size {}x{} differs from the created size {}x{}", width, height, mInfo.mWidth, mInfo.mHeight));
+        }
+        const std::vector<byte> &binary = pixels.get_binary();
+        if (binary.size() != static_cast<size_t>(width) * static_cast<size_t>(height) * 4)
+        {
+            throw std::runtime_error("texture pixel data has the wrong size");
+        }
+
+        UniqueByteArray textureData(binary.size());
+        std::memcpy(textureData.data(), binary.data(), binary.size());
+        PushTextureData(std::move(textureData));
     }
 
     /// push texture data
@@ -106,7 +155,7 @@ StringMap<std::string> Texture::Impl::mAssetPaths;
 
 //==============================================================================================================================================================================
 
-/// constructs a texture
+/// constructs texture
 Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info) :
     Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(*this, engine, info)) {}
 
@@ -146,19 +195,43 @@ bool Texture::Shareable() const
     return true;
 }
 
-/// save a texture
+/// textures are cached in the Library
+bool Texture::SupportsLibrary() const
+{
+    return true;
+}
+
+/// serialize
+void Texture::Serialize(Serialized::Type &out, bool packed) const
+{
+    mImpl->Serialize(out, packed);
+}
+
+/// deserialize
+void Texture::Deserialize(const Serialized::Type &in, bool packed)
+{
+    mImpl->Deserialize(in, packed);
+}
+
+/// whether the pixels are available
+bool Texture::HasTextureData() const
+{
+    return mImpl->mTextureData.Valid();
+}
+
+/// save texture
 bool Texture::Save() const
 {
     return mImpl->Save();
 }
 
-/// load a texture
+/// load texture
 bool Texture::Load()
 {
     return mImpl->Load();
 }
 
-/// release a texture
+/// release texture
 void Texture::Release()
 {
     mImpl->Release();

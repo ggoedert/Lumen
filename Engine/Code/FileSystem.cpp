@@ -35,7 +35,7 @@ namespace Lumen::Hidden
         /// per file name bookkeeping of the delayed batch, keeps the per change lookups O(1)
         struct DelayedName
         {
-            /// pending Added / Modified change of this name (at most one, further ones are coalesced into it), std::nullopt if Renamed / Removed
+            /// pending added / modified change of this name (at most one, further ones are coalesced into it), std::nullopt if renamed / removed
             std::optional<DelayedFileBatch::iterator> mPending;
 
             /// latest process time of any pending change of this name, changes of one name are never reordered
