@@ -17,9 +17,8 @@ Bin/
 /Sandbox/Library/
 
 # Local data
-/scratch/
 /html/
 User.settings
 
-# Any analysis output in the root directory
+# Any analysis output
 /*.xml

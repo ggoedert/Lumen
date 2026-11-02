@@ -307,7 +307,8 @@ namespace Lumen::Hidden
             do
             {
                 uuid = UUIDGenerate();
-            } while ((uuid == UUID_INVALID) || mAssetPaths.contains(uuid));
+            }
+            while (mAssetPaths.contains(uuid));
             return uuid;
         }
 
@@ -430,7 +431,8 @@ namespace Lumen::Hidden
                 do
                 {
                     assetInfoPtr->Initialize();
-                } while (mAssetPaths.contains(assetInfoPtr->UUID()));
+                }
+                while (mAssetPaths.contains(assetInfoPtr->UUID()));
                 if (!assetInfoPtr->Save())
                 {
                     return Expected<AssetInfoPtr>::Unexpected("Failed to save asset info");

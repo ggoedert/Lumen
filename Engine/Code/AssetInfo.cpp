@@ -24,11 +24,7 @@ public:
     /// initialize assetinfo
     void Initialize()
     {
-        // zero is the invalid UUID
-        do
-        {
-            mUUID = UUIDGenerate();
-        } while (mUUID == UUID_INVALID);
+        mUUID = UUIDGenerate();
     }
 
     /// get path

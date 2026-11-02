@@ -511,7 +511,13 @@ UUID Lumen::UUIDGenerate()
     thread_local std::random_device rd;
     thread_local std::mt19937_64 gen(rd());
     std::uniform_int_distribution<UUID> dis;
-    return dis(gen);
+    UUID uuid;
+    do
+    {
+        uuid = dis(gen);
+    }
+    while (uuid == UUID_INVALID);
+    return uuid;
 }
 
 /// serialize to string
