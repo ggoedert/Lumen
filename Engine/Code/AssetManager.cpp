@@ -6,11 +6,11 @@
 
 #include "lAssetManager.h"
 #include "lAssetInfo.h"
+#include "lLibrary.h"
 #include "lEngine.h"
 
 /// \cond
 #include <unordered_set>
-#include <charconv>
 /// \endcond
 
 using namespace Lumen;
@@ -22,29 +22,6 @@ namespace Lumen::Hidden
 {
     CLASS_UNIQUE_PTR_DEF(AssetManagerImpl);
 
-    /// library entry file layout, all values little endian:
-    ///   4 bytes magic, u32 format version, u32 asset type, u64 source size, i64 source last write time, then the CBOR body until the end of the file
-    /// the source size and last write time are compared for equality (not ordering) so a source that was restored from an older version is detected too
-    constexpr std::array<byte, 4> cLibraryMagic { 'L', 'L', 'I', 'B' };
-    constexpr dword cLibraryVersion = 1;
-    constexpr size_t cLibraryHeaderSize = 4 + 4 + 4 + 8 + 8;
-
-    /// library entry header
-    struct LibraryHeader
-    {
-        /// format version
-        dword mVersion = 0;
-
-        /// asset type
-        Hash mType = 0;
-
-        /// size of the source when the entry was written
-        qword mSourceSize = 0;
-
-        /// last write time of the source when the entry was written
-        int64_t mSourceTime = 0;
-    };
-
     /// normalizes a path to the key used by every cache of the asset manager: lexically normalized, forward slashes
     inline std::string Normalize(const std::filesystem::path &path)
     {
@@ -55,196 +32,6 @@ namespace Lumen::Hidden
     inline bool IsInfoName(const std::string &name)
     {
         return (name.size() > 5) && (ToLower(name.substr(name.size() - 5)) == ".info");
-    }
-
-    /// append a little endian integer
-    inline void PutLE(std::vector<uint8_t> &out, uint64_t value, int bytes)
-    {
-        for (int i = 0; i < bytes; ++i)
-        {
-            out.push_back(static_cast<uint8_t>((value >> (8 * i)) & 0xff));
-        }
-    }
-
-    /// read a little endian integer
-    inline uint64_t GetLE(const uint8_t *in, int bytes)
-    {
-        uint64_t value = 0;
-        for (int i = bytes - 1; i >= 0; --i)
-        {
-            value = (value << 8) | in[i];
-        }
-        return value;
-    }
-
-    /// source stamp, identifies the exact state of a source file
-    struct SourceStamp
-    {
-        /// whether the source file exists
-        bool mExists = false;
-
-        /// size
-        qword mSize = 0;
-
-        /// last write time
-        int64_t mTime = 0;
-    };
-
-    /// gets the stamp of a source file
-    inline SourceStamp GetSourceStamp(const std::string &path)
-    {
-        const FileSystem::FileAttributes attributes = FileSystem::GetAttributes(path);
-        SourceStamp stamp;
-        stamp.mExists = attributes.mFlags.Has(FileSystem::Flag::File);
-        stamp.mSize = attributes.mSize;
-        stamp.mTime = static_cast<int64_t>(attributes.mLastWrite.time_since_epoch().count());
-        return stamp;
-    }
-
-    /// reads a whole file
-    inline bool ReadFileBytes(const std::filesystem::path &path, std::vector<uint8_t> &bytes)
-    {
-        // check first, a cache miss is normal and must stay silent
-        if (!FileSystem::Exists(path))
-        {
-            return false;
-        }
-        Id::Type file = FileSystem::Open(path, false, true);
-        if (file == Id::Invalid)
-        {
-            return false;
-        }
-        const size_t size = FileSystem::Size(file);
-        bool result = (size != static_cast<size_t>(-1));
-        if (result)
-        {
-            bytes.resize(size);
-            result = (FileSystem::ReadBytes(file, bytes.data(), size) == size);
-        }
-        FileSystem::Close(file);
-        return result;
-    }
-
-    /// parses the header of a library entry, bodyOffset is where the CBOR body starts
-    inline bool ParseLibraryHeader(const std::vector<uint8_t> &bytes, LibraryHeader &header, size_t &bodyOffset)
-    {
-        if ((bytes.size() < cLibraryHeaderSize) || !std::equal(cLibraryMagic.begin(), cLibraryMagic.end(), bytes.begin()))
-        {
-            return false;
-        }
-        const uint8_t *p = bytes.data() + cLibraryMagic.size();
-        header.mVersion = static_cast<dword>(GetLE(p, 4));
-        header.mType = static_cast<Hash>(GetLE(p + 4, 4));
-        header.mSourceSize = static_cast<qword>(GetLE(p + 8, 8));
-        header.mSourceTime = static_cast<int64_t>(GetLE(p + 16, 8));
-        bodyOffset = cLibraryHeaderSize;
-        return true;
-    }
-
-    /// whether a library entry file name is a 16 digit hex UUID, temp files (name.tmp) are reported through isTemp
-    inline bool ParseLibraryName(const std::string &name, UUID &uuid, bool &isTemp)
-    {
-        isTemp = name.size() == 20 && name.ends_with(".tmp");
-        const std::string digits = isTemp ? name.substr(0, 16) : name;
-        if (digits.size() != 16)
-        {
-            return false;
-        }
-        const auto result = std::from_chars(digits.data(), digits.data() + digits.size(), uuid, 16);
-        return (result.ec == std::errc()) && (result.ptr == digits.data() + digits.size());
-    }
-
-    /// writes a library entry, atomically: the data is written to a temp file next to the entry which then replaces it
-    inline bool WriteLibraryEntry(UUID uuid, Hash type, const std::string &sourcePath, const Serialized::Type &data)
-    {
-        // the stamp must describe the source as it is right now, callers write the source before the library entry
-        const SourceStamp stamp = GetSourceStamp(sourcePath);
-        if (!stamp.mExists)
-        {
-            Lumen::DebugLog::Detail("Library entry not written, source {} does not exist", sourcePath);
-            return false;
-        }
-
-        std::vector<uint8_t> bytes(cLibraryMagic.begin(), cLibraryMagic.end());
-        PutLE(bytes, cLibraryVersion, 4);
-        PutLE(bytes, type, 4);
-        PutLE(bytes, stamp.mSize, 8);
-        PutLE(bytes, static_cast<uint64_t>(stamp.mTime), 8);
-        const std::vector<uint8_t> body = Serialized::Type::to_cbor(data);
-        bytes.insert(bytes.end(), body.begin(), body.end());
-
-        const std::filesystem::path entryPath = AssetManager::LibraryPath(uuid);
-        const std::filesystem::path tempPath = std::filesystem::path(entryPath).concat(".tmp");
-        Id::Type file = FileSystem::Open(tempPath, true, true);
-        if (file == Id::Invalid)
-        {
-            Lumen::DebugLog::Warning("Unable to open Library entry for writing, {}", tempPath.generic_string());
-            return false;
-        }
-        bool result = FileSystem::WriteBytes(file, bytes.data(), bytes.size());
-        FileSystem::Close(file);
-        if (result)
-        {
-            result = FileSystem::Rename(tempPath, entryPath);
-        }
-        if (!result)
-        {
-            Lumen::DebugLog::Warning("Unable to write Library entry {}", entryPath.generic_string());
-            FileSystem::Delete(tempPath);
-        }
-        return result;
-    }
-
-    /// reads a library entry, false when it is missing, damaged, of another version or type, or stale compared to its source
-    inline bool ReadLibraryEntry(UUID uuid, Hash type, const std::string &sourcePath, Serialized::Type &data)
-    {
-        std::vector<uint8_t> bytes;
-        if (!ReadFileBytes(AssetManager::LibraryPath(uuid), bytes))
-        {
-            return false;
-        }
-
-        LibraryHeader header;
-        size_t bodyOffset = 0;
-        if (!ParseLibraryHeader(bytes, header, bodyOffset))
-        {
-            Lumen::DebugLog::Warning("Library entry of {} is damaged, ignoring it", sourcePath);
-            return false;
-        }
-        if ((header.mVersion != cLibraryVersion) || (header.mType != type))
-        {
-            Lumen::DebugLog::Detail("Library entry of {} has another version or type, ignoring it", sourcePath);
-            return false;
-        }
-
-        const SourceStamp stamp = GetSourceStamp(sourcePath);
-        if (stamp.mExists)
-        {
-            if ((stamp.mSize != header.mSourceSize) || (stamp.mTime != header.mSourceTime))
-            {
-                Lumen::DebugLog::Detail("Library entry of {} is stale", sourcePath);
-                return false;
-            }
-        }
-#ifdef EDITOR
-        else
-        {
-            // in the editor the source is the truth, no source means no asset
-            return false;
-        }
-#endif
-        // a game build may ship the Library without its sources, trust the entry
-
-        try
-        {
-            data = Serialized::Type::from_cbor(bytes.begin() + bodyOffset, bytes.end());
-        }
-        catch (const std::exception &e)
-        {
-            Lumen::DebugLog::Warning("Library entry of {} is damaged, {}", sourcePath, e.what());
-            return false;
-        }
-        return true;
     }
 
     /// AssetManagerImpl class
@@ -260,6 +47,21 @@ namespace Lumen::Hidden
 
         /// destroys assets
         ~AssetManagerImpl() = default;
+
+        /// scan all asset folders
+        void ScanAll()
+        {
+            Scan("Assets/");
+            Scan("BuiltIn/");
+#ifdef EDITOR
+            // once per session, right after the first full scan
+            if (!mGarbageCollected)
+            {
+                mGarbageCollected = true;
+                CollectLibraryGarbage();
+            }
+#endif
+        }
 
         /// scan asset info files
         void Scan(const std::filesystem::path &path)
@@ -308,7 +110,7 @@ namespace Lumen::Hidden
             {
                 uuid = UUIDGenerate();
             }
-            while (mAssetPaths.contains(uuid));
+            while ((uuid == UUID_INVALID) || mAssetPaths.contains(uuid));
             return uuid;
         }
 
@@ -334,17 +136,20 @@ namespace Lumen::Hidden
             auto owner = mAssetPaths.find(uuid);
             if ((owner != mAssetPaths.end()) && (owner->second != key) && FileSystem::Exists(owner->second))
             {
+                const std::string other = owner->second;
 #ifdef EDITOR
+                // the path registered later gets a new UUID, right for a copy made while the editor runs, for a copy made while it was
+                // closed the scan order decides, telling the original apart needs a record of the previous owners (the future index)
                 const Lumen::UUID fresh = NewUUID();
                 if (!FileSystem::WriteAssetInfo(infoFile, fresh, data))
                 {
-                    Lumen::DebugLog::Error("Duplicate UUID of {} and {}, unable to assign a new UUID to {}", owner->second, key, key);
+                    Lumen::DebugLog::Error("Duplicate UUID of {} and {}, unable to assign a new UUID to {}", other, key, key);
                     return;
                 }
-                Lumen::DebugLog::Warning("Duplicate UUID of {} and {}, {} got a new UUID", owner->second, key, key);
+                Lumen::DebugLog::Warning("Duplicate UUID of {} and {}, {} got a new UUID", other, key, key);
                 uuid = fresh;
 #else
-                Lumen::DebugLog::Error("Duplicate UUID of {} and {}, ignoring {}", owner->second, key, key);
+                Lumen::DebugLog::Error("Duplicate UUID of {} and {}, ignoring {}", other, key, key);
                 return;
 #endif
             }
@@ -396,7 +201,7 @@ namespace Lumen::Hidden
                 mAssetUUIDs.erase(assetUUIDIt);
 #ifdef EDITOR
                 // the cached data of an asset that is gone (or is about to be given a new UUID) is garbage
-                FileSystem::Delete(AssetManager::LibraryPath(uuid));
+                Library::Remove(uuid);
 #endif
             }
         }
@@ -416,10 +221,12 @@ namespace Lumen::Hidden
             }
 
             // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
-            auto deleter = [this, key](AssetInfo *ptr)
+            // it goes through the global pointer (not this) so an info that outlives the asset manager is still safe to destroy,
+            // and only drops an expired entry, the key may already map to a newer info (after an Invalidate)
+            auto deleter = [key](AssetInfo *ptr)
             {
                 delete ptr;
-                mAssetInfos.erase(key);
+                ForgetInfo(key);
             };
             AssetInfoPtr assetInfoPtr = AssetInfo::MakePtr(key, deleter);
 
@@ -432,7 +239,7 @@ namespace Lumen::Hidden
                 {
                     assetInfoPtr->Initialize();
                 }
-                while (mAssetPaths.contains(assetInfoPtr->UUID()));
+                while ((assetInfoPtr->UUID() == UUID_INVALID) || mAssetPaths.contains(assetInfoPtr->UUID()));
                 if (!assetInfoPtr->Save())
                 {
                     return Expected<AssetInfoPtr>::Unexpected("Failed to save asset info");
@@ -513,11 +320,7 @@ namespace Lumen::Hidden
                 }
 
                 AssetPtr asset = assetExpected.Value();
-                auto uuidIt = mAssetUUIDs.find(key);
-                if (uuidIt != mAssetUUIDs.end())
-                {
-                    asset->SetUUID(uuidIt->second);
-                }
+                AssignUUID(*asset);
                 if (asset->Shareable())
                 {
                     PurgeLoaded();
@@ -545,32 +348,6 @@ namespace Lumen::Hidden
             return Load(typeIt->second, assetInfo->Path());
         }
 
-        /// asset info of an asset that lives in a file system, null for procedural assets (and assets that do not exist)
-        AssetInfoPtr InfoOf(const Asset &asset)
-        {
-            const std::string key = Normalize(asset.Path());
-            if (!FileSystem::Exists(key))
-            {
-#ifdef EDITOR
-                // no source, no asset (and no stray .info file for a path that was never an asset)
-                return nullptr;
-#else
-                // a game build may ship the Library without the sources, the asset info alone identifies the entry
-                if (!FileSystem::Exists(std::filesystem::path(key).concat(".info")))
-                {
-                    return nullptr;
-                }
-#endif
-            }
-            auto assetInfoExpected = GetInfo(key);
-            if (!assetInfoExpected.HasValue())
-            {
-                DebugLog::Warning("Unable to acquire asset info for file: {}, error: {}", key, assetInfoExpected.Error());
-                return nullptr;
-            }
-            return assetInfoExpected.Value();
-        }
-
         /// load the state of an asset from its library entry
         bool LoadFromLibrary(Asset &asset)
         {
@@ -585,12 +362,13 @@ namespace Lumen::Hidden
             }
 
             Serialized::Type data;
-            if (!ReadLibraryEntry(assetInfo->UUID(), static_cast<Hash>(asset.Type()), assetInfo->Path().generic_string(), data))
+            if (!Library::Read(assetInfo->UUID(), assetInfo->Path(), data))
             {
                 return false;
             }
             try
             {
+                // Library entries are always packed
                 asset.Deserialize(data, true);
             }
             catch (const std::exception &e)
@@ -604,7 +382,7 @@ namespace Lumen::Hidden
             return true;
         }
 
-        /// write the library entry of an asset
+        /// write the library entry of an asset, call after its source was written
         bool UpdateLibrary(const Asset &asset)
         {
             if (!asset.SupportsLibrary())
@@ -620,6 +398,7 @@ namespace Lumen::Hidden
             Serialized::Type data;
             try
             {
+                // Library entries are always packed
                 asset.Serialize(data, true);
             }
             catch (const std::exception &e)
@@ -628,7 +407,7 @@ namespace Lumen::Hidden
                 Lumen::DebugLog::Detail("Library entry of {} not written, {}", assetInfo->Path().generic_string(), e.what());
                 return false;
             }
-            return WriteLibraryEntry(assetInfo->UUID(), static_cast<Hash>(asset.Type()), assetInfo->Path().generic_string(), data);
+            return Library::Write(assetInfo->UUID(), data);
         }
 
         /// load the state of an asset, library first
@@ -639,8 +418,11 @@ namespace Lumen::Hidden
                 return true;
             }
 
-            // read and deserialize the source
+            // note the source time before it is read, see below
             const std::filesystem::path &path = asset.Path();
+            const auto sourceTime = FileSystem::GetAttributes(path).mLastWrite;
+
+            // read and deserialize the source
             Serialized::Type data;
             if (!FileSystem::ReadSerializedData(path, data))
             {
@@ -657,14 +439,11 @@ namespace Lumen::Hidden
             }
 
             // refresh the library
-            if (asset.SupportsLibrary())
+            AssignUUID(asset);
+            if (UpdateLibrary(asset) && (FileSystem::GetAttributes(path).mLastWrite != sourceTime))
             {
-                UpdateLibrary(asset);
-                auto uuidIt = mAssetUUIDs.find(Normalize(path));
-                if (uuidIt != mAssetUUIDs.end())
-                {
-                    asset.SetUUID(uuidIt->second);
-                }
+                // the source changed while it was read, the new entry is newer than the source but holds the old data
+                Library::Remove(asset.GetUUID());
             }
             return true;
         }
@@ -689,20 +468,7 @@ namespace Lumen::Hidden
                 return importerIt->second(assetInfo);
             }
 
-            // no importer, the library is validated when an entry is used, here a stale entry is dropped so it does not linger
-            const std::filesystem::path entryPath = AssetManager::LibraryPath(assetInfo->UUID());
-            std::vector<uint8_t> bytes;
-            if (ReadFileBytes(entryPath, bytes))
-            {
-                LibraryHeader header;
-                size_t bodyOffset = 0;
-                const SourceStamp stamp = GetSourceStamp(assetInfo->Path().generic_string());
-                if (!ParseLibraryHeader(bytes, header, bodyOffset) || (header.mVersion != cLibraryVersion) ||
-                    (stamp.mExists && ((stamp.mSize != header.mSourceSize) || (stamp.mTime != header.mSourceTime))))
-                {
-                    FileSystem::Delete(entryPath);
-                }
-            }
+            // no importer, nothing to do: a stale Library entry is detected (and replaced) the next time the asset is loaded
             return true;
         }
 
@@ -723,42 +489,12 @@ namespace Lumen::Hidden
         /// removes Library entries that no asset owns (assets deleted while the editor was not running, interrupted writes)
         void CollectLibraryGarbage()
         {
-            // nothing registered usually means the assets could not be read at all, never wipe the cache in that case
+            // nothing registered usually means the assets could not be read at all, never touch the cache in that case
             if (mAssetPaths.empty())
             {
                 return;
             }
-
-            size_t removed = 0;
-            for (const auto &folder : FileSystem::ListFiles("Library/"))
-            {
-                // only touch what this manager creates: folders of two hex digits
-                if (!folder.mAttributes.mFlags.Has(FileSystem::Flag::Directory) || (folder.mName.size() != 2))
-                {
-                    continue;
-                }
-                const std::string folderPath = "Library/" + folder.mName;
-                for (const auto &file : FileSystem::ListFiles(folderPath))
-                {
-                    Lumen::UUID uuid = UUID_INVALID;
-                    bool isTemp = false;
-                    if (!ParseLibraryName(file.mName, uuid, isTemp))
-                    {
-                        continue;
-                    }
-                    if (isTemp || !mAssetPaths.contains(uuid))
-                    {
-                        removed += FileSystem::Delete(folderPath + "/" + file.mName) ? 1 : 0;
-                    }
-                }
-
-                // succeeds only when the folder is empty
-                FileSystem::Delete(folderPath);
-            }
-            if (removed > 0)
-            {
-                Lumen::DebugLog::Info("Removed {} unused Library entries", removed);
-            }
+            Library::CollectGarbage([this](UUID uuid) { return mAssetPaths.contains(uuid); });
         }
 
         /// process file changes
@@ -777,9 +513,7 @@ namespace Lumen::Hidden
                 }
 
                 // determine base and info file existence
-                auto ext = std::filesystem::path(fileChange.mName).extension().generic_string();
-                bool isBase = (ext.size() != 5) ||
-                    !std::equal(ext.begin() + 1, ext.end(), "info", [](unsigned char a, unsigned char b) { return std::tolower(a) == b; });
+                bool isBase = !IsInfoName(fileChange.mName);
                 bool hasBase = false;
                 bool hasInfo = false;
                 if (isBase)
@@ -833,7 +567,7 @@ namespace Lumen::Hidden
                     {
                         if (hasInfo)
                         {
-                            // the source changed, loaded instances and cached infos are out of date and the Library entry is stale
+                            // the source changed, loaded instances and cached infos are out of date (the Library entry is detected as stale when used)
                             Invalidate(fileChange.mName);
                             ImportAsset(fileChange.mName, fileChange.mAttributes);
                             assetBatch.push_back({ FileSystem::Change::Modified, fileChange.mAttributes, fileChange.mName, "" });
@@ -916,7 +650,7 @@ namespace Lumen::Hidden
                         if (hasBase)
                         {
                             assetBatch.push_back({ FileSystem::Change::Removed, fileChange.mAttributes, name, "" });
-                            AssetManager::AssetChange assetChange = { FileSystem::Change::Added, fileChange.mAttributes, name, "" };
+                            assetChange = { FileSystem::Change::Added, fileChange.mAttributes, name, "" };
                             if (hasInfo)
                             {
                                 Lumen::DebugLog::Detail("Added file with infofile, {}, infofile already exists", assetChange.mName);
@@ -974,6 +708,45 @@ namespace Lumen::Hidden
 #endif
 
     private:
+        /// drops the cache entry of an asset info that was destroyed, unless the key already maps to a newer info
+        static void ForgetInfo(const std::string &key);
+
+        /// asset info of an asset that lives in a file system, null for procedural assets (and assets that do not exist)
+        AssetInfoPtr InfoOf(const Asset &asset)
+        {
+            const std::string key = Normalize(asset.Path());
+            if (!FileSystem::Exists(key))
+            {
+#ifdef EDITOR
+                // no source, no asset (and no stray .info file for a path that was never an asset)
+                return nullptr;
+#else
+                // a game build may ship the Library without the sources, the asset info alone identifies the entry
+                if (!FileSystem::Exists(std::filesystem::path(key).concat(".info")))
+                {
+                    return nullptr;
+                }
+#endif
+            }
+            auto assetInfoExpected = GetInfo(key);
+            if (!assetInfoExpected.HasValue())
+            {
+                DebugLog::Warning("Unable to acquire asset info for file: {}, error: {}", key, assetInfoExpected.Error());
+                return nullptr;
+            }
+            return assetInfoExpected.Value();
+        }
+
+        /// gives an asset the UUID registered for its path, the only place (besides a Library load) that assigns UUIDs
+        void AssignUUID(Asset &asset) const
+        {
+            auto uuidIt = mAssetUUIDs.find(Normalize(asset.Path()));
+            if (uuidIt != mAssetUUIDs.end())
+            {
+                asset.SetUUID(uuidIt->second);
+            }
+        }
+
         /// drop expired instances when the cache has grown a lot, keeps the cost of the cache bounded without scanning on every load
         void PurgeLoaded()
         {
@@ -1018,27 +791,48 @@ namespace Lumen::Hidden
 
         /// file change mapFileChange
         std::multimap<steady_clock::time_point, AssetManager::AssetChange> mAssetChangeMap;
+
+        /// whether the Library garbage was collected this session
+        bool mGarbageCollected = false;
 #endif
     };
 
     /// global asset manager implementation pointer
     static AssetManagerImplUniquePtr gAssetManagerImpl;
+
+    /// drops the cache entry of an asset info that was destroyed
+    void AssetManagerImpl::ForgetInfo(const std::string &key)
+    {
+        // the asset manager may already be shut down
+        if (!gAssetManagerImpl)
+        {
+            return;
+        }
+        auto &assetInfos = gAssetManagerImpl->mAssetInfos;
+        auto assetInfoIt = assetInfos.find(key);
+        if ((assetInfoIt != assetInfos.end()) && assetInfoIt->second.expired())
+        {
+            assetInfos.erase(assetInfoIt);
+        }
+    }
 }
 
 //==============================================================================================================================================================================
 
-/// initialize assets namespace
+/// initialize asset manager namespace, also initializes the Library namespace
 void Lumen::AssetManager::Initialize(const EngineWeakPtr &engine)
 {
     L_ASSERT(!Hidden::gAssetManagerImpl);
+    Library::Initialize("Library/");
     Hidden::gAssetManagerImpl = Hidden::AssetManagerImpl::MakeUniquePtr(engine);
 }
 
-/// shutdown assets namespace
+/// shutdown asset manager namespace, also shuts down the Library namespace
 void AssetManager::Shutdown()
 {
     L_ASSERT(Hidden::gAssetManagerImpl);
     Hidden::gAssetManagerImpl.reset();
+    Library::Shutdown();
 }
 
 /// register an asset factory
@@ -1056,11 +850,7 @@ void AssetManager::RegisterType(std::string_view extension, HashType type)
 /// scan assets
 void AssetManager::Scan()
 {
-    Hidden::gAssetManagerImpl->Scan("Assets/");
-    Hidden::gAssetManagerImpl->Scan("BuiltIn/");
-#ifdef EDITOR
-    Hidden::gAssetManagerImpl->CollectLibraryGarbage();
-#endif
+    Hidden::gAssetManagerImpl->ScanAll();
 }
 
 /// create or get cached assetinfo
@@ -1081,14 +871,7 @@ Expected<AssetPtr> AssetManager::Load(const AssetInfoPtr &assetInfo)
     return Hidden::gAssetManagerImpl->Load(assetInfo);
 }
 
-/// path of the Library entry of an asset UUID
-std::filesystem::path AssetManager::LibraryPath(UUID uuid)
-{
-    // hex only (no path separators, no case collisions), the first byte fans the entries out over 256 folders
-    return std::format("Library/{:02x}/{:016x}", static_cast<unsigned>(uuid >> 56), uuid);
-}
-
-/// load the state of an asset from its Library entry
+/// load asset from its Library when there is no valid entry
 bool AssetManager::LoadFromLibrary(Asset &asset)
 {
     return Hidden::gAssetManagerImpl->LoadFromLibrary(asset);

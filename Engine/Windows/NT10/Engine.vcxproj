@@ -330,6 +330,7 @@
     <ClInclude Include="..\..\Include\lHash.h" />
     <ClInclude Include="..\..\Include\lId.h" />
     <ClInclude Include="..\..\Include\lImGuiLib.h" />
+    <ClInclude Include="..\..\Include\lLibrary.h" />
     <ClInclude Include="..\..\Include\lNodeForest.h" />
     <ClInclude Include="..\..\Include\lMath.h" />
     <ClInclude Include="..\..\Include\lMesh.h" />
@@ -376,6 +377,7 @@
     <ClCompile Include="..\..\Code\FileSystemResources.cpp" />
     <ClCompile Include="..\..\Code\FolderFileSystem.cpp" />
     <ClCompile Include="..\..\Code\ImGuiLib.cpp" />
+    <ClCompile Include="..\..\Code\Library.cpp" />
     <ClCompile Include="..\..\Code\Math.cpp" />
     <ClCompile Include="..\..\Code\Mesh.cpp" />
     <ClCompile Include="..\..\Code\Geometry.cpp" />

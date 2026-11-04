@@ -1,0 +1,183 @@
+//==============================================================================================================================================================================
+/// \file
+/// \brief     Library
+/// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
+//==============================================================================================================================================================================
+
+#include "lLibrary.h"
+#include "lFileSystem.h"
+
+/// \cond
+#include <charconv>
+/// \endcond
+
+using namespace Lumen;
+
+/// Lumen Hidden namespace
+namespace Lumen::Hidden
+{
+    CLASS_UNIQUE_PTR_DEF(LibraryImpl);
+
+    /// LibraryImpl class
+    class LibraryImpl
+    {
+        CLASS_NO_DEFAULT_CTOR(LibraryImpl);
+        CLASS_NO_COPY_MOVE(LibraryImpl);
+        CLASS_PTR_UNIQUEMAKER(LibraryImpl);
+
+    public:
+        /// constructs a library implementation with its root folder
+        explicit LibraryImpl(const std::filesystem::path &root) : mRoot(FileSystem::NormalizeDirPath(root).generic_string()) {}
+
+        /// destroys library
+        ~LibraryImpl() = default;
+
+        /// path of the entry of an asset UUID
+        std::filesystem::path EntryPath(UUID uuid) const
+        {
+            return mRoot + EntryName(uuid);
+        }
+
+        /// reads an entry
+        bool Read(UUID uuid, const std::filesystem::path &sourcePath, Serialized::Type &data) const
+        {
+            // a missing entry is a normal cache miss, stay silent
+            const std::filesystem::path entryPath = EntryPath(uuid);
+            const FileSystem::FileAttributes entry = FileSystem::GetAttributes(entryPath);
+            if (!entry.mFlags.Has(FileSystem::Flag::File))
+            {
+                return false;
+            }
+
+            // up to date only when strictly newer than the source, equal times (coarse file systems) rebuild to be safe
+            const FileSystem::FileAttributes source = FileSystem::GetAttributes(sourcePath);
+#ifdef EDITOR
+            // in the editor the source is the truth, a missing source is always out of date
+            bool outOfDate = source.mFlags.Has(FileSystem::Flag::File) ? (entry.mLastWrite < source.mLastWrite) : true;
+#else
+            // in a game build the source may not exist, a missing source is never out of date (the Library is the truth)
+            bool outOfDate = source.mFlags.Has(FileSystem::Flag::File) ? (entry.mLastWrite < source.mLastWrite) : false;
+#endif
+            if (outOfDate)
+            {
+                Lumen::DebugLog::Detail("Library entry of {} is out of date", sourcePath.generic_string());
+                return false;
+            }
+            return FileSystem::ReadSerializedData(entryPath, data);
+        }
+
+        /// writes an entry
+        bool Write(UUID uuid, const Serialized::Type &data) const
+        {
+            return FileSystem::WriteSerializedData(EntryPath(uuid), data);
+        }
+
+        /// removes an entry
+        bool Remove(UUID uuid) const
+        {
+            const std::filesystem::path entryPath = EntryPath(uuid);
+            return FileSystem::Exists(entryPath) && FileSystem::Delete(entryPath);
+        }
+
+        /// removes the entries whose UUID is not alive
+        void CollectGarbage(const std::function<bool(UUID uuid)> &isAlive) const
+        {
+            const size_t removed = RemoveEntries([&isAlive](UUID uuid) { return !isAlive(uuid); });
+            if (removed > 0)
+            {
+                Lumen::DebugLog::Info("Removed {} unused Library entries", removed);
+            }
+        }
+
+    private:
+        /// entry file name of a UUID, 16 lower case hex digits: one name per UUID, safe on case insensitive file systems
+        static std::string EntryName(UUID uuid)
+        {
+            static_assert(sizeof(UUID) == 8, "entry names are 16 hex digits");
+            return std::format("{:016x}", uuid);
+        }
+
+        /// whether a file name is an entry name, only names that EntryName produces are accepted
+        static bool ParseEntryName(const std::string &name, UUID &uuid)
+        {
+            if ((name.size() != 16) || !std::all_of(name.begin(), name.end(), [](char c) { return ((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'f')); }))
+            {
+                return false;
+            }
+            const auto result = std::from_chars(name.data(), name.data() + name.size(), uuid, 16);
+            return (result.ec == std::errc()) && (uuid != UUID_INVALID);
+        }
+
+        /// removes the entries the predicate selects, returns how many were removed
+        size_t RemoveEntries(const std::function<bool(UUID uuid)> &remove) const
+        {
+            size_t removed = 0;
+            for (const auto &file : FileSystem::ListFiles(mRoot))
+            {
+                UUID uuid = UUID_INVALID;
+                if (file.mAttributes.mFlags.Has(FileSystem::Flag::File) && ParseEntryName(file.mName, uuid) && remove(uuid))
+                {
+                    removed += FileSystem::Delete(mRoot + file.mName) ? 1 : 0;
+                }
+            }
+            return removed;
+        }
+
+        /// root folder, normalized with a trailing slash
+        const std::string mRoot;
+    };
+
+    /// global library implementation pointer
+    static LibraryImplUniquePtr gLibraryImpl;
+}
+
+//==============================================================================================================================================================================
+
+/// initialize library namespace
+void Library::Initialize(const std::filesystem::path &root)
+{
+    L_ASSERT(!Hidden::gLibraryImpl);
+    Hidden::gLibraryImpl = Hidden::LibraryImpl::MakeUniquePtr(root);
+}
+
+/// shutdown library namespace
+void Library::Shutdown()
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    Hidden::gLibraryImpl.reset();
+}
+
+/// path of the entry of an asset UUID
+std::filesystem::path Library::EntryPath(UUID uuid)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->EntryPath(uuid);
+}
+
+/// reads an entry
+bool Library::Read(UUID uuid, const std::filesystem::path &sourcePath, Serialized::Type &data)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->Read(uuid, sourcePath, data);
+}
+
+/// writes an entry
+bool Library::Write(UUID uuid, const Serialized::Type &data)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->Write(uuid, data);
+}
+
+/// removes an entry
+bool Library::Remove(UUID uuid)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->Remove(uuid);
+}
+
+/// removes the entries whose UUID is not alive
+void Library::CollectGarbage(const std::function<bool(UUID uuid)> &isAlive)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    Hidden::gLibraryImpl->CollectGarbage(isAlive);
+}
