@@ -68,9 +68,7 @@ public:
         }
         else if (type == Texture::Type())
         {
-            Texture::Info textureInfo { 64, 64 };
-            TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, path, textureInfo));
-            texture->Load();
+            TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, path));
 
             // the pixels come from the Library when it has a valid entry for this texture
             if (AssetManager::LoadFromLibrary(*texture))
@@ -78,30 +76,8 @@ public:
                 return texture;
             }
 
-            //@@REVIEW@@ placeholder: there is no texture source format yet, every texture is the checker pattern, a real importer
-            // (decode the source file here, or register one with AssetManager::RegisterImporter) replaces the generation below
-            UniqueByteArray textureData(textureInfo.mWidth * textureInfo.mHeight * 4);
-            int textureDataPitch = textureInfo.mWidth * 4;
-            for (int y = 0; y < textureInfo.mHeight; y++)
-            {
-                for (int x = 0; x < textureInfo.mWidth; x++)
-                {
-                    if ((x < (textureInfo.mWidth >> 1)) == (y < (textureInfo.mHeight >> 1)))
-                    {
-                        textureData[y * textureDataPitch + 4 * x + 0] = 198;
-                        textureData[y * textureDataPitch + 4 * x + 1] = 197;
-                        textureData[y * textureDataPitch + 4 * x + 2] = 198;
-                    }
-                    else
-                    {
-                        textureData[y * textureDataPitch + 4 * x + 0] = 156;
-                        textureData[y * textureDataPitch + 4 * x + 1] = 158;
-                        textureData[y * textureDataPitch + 4 * x + 2] = 156;
-                    }
-                    textureData[y * textureDataPitch + 4 * x + 3] = 255;
-                }
-            }
-            texture->PushTextureData(std::move(textureData));
+            // load the texture
+            texture->Load();
 
             // cache the pixels, this must happen before the renderer consumes them
             AssetManager::UpdateLibrary(*texture);

@@ -103,9 +103,9 @@ public:
     /// load the checker gray texture
     [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
     {
-        Texture::Info textureInfo { 64, 64 };
-        TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path(), textureInfo));
+        TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path()));
 
+        Texture::Info textureInfo { 64, 64 };
         UniqueByteArray textureData(textureInfo.mWidth * textureInfo.mHeight * 4);
         int textureDataPitch = textureInfo.mWidth * 4;
         for (int y = 0; y < textureInfo.mHeight; y++)
@@ -127,7 +127,7 @@ public:
                 textureData[y * textureDataPitch + 4 * x + 3] = 255;
             }
         }
-        texture->PushTextureData(std::move(textureData));
+        texture->PushTextureData(textureInfo, std::move(textureData));
 
         return texture;
     }

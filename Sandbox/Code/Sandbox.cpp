@@ -7,6 +7,7 @@
 #include "Sandbox.h"
 
 #include "lEngine.h"
+#include "lAssetManager.h"
 #include "lSceneManager.h"
 
 /// initialize sandbox
@@ -54,8 +55,14 @@ void Sandbox::Open()
 
     // Scene::Load reads the Library entry when it is valid, otherwise the source in Assets (which then refreshes the Library),
     // the source is only written when the scene is saved
-    mMainScene = Lumen::Scene::MakePtr(*this, "Assets/MainScene.lumen");
-    if (!Lumen::SceneManager::Load(mMainScene))
+    bool loaded = false;
+    Lumen::Expected<Lumen::AssetPtr> sceneExp = Lumen::AssetManager::Load(Lumen::Scene::Type(), "Assets/MainScene.lumen");
+    if (sceneExp.HasValue())
+    {
+        mMainScene = static_pointer_cast<Lumen::Scene>(sceneExp.Value());
+        loaded = Lumen::SceneManager::Load(mMainScene);
+    }
+    if (!loaded)
     {
         Lumen::DebugLog::Error("Unable to load Assets/MainScene.lumen");
         Shutdown();

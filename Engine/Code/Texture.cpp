@@ -24,7 +24,7 @@ class Texture::Impl
 
 public:
     /// constructs texture
-    explicit Impl(Texture &owner, const EngineWeakPtr &engine, const Info &info) : mOwner(owner), mEngine(engine), mInfo(info), mTextureId(Id::Invalid) {}
+    explicit Impl(Texture &owner, const EngineWeakPtr &engine) : mOwner(owner), mEngine(engine), mInfo({-1, -1}), mTextureId(Id::Invalid) {}
 
     /// destructor
     ~Impl() { Release(); }
@@ -58,6 +58,14 @@ public:
 
     /// load texture
     bool Load() {
+        //@@REVIEW@@ placeholder: there is no texture source format yet, every texture is the magenta color, a real importer
+        // (decode the source file here, or register one with AssetManager::RegisterImporter) replaces the generation below
+        UniqueByteArray textureData(4);
+        textureData[0] = 255;
+        textureData[1] = 0;
+        textureData[2] = 255;
+        textureData[3] = 255;
+        PushTextureData({1, 1}, std::move(textureData));
         return true;
     }
 
@@ -104,11 +112,6 @@ public:
             throw std::runtime_error("texture data is invalid");
         }
 
-        // the GPU texture was created with the size of mInfo when the asset was made, recreating it needs the shared pointer of the owner (see MakePtr)
-        if ((width != mInfo.mWidth) || (height != mInfo.mHeight))
-        {
-            throw std::runtime_error(std::format("texture size {}x{} differs from the created size {}x{}", width, height, mInfo.mWidth, mInfo.mHeight));
-        }
         const std::vector<byte> &binary = pixels.get_binary();
         if (binary.size() != static_cast<size_t>(width) * static_cast<size_t>(height) * 4)
         {
@@ -117,12 +120,27 @@ public:
 
         UniqueByteArray textureData(binary.size());
         std::memcpy(textureData.data(), binary.data(), binary.size());
-        PushTextureData(std::move(textureData));
+        PushTextureData({width, height}, std::move(textureData));
     }
 
     /// push texture data
-    void PushTextureData(UniqueByteArray textureData)
+    void PushTextureData(const Info &textureInfo, UniqueByteArray textureData)
     {
+        mInfo = textureInfo;
+
+        if (auto engineLock = mEngine.lock())
+        {
+            if (mTextureId != Id::Invalid)
+            {
+                engineLock->ReleaseTexture(mTextureId);
+            }
+            mTextureId = engineLock->CreateTexture(mOwner.shared_from_this(), mInfo.mWidth, mInfo.mHeight);
+        }
+        if (mTextureId == Id::Invalid)
+        {
+            throw std::runtime_error(std::format("Failed to create texture size {} {}", mInfo.mWidth, mInfo.mHeight));
+        }
+
         mTextureData = std::move(textureData);
     }
 
@@ -156,8 +174,8 @@ StringMap<std::string> Texture::Impl::mAssetPaths;
 //==============================================================================================================================================================================
 
 /// constructs texture
-Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info) :
-    Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(*this, engine, info)) {}
+Texture::Texture(const EngineWeakPtr &engine, const std::filesystem::path &path) :
+    Asset(Type(), path), mImpl(Texture::Impl::MakeUniquePtr(*this, engine)) {}
 
 /// destroys texture
 Texture::~Texture()
@@ -166,14 +184,9 @@ Texture::~Texture()
 }
 
 /// creates a smart pointer version of the texture asset
-AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info)
+AssetPtr Texture::MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path)
 {
-    auto ptr = TexturePtr(new Texture(engine, path, info));
-    if (auto engineLock = engine.lock())
-    {
-        ptr->mImpl->mTextureId = engineLock->CreateTexture(ptr, info.mWidth, info.mHeight);
-        L_ASSERT_MSG(ptr->mImpl->mTextureId != Id::Invalid, "Failed to create texture size {} {}", info.mWidth, info.mHeight);
-    }
+    auto ptr = TexturePtr(new Texture(engine, path));
     return ptr;
 }
 
@@ -244,9 +257,9 @@ Id::Type Texture::GetTextureId()
 }
 
 /// push texture data
-void Texture::PushTextureData(UniqueByteArray textureData)
+void Texture::PushTextureData(const Info &textureInfo, UniqueByteArray textureData)
 {
-    mImpl->PushTextureData(std::move(textureData));
+    mImpl->PushTextureData(textureInfo, std::move(textureData));
 }
 
 /// pop texture data

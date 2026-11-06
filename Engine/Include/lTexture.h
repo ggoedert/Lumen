@@ -18,7 +18,7 @@ namespace Lumen
     CLASS_WEAK_PTR_DEF(Engine);
 
     /// Texture class
-    class Texture : public Asset
+    class Texture : public Asset, public std::enable_shared_from_this<Texture>
     {
         CLASS_NO_DEFAULT_CTOR(Texture);
         CLASS_NO_COPY_MOVE(Texture);
@@ -35,7 +35,7 @@ namespace Lumen
         ~Texture() override;
 
         /// creates a smart pointer version of the texture asset
-        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
+        static AssetPtr MakePtr(EngineWeakPtr &engine, const std::filesystem::path &path);
 
         /// register texture name / path
         static void Register(std::string_view name, std::string_view path);
@@ -71,14 +71,14 @@ namespace Lumen
         Id::Type GetTextureId();
 
         /// push texture data
-        void PushTextureData(UniqueByteArray textureData);
+        void PushTextureData(const Info &textureInfo, UniqueByteArray textureData);
 
         /// pop texture data
         UniqueByteArray PopTextureData();
 
     private:
         /// constructs texture
-        explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path, const Info &info);
+        explicit Texture(const EngineWeakPtr &engine, const std::filesystem::path &path);
 
         /// private implementation
         CLASS_PIMPL_DEF(Impl);

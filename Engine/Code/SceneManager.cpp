@@ -73,7 +73,7 @@ bool SceneManager::Load(ScenePtr scene)
     L_ASSERT(Hidden::gSceneManagerState);
     Unload();
     Hidden::gSceneManagerState->mCurrentScene = std::move(scene);
-    return Hidden::gSceneManagerState->mCurrentScene->Load();
+    return Hidden::gSceneManagerState->mCurrentScene != nullptr;
 }
 
 /// unload current scene
