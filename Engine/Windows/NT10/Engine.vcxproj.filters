@@ -251,6 +251,9 @@
     <ClInclude Include="..\..\Include\Windows\lFolderFileSystemWindows.h">
       <Filter>Header Files\System\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lLibrary.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Code\Windows\NT10\DeviceResources.cpp">
@@ -375,6 +378,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Code\Windows\FolderFileSystemWindows.cpp">
       <Filter>Source Files\Systems\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\Library.cpp">
+      <Filter>Source Files\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
