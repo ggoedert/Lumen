@@ -7,6 +7,10 @@
 
 #include "lDefs.h"
 
+/// \cond
+#include <span>
+/// \endcond
+
 /// Lumen namespace
 namespace Lumen
 {
@@ -29,6 +33,18 @@ namespace Lumen
         UniqueByteArray(std::initializer_list<byte> list) : mData(std::make_unique_for_overwrite<byte[]>(list.size())), mSize(list.size())
         {
             std::copy(list.begin(), list.end(), mData.get());
+        }
+
+        /// constructs the unique byte array from a span
+        UniqueByteArray(std::span<const byte> span) : mData(std::make_unique_for_overwrite<byte[]>(span.size())), mSize(span.size())
+        {
+            std::copy(span.begin(), span.end(), mData.get());
+        }
+
+        /// constructs the unique byte array from a vector
+        UniqueByteArray(const std::vector<byte> &vector) : mData(std::make_unique_for_overwrite<byte[]>(vector.size())), mSize(vector.size())
+        {
+            std::copy(vector.begin(), vector.end(), mData.get());
         }
 
         /// move assignment

@@ -113,9 +113,7 @@ public:
             throw std::runtime_error("texture pixel data has the wrong size");
         }
 
-        UniqueByteArray textureData(binary.size());
-        std::memcpy(textureData.data(), binary.data(), binary.size());
-        PushTextureData({width, height}, std::move(textureData));
+        PushTextureData({width, height}, binary);
     }
 
     /// push texture data
