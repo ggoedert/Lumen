@@ -25,14 +25,19 @@ namespace Lumen
         /// move constructor
         UniqueByteArray(UniqueByteArray &&other) noexcept : mData(std::move(other.mData)), mSize(other.mSize) { other.mSize = 0; }
 
+        /// constructs the unique byte array from an initializer list
+        UniqueByteArray(std::initializer_list<byte> list) : mData(std::make_unique_for_overwrite<byte[]>(list.size())), mSize(list.size())
+        {
+            std::copy(list.begin(), list.end(), mData.get());
+        }
+
         /// move assignment
         UniqueByteArray &operator=(UniqueByteArray &&other) noexcept
         {
             if (this != &other)
             {
                 mData = std::move(other.mData);
-                mSize = other.mSize;
-                other.mSize = 0;
+                mSize = std::exchange(other.mSize, 0);
             }
             return *this;
         }

@@ -60,12 +60,7 @@ public:
     bool Load() {
         //@@REVIEW@@ placeholder: there is no texture source format yet, every texture is the magenta color, a real importer
         // (decode the source file here, or register one with AssetManager::RegisterImporter) replaces the generation below
-        UniqueByteArray textureData(4);
-        textureData[0] = 255;
-        textureData[1] = 0;
-        textureData[2] = 255;
-        textureData[3] = 255;
-        PushTextureData({1, 1}, std::move(textureData));
+        PushTextureData({ 1, 1 }, { 255, 0, 255, 255 });
         return true;
     }
 
