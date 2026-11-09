@@ -5,12 +5,14 @@
 //==============================================================================================================================================================================
 #pragma once
 
-#include "lHash.h"
+#include "lDefs.h"
 
 /// Lumen namespace
 namespace Lumen
 {
     using UUID = qword;
+
+    constexpr int UUID_STRING_SIZE = 16;
 
     constexpr UUID UUID_INVALID = static_cast<UUID>(0);
 
@@ -18,12 +20,24 @@ namespace Lumen
     UUID UUIDGenerate();
 
     /// serialize to string
-    std::string UUIDToString(const UUID id);
+    constexpr std::string UUIDToString(UUID id)
+    {
+        std::string result(UUID_STRING_SIZE, '0');
+        for (int i = (UUID_STRING_SIZE-1); id; --i, id >>= 4)
+        {
+            result[i] = "0123456789abcdef"[id & 0xf];
+        }
+        return result;
+    }
 
     /// deserialize from string
     constexpr UUID UUIDFromString(const std::string &str)
     {
-        return str.size() == 12 ? static_cast<Lumen::UUID>(HashTokenToHash(HashToken { str[0], str[1], str[2], str[3], str[4], str[5] })) |
-            (static_cast<Lumen::UUID>(HashTokenToHash(HashToken { str[6], str[7], str[8], str[9], str[10], str[11] })) << (sizeof(Hash) * CHAR_BIT)) : UUID_INVALID;
+        UUID uuid = UUID_INVALID;
+        if ((str.size() == UUID_STRING_SIZE) && std::all_of(str.begin(), str.end(), [](char c) { return ((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'f')); }))
+        {
+            std::from_chars(str.data(), str.data() + str.size(), uuid, UUID_STRING_SIZE);
+        }
+        return uuid;
     }
 }

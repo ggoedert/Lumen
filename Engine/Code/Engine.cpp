@@ -519,12 +519,3 @@ UUID Lumen::UUIDGenerate()
     while (uuid == UUID_INVALID);
     return uuid;
 }
-
-/// serialize to string
-std::string Lumen::UUIDToString(const UUID id)
-{
-    std::string result(12, '\0');
-    const Hash *hashes = reinterpret_cast<const Hash *>(&id);
-    std::snprintf(result.data(), 13, "%.*s%.*s", 6, HashTokenFromHash(hashes[0]).data(), 6, HashTokenFromHash(hashes[1]).data());
-    return result;
-}

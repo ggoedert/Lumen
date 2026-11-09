@@ -122,7 +122,7 @@ namespace Lumen
 
         // decode last 4 chars -> last byte
         val24 = (val(token[4]) << 6) | val(token[5]);
-        bytes[3] = (val24 >> 4) & 0xFF;
+        bytes[3] = (val24 >> 4) & 0xff;
 
         return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
     }

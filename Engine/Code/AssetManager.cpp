@@ -52,7 +52,6 @@ namespace Lumen::Hidden
         void ScanAll()
         {
             Scan("Assets/");
-            Scan("BuiltIn/");
 #ifdef EDITOR
             // once per session, right after the first full scan
             if (!mGarbageCollected)

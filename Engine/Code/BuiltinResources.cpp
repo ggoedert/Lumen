@@ -8,6 +8,7 @@
 #include "lMesh.h"
 #include "lTexture.h"
 #include "lShader.h"
+#include "lMaterial.h"
 #include "lEngine.h"
 
 using namespace Lumen;
@@ -178,6 +179,70 @@ private:
     explicit SimpleDiffuseShaderInfo() = default;
 };
 
+/// DefaultMaterialInfo class
+class DefaultMaterialInfo : public BuiltinInfo
+{
+public:
+    /// creates a smart pointer version of the default material info
+    static BuiltinInfoPtr MakePtr()
+    {
+        auto ptr = new DefaultMaterialInfo();
+        Material::Register(ptr->Name(), ptr->Path());
+        return BuiltinInfoPtr(ptr);
+    }
+
+    /// get name
+    [[nodiscard]] std::string_view Name() const
+    {
+        return "Default-Material";
+    }
+
+    /// get type
+    [[nodiscard]] HashType Type() const override
+    {
+        return Material::Type();
+    }
+
+    /// get path
+    [[nodiscard]] std::string_view Path() const override
+    {
+        return "|Procedural|Default-Material";
+    }
+
+    /// load the default material
+    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
+    {
+        Expected<AssetPtr> materialExp = Material::MakePtr(Path());
+        if (!materialExp.HasValue())
+        {
+            return materialExp;
+        }
+        MaterialPtr material = static_pointer_cast<Material>(materialExp.Value());
+        
+        // set shader
+        Expected<AssetPtr> shaderExp = AssetManager::Load(Shader::Type(), "|Procedural|Simple-Diffuse");
+        if (!shaderExp.HasValue())
+        {
+            return shaderExp;
+        }
+        material->SetShader(static_pointer_cast<Shader>(shaderExp.Value()));
+
+        // set texture
+        Expected<AssetPtr> textureExp = AssetManager::Load(Texture::Type(), "|Procedural|Checker-Gray");
+        if (!textureExp.HasValue())
+        {
+            return textureExp;
+        }
+        material->SetProperty("diffuseTex", static_pointer_cast<Texture>(textureExp.Value()));
+
+        return material;
+    }
+
+private:
+    /// constructs a default material info
+    explicit DefaultMaterialInfo() = default;
+};
+
 //==============================================================================================================================================================================
 
 /// BuiltinResources::Impl class
@@ -194,6 +259,7 @@ public:
         mBuiltinInfos.push_back(SphereMeshInfo::MakePtr());
         mBuiltinInfos.push_back(CheckerGrayTextureInfo::MakePtr());
         mBuiltinInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
+        mBuiltinInfos.push_back(DefaultMaterialInfo::MakePtr());
     }
 
     /// destructor

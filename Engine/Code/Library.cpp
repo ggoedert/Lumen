@@ -35,7 +35,7 @@ namespace Lumen::Hidden
         /// path of the entry of an asset UUID
         std::filesystem::path EntryPath(UUID uuid) const
         {
-            return mRoot + EntryName(uuid);
+            return mRoot + UUIDToString(uuid);
         }
 
         /// reads an entry
@@ -90,32 +90,14 @@ namespace Lumen::Hidden
         }
 
     private:
-        /// entry file name of a UUID, 16 lower case hex digits: one name per UUID, safe on case insensitive file systems
-        static std::string EntryName(UUID uuid)
-        {
-            static_assert(sizeof(UUID) == 8, "entry names are 16 hex digits");
-            return std::format("{:016x}", uuid);
-        }
-
-        /// whether a file name is an entry name, only names that EntryName produces are accepted
-        static bool ParseEntryName(const std::string &name, UUID &uuid)
-        {
-            if ((name.size() != 16) || !std::all_of(name.begin(), name.end(), [](char c) { return ((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'f')); }))
-            {
-                return false;
-            }
-            const auto result = std::from_chars(name.data(), name.data() + name.size(), uuid, 16);
-            return (result.ec == std::errc()) && (uuid != UUID_INVALID);
-        }
-
         /// removes the entries the predicate selects, returns how many were removed
         size_t RemoveEntries(const std::function<bool(UUID uuid)> &remove) const
         {
             size_t removed = 0;
             for (const auto &file : FileSystem::ListFiles(mRoot))
             {
-                UUID uuid = UUID_INVALID;
-                if (file.mAttributes.mFlags.Has(FileSystem::Flag::File) && ParseEntryName(file.mName, uuid) && remove(uuid))
+                UUID uuid = UUIDFromString(file.mName);
+                if (file.mAttributes.mFlags.Has(FileSystem::Flag::File) && (uuid != UUID_INVALID) && remove(uuid))
                 {
                     removed += FileSystem::Delete(mRoot + file.mName) ? 1 : 0;
                 }

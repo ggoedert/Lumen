@@ -92,9 +92,6 @@ private:
     /// assets file system
     IFileSystemPtr mAssetsFileSystem;
 
-    /// built-in file system
-    IFileSystemPtr mBuiltInFileSystem;
-
     /// library file system
     IFileSystemPtr mLibraryFileSystem;
 
@@ -140,11 +137,6 @@ void Application::Impl::Initialize(const ApplicationWeakPtr &application)
     mAssetsFileSystem->Initialize(false);
 #endif
     FileSystem::RegisterFileSystem("Assets", mAssetsFileSystem);
-
-    //@@REVIEW@@ this should be some specialized file system for procedurally generated assets, but for now we will use the folder file system
-    mBuiltInFileSystem = FolderFileSystem::MakePtr("BuiltIn");
-    mBuiltInFileSystem->Initialize(false);
-    FileSystem::RegisterFileSystem("BuiltIn", mBuiltInFileSystem);
 
     mLibraryFileSystem = FolderFileSystem::MakePtr("Library");
     mLibraryFileSystem->Initialize(true);

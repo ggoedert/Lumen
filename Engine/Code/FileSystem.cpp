@@ -431,14 +431,14 @@ bool FileSystem::ReadAssetInfo(const std::filesystem::path &path, UUID &uuid, Se
     {
         // first line is: "<uuid>": <start of the json data>
         std::string uuidText = FileSystem::ReadText(file, 1);
-        if (uuidText.length() < 16)
+        if (uuidText.length() < (UUID_STRING_SIZE + 4))
         {
             Lumen::DebugLog::Error("Asset info file {} is damaged", path.generic_string());
             FileSystem::Close(file);
             return false;
         }
         uuid = UUIDFromString(uuidText.substr(1, uuidText.length() - 6));
-        uuidText = uuidText.substr(16);
+        uuidText = uuidText.substr(UUID_STRING_SIZE + 4);
 
         if (data)
         {
