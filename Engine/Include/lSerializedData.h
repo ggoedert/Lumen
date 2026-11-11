@@ -99,6 +99,12 @@ namespace Lumen
         /// shader type token packed
         extern const Hash cShaderTypeTokenPacked;
 
+        /// name token
+        extern const std::string cNameToken;
+
+        /// name token packed
+        extern const Hash cNameTokenPacked;
+
         /// serialized value
         inline void SerializeValue(Type &out, bool packed, const std::string &key, const Hash &keyPacked, const Type &value)
         {

@@ -5,6 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lBuiltinResources.h"
+#include "lAssetManager.h"
 #include "lMesh.h"
 #include "lTexture.h"
 #include "lShader.h"
@@ -15,10 +16,16 @@ using namespace Lumen;
 
 CLASS_PTR_DEF(BuiltinInfo);
 
-/// BuiltinInfo class
+/// BuiltinInfo class, the asset info of a builtin asset (path, type and static UUID) inlined in code, and how to make the asset
+/// the editor generates the asset procedurally and stores it in the Library, a game build has no generation code and loads it from the Library
 class BuiltinInfo
 {
 public:
+    /// virtual destructor
+    virtual ~BuiltinInfo() = default;
+
+    /// get name
+    [[nodiscard]] virtual std::string_view Name() const = 0;
 
     /// get type
     [[nodiscard]] virtual HashType Type() const = 0;
@@ -26,8 +33,16 @@ public:
     /// get path
     [[nodiscard]] virtual std::string_view Path() const = 0;
 
-    /// load the asset
-    [[nodiscard]] virtual Expected<AssetPtr> Load(EngineWeakPtr &engine) = 0;
+    /// get the static UUID, it identifies the asset (and its Library entry) across sessions and builds, never change it
+    [[nodiscard]] virtual Lumen::UUID GetUUID() const = 0;
+
+    /// create the empty asset, its state comes from Generate (editor) or from its Library entry (game)
+    [[nodiscard]] virtual Expected<AssetPtr> Create(EngineWeakPtr &engine) const = 0;
+
+#ifdef EDITOR
+    /// generate the procedural state of the asset
+    [[nodiscard]] virtual Expected<AssetPtr> Generate(const AssetPtr &asset) const { return asset; }
+#endif
 };
 
 /// SphereMeshInfo class
@@ -43,25 +58,19 @@ public:
     }
 
     /// get name
-    [[nodiscard]] std::string_view Name() const
-    {
-        return "Sphere";
-    }
+    [[nodiscard]] std::string_view Name() const override { return "Sphere"; }
 
     /// get type
-    [[nodiscard]] HashType Type() const override
-    {
-        return Mesh::Type();
-    }
+    [[nodiscard]] HashType Type() const override { return Mesh::Type(); }
 
     /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "|Procedural|Sphere";
-    }
+    [[nodiscard]] std::string_view Path() const override { return "|Procedural|Sphere"; }
 
-    /// load the sphere mesh
-    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
+    /// get the static UUID
+    [[nodiscard]] Lumen::UUID GetUUID() const override { return 0xc724e92af7e52617ull; }
+
+    /// create the sphere mesh, the platform builds its geometry
+    [[nodiscard]] Expected<AssetPtr> Create(EngineWeakPtr &engine) const override
     {
         return Mesh::MakePtr(engine, Path());
     }
@@ -84,27 +93,28 @@ public:
     }
 
     /// get name
-    [[nodiscard]] std::string_view Name() const
-    {
-        return "Checker-Gray";
-    }
+    [[nodiscard]] std::string_view Name() const override { return "Checker-Gray"; }
 
     /// get type
-    [[nodiscard]] HashType Type() const override
-    {
-        return Texture::Type();
-    }
+    [[nodiscard]] HashType Type() const override { return Texture::Type(); }
 
     /// get path
-    [[nodiscard]] std::string_view Path() const override
+    [[nodiscard]] std::string_view Path() const override { return "|Procedural|Checker-Gray"; }
+
+    /// get the static UUID
+    [[nodiscard]] Lumen::UUID GetUUID() const override { return 0xcc657c9ea8acf128ull; }
+
+    /// create the checker gray texture
+    [[nodiscard]] Expected<AssetPtr> Create(EngineWeakPtr &engine) const override
     {
-        return "|Procedural|Checker-Gray";
+        return Texture::MakePtr(engine, Path());
     }
 
-    /// load the checker gray texture
-    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
+#ifdef EDITOR
+    /// generate the checker gray pixels
+    [[nodiscard]] Expected<AssetPtr> Generate(const AssetPtr &asset) const override
     {
-        TexturePtr texture = static_pointer_cast<Texture>(Texture::MakePtr(engine, Path()));
+        TexturePtr texture = static_pointer_cast<Texture>(asset);
 
         Texture::Info textureInfo { 64, 64 };
         UniqueByteArray textureData(textureInfo.mWidth * textureInfo.mHeight * 4);
@@ -132,6 +142,7 @@ public:
 
         return texture;
     }
+#endif
 
 private:
     /// constructs a checker gray texture info
@@ -151,25 +162,19 @@ public:
     }
 
     /// get name
-    [[nodiscard]] std::string_view Name() const
-    {
-        return "Simple/Diffuse";
-    }
+    [[nodiscard]] std::string_view Name() const override { return "Simple/Diffuse"; }
 
     /// get type
-    [[nodiscard]] HashType Type() const override
-    {
-        return Shader::Type();
-    }
+    [[nodiscard]] HashType Type() const override { return Shader::Type(); }
 
     /// get path
-    [[nodiscard]] std::string_view Path() const override
-    {
-        return "|Procedural|Simple-Diffuse";
-    }
+    [[nodiscard]] std::string_view Path() const override { return "|Procedural|Simple-Diffuse"; }
 
-    /// load the simple diffuse shader
-    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
+    /// get the static UUID
+    [[nodiscard]] Lumen::UUID GetUUID() const override { return 0x7eb35e0be2b83a73ull; }
+
+    /// create the simple diffuse shader, the platform builds it
+    [[nodiscard]] Expected<AssetPtr> Create(EngineWeakPtr &engine) const override
     {
         return Shader::MakePtr(engine, Path(), Name());
     }
@@ -192,33 +197,29 @@ public:
     }
 
     /// get name
-    [[nodiscard]] std::string_view Name() const
-    {
-        return "Default-Material";
-    }
+    [[nodiscard]] std::string_view Name() const override { return "Default-Material"; }
 
     /// get type
-    [[nodiscard]] HashType Type() const override
-    {
-        return Material::Type();
-    }
+    [[nodiscard]] HashType Type() const override { return Material::Type(); }
 
     /// get path
-    [[nodiscard]] std::string_view Path() const override
+    [[nodiscard]] std::string_view Path() const override { return "|Procedural|Default-Material"; }
+
+    /// get the static UUID
+    [[nodiscard]] Lumen::UUID GetUUID() const override { return 0xab48d509ae7efc93ull; }
+
+    /// create the default material
+    [[nodiscard]] Expected<AssetPtr> Create(EngineWeakPtr &engine) const override
     {
-        return "|Procedural|Default-Material";
+        return Material::MakePtr(Path());
     }
 
-    /// load the default material
-    [[nodiscard]] Expected<AssetPtr> Load(EngineWeakPtr &engine) override
+#ifdef EDITOR
+    /// generate the default material, the simple diffuse shader with the checker gray texture
+    [[nodiscard]] Expected<AssetPtr> Generate(const AssetPtr &asset) const override
     {
-        Expected<AssetPtr> materialExp = Material::MakePtr(Path());
-        if (!materialExp.HasValue())
-        {
-            return materialExp;
-        }
-        MaterialPtr material = static_pointer_cast<Material>(materialExp.Value());
-        
+        MaterialPtr material = static_pointer_cast<Material>(asset);
+
         // set shader
         Expected<AssetPtr> shaderExp = AssetManager::Load(Shader::Type(), "|Procedural|Simple-Diffuse");
         if (!shaderExp.HasValue())
@@ -237,6 +238,7 @@ public:
 
         return material;
     }
+#endif
 
 private:
     /// constructs a default material info
@@ -260,6 +262,12 @@ public:
         mBuiltinInfos.push_back(CheckerGrayTextureInfo::MakePtr());
         mBuiltinInfos.push_back(SimpleDiffuseShaderInfo::MakePtr());
         mBuiltinInfos.push_back(DefaultMaterialInfo::MakePtr());
+
+        // the asset manager tracks the builtin assets like the ones in the file systems, with the asset info inlined above
+        for (const auto &builtinInfo : mBuiltinInfos)
+        {
+            AssetManager::RegisterBuiltin(builtinInfo->Path(), builtinInfo->Type(), builtinInfo->GetUUID());
+        }
     }
 
     /// destructor
@@ -285,15 +293,36 @@ public:
         {
             if ((builtinInfo->Type() == type) && (builtinInfo->Path() == path))
             {
-                auto assetExpected = builtinInfo->Load(engine);
-                if (assetExpected)
-                {
-                    return assetExpected.Value();
-                }
-                else
+                auto assetExpected = builtinInfo->Create(engine);
+                if (!assetExpected)
                 {
                     Lumen::DebugLog::Error("BuiltinResources load, {}", assetExpected.Error());
+                    break;
                 }
+                AssetPtr asset = assetExpected.Value();
+
+#ifdef EDITOR
+                // the procedural generation is the truth, refresh the Library entry so game builds can load the asset without it,
+                // this must happen before the renderer consumes the texture pixels
+                auto generatedExpected = builtinInfo->Generate(asset);
+                if (!generatedExpected)
+                {
+                    Lumen::DebugLog::Error("BuiltinResources load, {}", generatedExpected.Error());
+                    break;
+                }
+                if (!AssetManager::UpdateLibrary(*asset))
+                {
+                    Lumen::DebugLog::Warning("Unable to update the Library entry of {}", path.generic_string());
+                }
+#else
+                // a game build has no procedural generation, the state of the asset is the Library entry the editor wrote
+                if (!AssetManager::LoadFromLibrary(*asset))
+                {
+                    return Expected<AssetPtr>::Unexpected(
+                        std::format("No valid Library entry for builtin resource {}, run the editor to generate it", path.generic_string()));
+                }
+#endif
+                return asset;
             }
         }
         return Expected<AssetPtr>::Unexpected(std::format("Unable to load builtin resource, {}", path.generic_string()));

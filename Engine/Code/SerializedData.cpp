@@ -42,3 +42,5 @@ const Hash        Serialized::cTextureTypeTokenPacked = HashString(Serialized::c
 
 const std::string Serialized::cShaderTypeToken = std::string("Lumen::Shader");
 const Hash        Serialized::cShaderTypeTokenPacked = HashString(Serialized::cShaderTypeToken.c_str());
+const std::string Serialized::cNameToken = std::string("Name");
+const Hash        Serialized::cNameTokenPacked = HashString(Serialized::cNameToken.c_str());

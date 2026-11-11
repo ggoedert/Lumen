@@ -9,6 +9,20 @@
 
 using namespace Lumen;
 
+/// Lumen Hidden namespace
+namespace Lumen::Hidden
+{
+    /// asset type of a stored type hash
+    inline HashType TypeOfHash(Hash hash)
+    {
+#ifdef TYPEINFO
+        return HashType(hash, DecodeType(hash));
+#else
+        return hash;
+#endif
+    }
+}
+
 /// AssetInfo::Impl class
 class AssetInfo::Impl
 {
@@ -21,9 +35,14 @@ public:
     /// constructs a assetinfo
     explicit Impl(const std::filesystem::path &path) : mPath(path), mUUID(UUID_INVALID) {}
 
+    /// constructs a builtin assetinfo, all of its data comes from code
+    explicit Impl(const std::filesystem::path &path, HashType type, Lumen::UUID uuid) :
+        mPath(path), mUUID(uuid), mBuiltin(true), mType(static_cast<Hash>(type)) {}
+
     /// initialize assetinfo
     void Initialize()
     {
+        L_ASSERT(!mBuiltin);
         mUUID = UUIDGenerate();
     }
 
@@ -32,6 +51,12 @@ public:
 
     /// get UUID
     const Lumen::UUID UUID() const { return mUUID; }
+
+    /// whether the assetinfo is the one of a builtin asset
+    bool Builtin() const { return mBuiltin; }
+
+    /// get the asset type
+    HashType Type() const { return Hidden::TypeOfHash(mType); }
 
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
@@ -49,6 +74,12 @@ public:
     /// save assetinfo
     bool Save() const
     {
+        if (mBuiltin)
+        {
+            Lumen::DebugLog::Error("Builtin assetinfo {} is defined in code, it has no info file", mPath.generic_string());
+            return false;
+        }
+
         std::filesystem::path infoFile = std::filesystem::path(mPath).concat(".info");
         Lumen::DebugLog::Info("AssetInfo::Impl::Save {}", infoFile.generic_string());
 
@@ -63,6 +94,12 @@ public:
     /// load assetinfo
     bool Load()
     {
+        if (mBuiltin)
+        {
+            Lumen::DebugLog::Error("Builtin assetinfo {} is defined in code, it has no info file", mPath.generic_string());
+            return false;
+        }
+
         std::filesystem::path infoFile = std::filesystem::path(mPath).concat(".info");
         Lumen::DebugLog::Info("AssetInfo::Impl::Load {}", infoFile.generic_string());
 
@@ -93,12 +130,21 @@ private:
 
     /// assetinfo UUID
     Lumen::UUID mUUID;
+
+    /// whether the assetinfo is the one of a builtin asset
+    const bool mBuiltin = false;
+
+    /// asset type, only stored for builtin assets
+    const Hash mType = HASH_INVALID;
 };
 
 //==============================================================================================================================================================================
 
 /// constructs a assetinfo
 AssetInfo::AssetInfo(const std::filesystem::path &path) : mImpl(AssetInfo::Impl::MakeUniquePtr(path)) {}
+
+/// constructs a builtin assetinfo
+AssetInfo::AssetInfo(const std::filesystem::path &path, HashType type, Lumen::UUID uuid) : mImpl(AssetInfo::Impl::MakeUniquePtr(path, type, uuid)) {}
 
 /// destructor
 AssetInfo::~AssetInfo() = default;
@@ -107,6 +153,18 @@ AssetInfo::~AssetInfo() = default;
 AssetInfoPtr AssetInfo::MakePtr(const std::filesystem::path &path, Deleter deleter)
 {
     return AssetInfoPtr(new AssetInfo(path), std::move(deleter));
+}
+
+/// creates a smart pointer version of the AssetInfo of a builtin asset (custom deletion)
+AssetInfoPtr AssetInfo::MakeBuiltinPtr(const std::filesystem::path &path, HashType type, Lumen::UUID uuid, Deleter deleter)
+{
+    return AssetInfoPtr(new AssetInfo(path, type, uuid), std::move(deleter));
+}
+
+/// whether a path names a builtin asset
+bool AssetInfo::IsBuiltinPath(const std::filesystem::path &path)
+{
+    return path.generic_string().starts_with('|');
 }
 
 /// initialize assetinfo
@@ -137,4 +195,16 @@ const std::filesystem::path &AssetInfo::Path() const
 Lumen::UUID AssetInfo::UUID() const
 {
     return mImpl->UUID();
+}
+
+/// whether the assetinfo is the one of a builtin asset
+bool AssetInfo::Builtin() const
+{
+    return mImpl->Builtin();
+}
+
+/// get the asset type
+HashType AssetInfo::Type() const
+{
+    return mImpl->Type();
 }

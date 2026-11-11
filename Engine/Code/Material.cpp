@@ -53,7 +53,8 @@ public:
     /// serialize
     void Serialize(Serialized::Type &out, bool packed) const
     {
-        Serialized::SerializeValue(out, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, mShader->Name());
+        // the shader is referenced by its asset path, like textures, so it loads without the name registry of the builtin assets
+        Serialized::SerializeValue(out, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, mShader->Path().generic_string());
 
         Serialized::Type propertiesObj = Serialized::Type::object();
         for (const auto &[key, value] : mProperties)
@@ -87,21 +88,27 @@ public:
         mProperties.clear();
 
         // load shader
-        Serialized::Type shaderName = {};
-        Serialized::DeserializeValue(in, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, shaderName);
-        if (shaderName.empty())
+        Serialized::Type shaderRef = {};
+        Serialized::DeserializeValue(in, packed, Serialized::cShaderTypeToken, Serialized::cShaderTypeTokenPacked, shaderRef);
+        if (!shaderRef.is_string() || shaderRef.get<std::string>().empty())
         {
-            throw std::runtime_error(std::format("Unable to load material resource, no shader name in material asset"));
+            throw std::runtime_error(std::format("Unable to load material resource, no shader in material asset"));
         }
-        Expected<std::string_view> shaderPathExp = Shader::Find(shaderName);
-        if (!shaderPathExp.HasValue())
-        {
-            throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderName.get<std::string_view>(), shaderPathExp.Error()));
-        }
-        Expected<AssetPtr> shaderExp = AssetManager::Load(Shader::Type(), shaderPathExp.Value());
+        const std::string shaderPath = shaderRef.get<std::string>();
+        Expected<AssetPtr> shaderExp = AssetManager::Load(Shader::Type(), shaderPath);
         if (!shaderExp.HasValue())
         {
-            throw std::runtime_error(shaderExp.Error());
+            // older materials reference the shader by its registered name
+            Expected<std::string_view> shaderPathExp = Shader::Find(shaderPath);
+            if (!shaderPathExp.HasValue())
+            {
+                throw std::runtime_error(std::format("Unable to load {} shader resource, {}", shaderPath, shaderExp.Error()));
+            }
+            shaderExp = AssetManager::Load(Shader::Type(), shaderPathExp.Value());
+            if (!shaderExp.HasValue())
+            {
+                throw std::runtime_error(shaderExp.Error());
+            }
         }
         mShader = static_pointer_cast<Shader>(shaderExp.Value());
 

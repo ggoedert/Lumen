@@ -39,6 +39,15 @@ namespace Lumen
         /// shaders are shared between all users of the same path
         [[nodiscard]] bool Shareable() const override;
 
+        /// shaders are cached in the Library
+        [[nodiscard]] bool SupportsLibrary() const override;
+
+        /// serialize
+        void Serialize(Serialized::Type &out, bool packed) const override;
+
+        /// deserialize
+        void Deserialize(const Serialized::Type &in, bool packed) override;
+
         /// save a shader
         bool Save() const override;
 

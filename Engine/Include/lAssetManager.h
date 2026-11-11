@@ -60,6 +60,9 @@ namespace Lumen
         /// register the asset type stored in files with the given extension
         void RegisterType(std::string_view extension, HashType type);
 
+        /// register a builtin asset (procedural, no source in a file system) with its static UUID, its asset info is defined in code
+        void RegisterBuiltin(const std::filesystem::path &path, HashType type, UUID uuid);
+
         /// scan assets
         void Scan();
 

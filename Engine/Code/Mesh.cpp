@@ -129,6 +129,12 @@ bool Mesh::Shareable() const
     return true;
 }
 
+/// meshs are cached in the Library
+bool Mesh::SupportsLibrary() const
+{
+    return true;
+}
+
 /// save a mesh
 bool Mesh::Save() const
 {

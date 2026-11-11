@@ -71,6 +71,24 @@ public:
         }
     }
 
+    /// serialize, the shader is described by its name, the platform builds it
+    void Serialize(Serialized::Type &out, bool packed) const
+    {
+        out = packed ? Serialized::Type::array() : Serialized::Type::object();
+        Serialized::SerializeValue(out, packed, Serialized::cNameToken, Serialized::cNameTokenPacked, mName);
+    }
+
+    /// deserialize
+    void Deserialize(const Serialized::Type &in, bool packed)
+    {
+        Serialized::Type name = {};
+        if (!Serialized::DeserializeValue(in, packed, Serialized::cNameToken, Serialized::cNameTokenPacked, name) || !name.is_string())
+        {
+            throw std::runtime_error("shader data is incomplete");
+        }
+        mName = name.get<std::string>();
+    }
+
     /// get shader name
     const std::string &Name()
     {
@@ -92,8 +110,8 @@ public:
     /// engine pointer
     EngineWeakPtr mEngine;
 
-    /// get shader name
-    const std::string mName;
+    /// shader name
+    std::string mName;
 
     /// engine shader id
     Id::Type mShaderId;
@@ -148,6 +166,24 @@ Expected<std::string_view> Shader::Find(std::string_view name)
 bool Shader::Shareable() const
 {
     return true;
+}
+
+/// shaders are cached in the Library
+bool Shader::SupportsLibrary() const
+{
+    return true;
+}
+
+/// serialize
+void Shader::Serialize(Serialized::Type &out, bool packed) const
+{
+    mImpl->Serialize(out, packed);
+}
+
+/// deserialize
+void Shader::Deserialize(const Serialized::Type &in, bool packed)
+{
+    mImpl->Deserialize(in, packed);
 }
 
 /// save a shader

@@ -39,6 +39,9 @@ namespace Lumen
         /// meshs are shared between all users of the same path
         [[nodiscard]] bool Shareable() const override;
 
+        /// meshs are cached in the Library
+        [[nodiscard]] bool SupportsLibrary() const override;
+
         /// save a mesh
         bool Save() const override;
 

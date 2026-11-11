@@ -101,6 +101,41 @@ namespace Lumen::Hidden
             mAssetTypes.insert_or_assign(ToLower(std::string(extension)), type);
         }
 
+        /// register a builtin asset with its static UUID, its asset info is defined in code, it has no info file
+        void RegisterBuiltin(const std::filesystem::path &path, HashType type, Lumen::UUID uuid)
+        {
+            const std::string key = Normalize(path);
+            if (!AssetInfo::IsBuiltinPath(key))
+            {
+                Lumen::DebugLog::Error("Builtin asset path must start with '|', {}", key);
+                return;
+            }
+            if (uuid == UUID_INVALID)
+            {
+                Lumen::DebugLog::Error("Builtin asset {} has an invalid UUID", key);
+                return;
+            }
+            if (mAssetUUIDs.contains(key))
+            {
+                Lumen::DebugLog::Error("Builtin asset {} is already registered", key);
+                return;
+            }
+            auto owner = mAssetPaths.find(uuid);
+            if (owner != mAssetPaths.end())
+            {
+                // static UUIDs are written in the source code, a clash is a programming error
+                Lumen::DebugLog::Error("Builtin asset {} has the UUID {} of {}", key, UUIDToString(uuid), owner->second);
+                return;
+            }
+
+            // the builtin infos live as long as the asset manager, the cache always has them
+            AssetInfoPtr assetInfo = AssetInfo::MakeBuiltinPtr(key, type, uuid, [](AssetInfo *ptr) { delete ptr; });
+            mAssetPaths[uuid] = key;
+            mAssetUUIDs[key] = uuid;
+            mAssetInfos[key] = assetInfo;
+            mBuiltinInfos.push_back(assetInfo);
+        }
+
         /// generates a UUID that is not used by any known asset
         UUID NewUUID() const
         {
@@ -131,9 +166,9 @@ namespace Lumen::Hidden
                 return;
             }
 
-            // a UUID must identify one asset, copying an asset together with its .info file creates a duplicate
+            // a UUID must identify one asset, copying an asset together with its .info file creates a duplicate (a builtin asset always exists)
             auto owner = mAssetPaths.find(uuid);
-            if ((owner != mAssetPaths.end()) && (owner->second != key) && FileSystem::Exists(owner->second))
+            if ((owner != mAssetPaths.end()) && (owner->second != key) && (AssetInfo::IsBuiltinPath(owner->second) || FileSystem::Exists(owner->second)))
             {
                 const std::string other = owner->second;
 #ifdef EDITOR
@@ -217,6 +252,12 @@ namespace Lumen::Hidden
                     return ptr;
                 }
                 mAssetInfos.erase(assetInfoIt);
+            }
+
+            // builtin asset infos are registered up front by the builtin factory and stay alive, there is nothing to create
+            if (AssetInfo::IsBuiltinPath(key))
+            {
+                return Expected<AssetInfoPtr>::Unexpected(std::format("Unknown builtin asset, {}", key));
             }
 
             // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
@@ -338,6 +379,11 @@ namespace Lumen::Hidden
             {
                 return Expected<AssetPtr>::Unexpected("Invalid asset info");
             }
+            if (assetInfo->Builtin())
+            {
+                // a builtin path has no extension, its asset info stores the type
+                return Load(assetInfo->Type(), assetInfo->Path());
+            }
             const std::string extension = ToLower(assetInfo->Path().extension().generic_string());
             auto typeIt = mAssetTypes.find(extension);
             if (typeIt == mAssetTypes.end())
@@ -417,8 +463,14 @@ namespace Lumen::Hidden
                 return true;
             }
 
-            // note the source time before it is read, see below
+            // a builtin asset has no source to fall back to
             const std::filesystem::path &path = asset.Path();
+            if (AssetInfo::IsBuiltinPath(path))
+            {
+                return false;
+            }
+
+            // note the source time before it is read, see below
             const auto sourceTime = FileSystem::GetAttributes(path).mLastWrite;
 
             // read and deserialize the source
@@ -488,8 +540,8 @@ namespace Lumen::Hidden
         /// removes Library entries that no asset owns (assets deleted while the editor was not running, interrupted writes)
         void CollectLibraryGarbage()
         {
-            // nothing registered usually means the assets could not be read at all, never touch the cache in that case
-            if (mAssetPaths.empty())
+            // no source asset registered usually means the assets could not be read at all, never touch the cache in that case
+            if (mAssetPaths.size() <= mBuiltinInfos.size())
             {
                 return;
             }
@@ -710,10 +762,16 @@ namespace Lumen::Hidden
         /// drops the cache entry of an asset info that was destroyed, unless the key already maps to a newer info
         static void ForgetInfo(const std::string &key);
 
-        /// asset info of an asset that lives in a file system, null for procedural assets (and assets that do not exist)
+        /// asset info of an asset that lives in a file system or is builtin, null for assets that do not exist
         AssetInfoPtr InfoOf(const Asset &asset)
         {
             const std::string key = Normalize(asset.Path());
+            if (AssetInfo::IsBuiltinPath(key))
+            {
+                // a builtin asset the asset manager does not know is not cached
+                auto assetInfoExpected = GetInfo(key);
+                return assetInfoExpected.HasValue() ? assetInfoExpected.Value() : nullptr;
+            }
             if (!FileSystem::Exists(key))
             {
 #ifdef EDITOR
@@ -781,6 +839,9 @@ namespace Lumen::Hidden
         /// asset info uuids by normalized path
         std::unordered_map<std::string, Lumen::UUID> mAssetUUIDs;
 
+        /// builtin asset infos, kept alive for the lifetime of the asset manager
+        std::vector<AssetInfoPtr> mBuiltinInfos;
+
 #ifdef EDITOR
         /// importers by (lower case) extension
         std::unordered_map<std::string, AssetManager::Importer> mImporters;
@@ -844,6 +905,12 @@ void AssetManager::RegisterFactory(const AssetFactoryPtr &assetFactory)
 void AssetManager::RegisterType(std::string_view extension, HashType type)
 {
     Hidden::gAssetManagerImpl->RegisterType(extension, type);
+}
+
+/// register a builtin asset with its static UUID
+void AssetManager::RegisterBuiltin(const std::filesystem::path &path, HashType type, UUID uuid)
+{
+    Hidden::gAssetManagerImpl->RegisterBuiltin(path, type, uuid);
 }
 
 /// scan assets
