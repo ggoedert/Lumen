@@ -38,12 +38,26 @@ namespace Lumen::Hidden
             return mRoot + UUIDToString(uuid);
         }
 
-        /// reads an entry
+        /// UUIDs of the entries stored in the Library
+        std::vector<UUID> Entries() const
+        {
+            std::vector<UUID> uuids;
+            for (const auto &file : FileSystem::ListFiles(mRoot))
+            {
+                UUID uuid = UUIDFromString(file.mName);
+                if (file.mAttributes.mFlags.Has(FileSystem::Flag::File) && (uuid != UUID_INVALID))
+                {
+                    uuids.push_back(uuid);
+                }
+            }
+            return uuids;
+        }
+
+        /// reads an entry, only when it is up to date with its source
         bool Read(UUID uuid, const std::filesystem::path &sourcePath, Serialized::Type &data) const
         {
             // a missing entry is a normal cache miss, stay silent
-            const std::filesystem::path entryPath = EntryPath(uuid);
-            const FileSystem::FileAttributes entry = FileSystem::GetAttributes(entryPath);
+            const FileSystem::FileAttributes entry = FileSystem::GetAttributes(EntryPath(uuid));
             if (!entry.mFlags.Has(FileSystem::Flag::File))
             {
                 return false;
@@ -63,7 +77,13 @@ namespace Lumen::Hidden
                 Lumen::DebugLog::Detail("Library entry of {} is out of date", sourcePath.generic_string());
                 return false;
             }
-            return FileSystem::ReadSerializedData(entryPath, data);
+            return Read(uuid, data);
+        }
+
+        /// reads an entry whatever the state of its source
+        bool Read(UUID uuid, Serialized::Type &data) const
+        {
+            return FileSystem::ReadSerializedData(EntryPath(uuid), data);
         }
 
         /// writes an entry
@@ -94,12 +114,11 @@ namespace Lumen::Hidden
         size_t RemoveEntries(const std::function<bool(UUID uuid)> &remove) const
         {
             size_t removed = 0;
-            for (const auto &file : FileSystem::ListFiles(mRoot))
+            for (UUID uuid : Entries())
             {
-                UUID uuid = UUIDFromString(file.mName);
-                if (file.mAttributes.mFlags.Has(FileSystem::Flag::File) && (uuid != UUID_INVALID) && remove(uuid))
+                if (remove(uuid))
                 {
-                    removed += FileSystem::Delete(mRoot + file.mName) ? 1 : 0;
+                    removed += FileSystem::Delete(EntryPath(uuid)) ? 1 : 0;
                 }
             }
             return removed;
@@ -136,11 +155,25 @@ std::filesystem::path Library::EntryPath(UUID uuid)
     return Hidden::gLibraryImpl->EntryPath(uuid);
 }
 
-/// reads an entry
+/// UUIDs of the entries stored in the Library
+std::vector<UUID> Library::Entries()
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->Entries();
+}
+
+/// reads an entry, only when it is up to date with its source
 bool Library::Read(UUID uuid, const std::filesystem::path &sourcePath, Serialized::Type &data)
 {
     L_ASSERT(Hidden::gLibraryImpl);
     return Hidden::gLibraryImpl->Read(uuid, sourcePath, data);
+}
+
+/// reads an entry whatever the state of its source
+bool Library::Read(UUID uuid, Serialized::Type &data)
+{
+    L_ASSERT(Hidden::gLibraryImpl);
+    return Hidden::gLibraryImpl->Read(uuid, data);
 }
 
 /// writes an entry

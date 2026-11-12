@@ -29,8 +29,14 @@ namespace Lumen
         /// path of the entry of an asset UUID
         std::filesystem::path EntryPath(UUID uuid);
 
-        /// reads an entry
+        /// UUIDs of the entries stored in the Library
+        std::vector<UUID> Entries();
+
+        /// reads an entry, only when it is up to date with its source
         bool Read(UUID uuid, const std::filesystem::path &sourcePath, Serialized::Type &data);
+
+        /// reads an entry whatever the state of its source
+        bool Read(UUID uuid, Serialized::Type &data);
 
         /// writes an entry
         bool Write(UUID uuid, const Serialized::Type &data);

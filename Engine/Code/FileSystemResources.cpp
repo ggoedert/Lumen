@@ -7,6 +7,8 @@
 #include "lExpected.h"
 #include "lMaterial.h"
 #include "lTexture.h"
+#include "lMesh.h"
+#include "lShader.h"
 #include "lScene.h"
 #include "lEngine.h"
 #include "lFileSystem.h"
@@ -31,7 +33,12 @@ public:
     /// check if asset exists
     [[nodiscard]] bool Exists(const std::filesystem::path &path) const
     {
+#ifdef EDITOR
         return FileSystem::Exists(path);
+#else
+        // a game build also has the assets that only exist in the Library (the builtin ones at least), their FileInfo comes from their entry
+        return FileSystem::Exists(path) || AssetManager::GetAssetInfo(path).HasValue();
+#endif
     }
 
     /// load asset
@@ -76,6 +83,12 @@ public:
                 return texture;
             }
 
+            // an asset without a source only has its Library entry
+            if (!FileSystem::Exists(path))
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("No valid Library entry for texture resource, {}", path.generic_string()));
+            }
+
             // load the texture
             texture->Load();
 
@@ -83,6 +96,30 @@ public:
             AssetManager::UpdateLibrary(*texture);
 
             return texture;
+        }
+        else if (type == Mesh::Type())
+        {
+            // there is no mesh source format yet, a mesh comes from its Library entry
+            AssetPtr mesh = Mesh::MakePtr(engine, path);
+            if (!AssetManager::LoadFromLibrary(*mesh))
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("No valid Library entry for mesh resource, {}", path.generic_string()));
+            }
+            return mesh;
+        }
+        else if (type == Shader::Type())
+        {
+            // there is no shader source format yet, a shader comes from its Library entry (which holds its name)
+            auto shaderExpected = Shader::MakePtr(engine, path, "");
+            if (!shaderExpected)
+            {
+                return shaderExpected;
+            }
+            if (!AssetManager::LoadFromLibrary(*shaderExpected.Value()))
+            {
+                return Expected<AssetPtr>::Unexpected(std::format("No valid Library entry for shader resource, {}", path.generic_string()));
+            }
+            return shaderExpected;
         }
         return Expected<AssetPtr>::Unexpected(std::format("Unknown resource type, {}", path.generic_string()));
     }

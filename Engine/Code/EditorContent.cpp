@@ -172,7 +172,7 @@ public:
                     }
 
                     // make sure the visible asset has an asset info (created on first sight in the editor)
-                    auto assetInfoExpected = AssetManager::GetInfo(path);
+                    auto assetInfoExpected = AssetManager::GetAssetInfo(path);
                     if (!assetInfoExpected.HasValue())
                     {
                         DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());

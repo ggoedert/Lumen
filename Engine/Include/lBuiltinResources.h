@@ -4,6 +4,7 @@
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
 #pragma once
+#ifdef EDITOR
 
 #include "lDefs.h"
 #include "lAssetManager.h"
@@ -35,3 +36,4 @@ namespace Lumen
         CLASS_PIMPL_DEF(Impl);
     };
 }
+#endif

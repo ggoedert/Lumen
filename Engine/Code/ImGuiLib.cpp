@@ -3,8 +3,8 @@
 /// \brief     ImGui lib for editor support
 /// \copyright Copyright (c) Gustavo Goedert. All rights reserved.
 //==============================================================================================================================================================================
-
 #ifdef EDITOR
+
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.cpp"
 #include "imgui_draw.cpp"

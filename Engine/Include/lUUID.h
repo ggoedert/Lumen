@@ -10,14 +10,23 @@
 /// Lumen namespace
 namespace Lumen
 {
+    /// UUID type, used for asset management
     using UUID = qword;
 
+    /// size of the string representation of a UUID
     constexpr int UUID_STRING_SIZE = 16;
 
+    /// invalid UUID, used to indicate an uninitialized or invalid state
     constexpr UUID UUID_INVALID = static_cast<UUID>(0);
+
+    /// last UUID of the range reserved for the builtin assets, the range starts right after UUID_INVALID
+    constexpr UUID UUID_BUILTIN_LAST = static_cast<UUID>(0xf);
 
     /// fast static generator
     UUID UUIDGenerate();
+
+    /// whether a UUID is in the range reserved for the builtin assets
+    constexpr bool UUIDIsBuiltin(UUID id) { return (id != UUID_INVALID) && (id <= UUID_BUILTIN_LAST); }
 
     /// serialize to string
     constexpr std::string UUIDToString(UUID id)

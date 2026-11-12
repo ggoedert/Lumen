@@ -248,6 +248,9 @@
     <ClInclude Include="..\..\Include\lAssetInfo.h">
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\lFileInfo.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Include\Windows\lFolderFileSystemWindows.h">
       <Filter>Header Files\System\Windows</Filter>
     </ClInclude>
@@ -371,6 +374,9 @@
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\AssetInfo.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Code\FileInfo.cpp">
       <Filter>Source Files\Assets</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Code\FolderFileSystem.cpp">

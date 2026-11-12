@@ -44,3 +44,11 @@ const std::string Serialized::cShaderTypeToken = std::string("Lumen::Shader");
 const Hash        Serialized::cShaderTypeTokenPacked = HashString(Serialized::cShaderTypeToken.c_str());
 const std::string Serialized::cNameToken = std::string("Name");
 const Hash        Serialized::cNameTokenPacked = HashString(Serialized::cNameToken.c_str());
+
+const std::string Serialized::cAssetInfoToken = std::string("AssetInfo");
+const Hash        Serialized::cAssetInfoTokenPacked = HashString(Serialized::cAssetInfoToken.c_str());
+const std::string Serialized::cPathToken = std::string("Path");
+const Hash        Serialized::cPathTokenPacked = HashString(Serialized::cPathToken.c_str());
+
+const std::string Serialized::cAssetToken = std::string("Asset");
+const Hash        Serialized::cAssetTokenPacked = HashString(Serialized::cAssetToken.c_str());

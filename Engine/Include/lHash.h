@@ -77,6 +77,12 @@ namespace Lumen
 
     /// decode the hash type to a string, typeinfo version
     const char *DecodeType(Hash type);
+
+    /// hash type of a stored hash, typeinfo version (the name is the registered one)
+    inline HashType GetHashType(Hash hash)
+    {
+        return HashType(hash, DecodeType(hash));
+    }
 #else
     /// lean version of HashType
     using HashType = Hash;
@@ -96,6 +102,12 @@ namespace Lumen
         size_t end = std::string_view(currentFunction).find_last_of('(');
         end = std::string_view(currentFunction, end).find_last_of(':') - 1;
         return HashStringRange(currentFunction, std::string_view(currentFunction, end).find_last_of(' ') + 1, end);
+    }
+
+    /// hash type of a stored hash
+    constexpr HashType GetHashType(Hash hash)
+    {
+        return hash;
     }
 #endif
 

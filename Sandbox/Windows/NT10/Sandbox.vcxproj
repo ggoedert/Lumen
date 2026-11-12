@@ -152,7 +152,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NEDITOR;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
@@ -218,7 +218,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NEDITOR;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />
@@ -288,7 +288,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NEDITOR;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\External\Windows\NT10\DirectXTK12\Inc;..\..\..\External\imgui;..\..\..\External\json\single_include;..\..\Code;..\..\Code\Windows\NT10;..\..\..\Engine\Include;..\..\..\Engine\Include\Windows;..\..\..\Engine\Include\Windows\NT10</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile />

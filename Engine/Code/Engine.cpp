@@ -57,7 +57,10 @@ public:
 
         AssetManager::Initialize(mOwner);
         AssetManager::RegisterFactory(FileSystemResources::MakePtr(1.0f));
+#ifdef EDITOR
+        // the editor generates the builtin assets, a game build loads them from the Library through the file system resources
         AssetManager::RegisterFactory(BuiltinResources::MakePtr(0.1f));
+#endif
 
         // the asset type of each source file extension, lets an asset be loaded from its asset info alone
         AssetManager::RegisterType(".lumen", Scene::Type());
@@ -516,6 +519,6 @@ UUID Lumen::UUIDGenerate()
     {
         uuid = dis(gen);
     }
-    while (uuid == UUID_INVALID);
+    while ((uuid == UUID_INVALID) || UUIDIsBuiltin(uuid));
     return uuid;
 }

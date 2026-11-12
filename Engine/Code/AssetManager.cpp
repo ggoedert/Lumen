@@ -5,7 +5,7 @@
 //==============================================================================================================================================================================
 
 #include "lAssetManager.h"
-#include "lAssetInfo.h"
+#include "lFileInfo.h"
 #include "lLibrary.h"
 #include "lEngine.h"
 
@@ -51,6 +51,10 @@ namespace Lumen::Hidden
         /// scan all asset folders
         void ScanAll()
         {
+#ifndef EDITOR
+            // a game build has no builtin infos, and may ship assets without their sources, the Library entries hold their asset infos
+            ScanLibrary();
+#endif
             Scan("Assets/");
 #ifdef EDITOR
             // once per session, right after the first full scan
@@ -101,18 +105,15 @@ namespace Lumen::Hidden
             mAssetTypes.insert_or_assign(ToLower(std::string(extension)), type);
         }
 
-        /// register a builtin asset with its static UUID, its asset info is defined in code, it has no info file
-        void RegisterBuiltin(const std::filesystem::path &path, HashType type, Lumen::UUID uuid)
+#ifdef EDITOR
+        /// register the asset info of a builtin asset, defined in code, its UUID is in the reserved builtin range
+        void RegisterBuiltin(const AssetInfoPtr &assetInfo)
         {
-            const std::string key = Normalize(path);
-            if (!AssetInfo::IsBuiltinPath(key))
+            const std::string key = Normalize(assetInfo->Path());
+            const Lumen::UUID uuid = assetInfo->UUID();
+            if (!assetInfo->Builtin())
             {
-                Lumen::DebugLog::Error("Builtin asset path must start with '|', {}", key);
-                return;
-            }
-            if (uuid == UUID_INVALID)
-            {
-                Lumen::DebugLog::Error("Builtin asset {} has an invalid UUID", key);
+                Lumen::DebugLog::Error("Builtin asset {} has the UUID {}, outside of the reserved builtin range", key, UUIDToString(uuid));
                 return;
             }
             if (mAssetUUIDs.contains(key))
@@ -127,14 +128,38 @@ namespace Lumen::Hidden
                 Lumen::DebugLog::Error("Builtin asset {} has the UUID {} of {}", key, UUIDToString(uuid), owner->second);
                 return;
             }
-
-            // the builtin infos live as long as the asset manager, the cache always has them
-            AssetInfoPtr assetInfo = AssetInfo::MakeBuiltinPtr(key, type, uuid, [](AssetInfo *ptr) { delete ptr; });
-            mAssetPaths[uuid] = key;
-            mAssetUUIDs[key] = uuid;
-            mAssetInfos[key] = assetInfo;
-            mBuiltinInfos.push_back(assetInfo);
+            PinInfo(key, assetInfo);
         }
+#else
+        /// registers the asset infos stored in the Library entries, a FileInfo for each, including the ones of the builtin assets
+        void ScanLibrary()
+        {
+            for (Lumen::UUID uuid : Library::Entries())
+            {
+                Serialized::Type entry;
+                Serialized::Type infoData;
+                if (!Library::Read(uuid, entry) ||
+                    !Serialized::DeserializeValue(entry, true, Serialized::cAssetInfoToken, Serialized::cAssetInfoTokenPacked, infoData))
+                {
+                    Lumen::DebugLog::Warning("Library entry {} has no asset info, skipped", UUIDToString(uuid));
+                    continue;
+                }
+                auto fileInfoExpected = FileInfo::Deserialize(infoData, true, [](FileInfo *ptr) { delete ptr; });
+                if (!fileInfoExpected || (fileInfoExpected.Value()->UUID() != uuid))
+                {
+                    Lumen::DebugLog::Warning("Library entry {} has an unusable asset info, skipped", UUIDToString(uuid));
+                    continue;
+                }
+                const std::string key = Normalize(fileInfoExpected.Value()->Path());
+                if (mAssetUUIDs.contains(key) || mAssetPaths.contains(uuid))
+                {
+                    Lumen::DebugLog::Warning("Library entry {} duplicates the asset {}, skipped", UUIDToString(uuid), key);
+                    continue;
+                }
+                PinInfo(key, fileInfoExpected.Value());
+            }
+        }
+#endif
 
         /// generates a UUID that is not used by any known asset
         UUID NewUUID() const
@@ -166,11 +191,12 @@ namespace Lumen::Hidden
                 return;
             }
 
-            // a UUID must identify one asset, copying an asset together with its .info file creates a duplicate (a builtin asset always exists)
+            // a UUID must identify one asset, copying an asset together with its .info file creates a duplicate, the builtin range is reserved
             auto owner = mAssetPaths.find(uuid);
-            if ((owner != mAssetPaths.end()) && (owner->second != key) && (AssetInfo::IsBuiltinPath(owner->second) || FileSystem::Exists(owner->second)))
+            const bool reserved = UUIDIsBuiltin(uuid);
+            if (reserved || ((owner != mAssetPaths.end()) && (owner->second != key) && FileSystem::Exists(owner->second)))
             {
-                const std::string other = owner->second;
+                const std::string other = reserved ? std::string("the builtin assets") : owner->second;
 #ifdef EDITOR
                 // the path registered later gets a new UUID, right for a copy made while the editor runs, for a copy made while it was
                 // closed the scan order decides, telling the original apart needs a record of the previous owners (the future index)
@@ -186,6 +212,15 @@ namespace Lumen::Hidden
                 Lumen::DebugLog::Error("Duplicate UUID of {} and {}, ignoring {}", other, key, key);
                 return;
 #endif
+            }
+
+            // the previous owner of the UUID is gone (the asset was moved while nothing was watching, or a Library entry still has its old
+            // path), its path no longer names the asset
+            auto previous = mAssetPaths.find(uuid);
+            if ((previous != mAssetPaths.end()) && (previous->second != key))
+            {
+                mAssetUUIDs.erase(previous->second);
+                mAssetInfos.erase(previous->second);
             }
 
             mAssetPaths[uuid] = key;
@@ -241,7 +276,7 @@ namespace Lumen::Hidden
         }
 
         /// create or get assetinfo
-        Expected<AssetInfoPtr> GetInfo(const std::filesystem::path &path)
+        Expected<AssetInfoPtr> GetAssetInfo(const std::filesystem::path &path)
         {
             const std::string key = Normalize(path);
             auto assetInfoIt = mAssetInfos.find(key);
@@ -254,26 +289,30 @@ namespace Lumen::Hidden
                 mAssetInfos.erase(assetInfoIt);
             }
 
-            // builtin asset infos are registered up front by the builtin factory and stay alive, there is nothing to create
-            if (AssetInfo::IsBuiltinPath(key))
-            {
-                return Expected<AssetInfoPtr>::Unexpected(std::format("Unknown builtin asset, {}", key));
-            }
-
             // custom deleter, cleans up the cache when the last AssetInfoPtr is destroyed
             // it goes through the global pointer (not this) so an info that outlives the asset manager is still safe to destroy,
             // and only drops an expired entry, the key may already map to a newer info (after an Invalidate)
-            auto deleter = [key](AssetInfo *ptr)
+            auto deleter = [key](FileInfo *ptr)
             {
                 delete ptr;
-                ForgetInfo(key);
+                ForgetAssetInfo(key);
             };
-            AssetInfoPtr assetInfoPtr = AssetInfo::MakePtr(key, deleter);
+
+            // the asset type comes from the extension of the source
+            auto typeIt = mAssetTypes.find(ToLower(std::filesystem::path(key).extension().generic_string()));
+            HashType hashType = (typeIt != mAssetTypes.end()) ? typeIt->second : GetHashType(HASH_INVALID);
+            FileInfoPtr assetInfoPtr = FileInfo::MakePtr(key, hashType, deleter);
 
             const std::filesystem::path infoFile = std::filesystem::path(key).concat(".info");
             if (!FileSystem::Exists(infoFile))
             {
 #ifdef EDITOR
+                // only an existing source gets an asset info file
+                if (!FileSystem::Exists(key))
+                {
+                    return Expected<AssetInfoPtr>::Unexpected(std::format("Asset not found, {}", key));
+                }
+
                 // register assetinfo
                 do
                 {
@@ -312,7 +351,7 @@ namespace Lumen::Hidden
         /// update asset info
         bool UpdateAssetInfo(const std::string &path)
         {
-            auto assetInfoExpected = GetInfo(path);
+            auto assetInfoExpected = GetAssetInfo(path);
             if (!assetInfoExpected.HasValue())
             {
                 DebugLog::Error("Unable to acquire asset info for file: {}, error: {}", path, assetInfoExpected.Error());
@@ -379,18 +418,11 @@ namespace Lumen::Hidden
             {
                 return Expected<AssetPtr>::Unexpected("Invalid asset info");
             }
-            if (assetInfo->Builtin())
+            if (static_cast<Hash>(assetInfo->Type()) == HASH_INVALID)
             {
-                // a builtin path has no extension, its asset info stores the type
-                return Load(assetInfo->Type(), assetInfo->Path());
+                return Expected<AssetPtr>::Unexpected(std::format("No asset type registered for {}", assetInfo->Path().generic_string()));
             }
-            const std::string extension = ToLower(assetInfo->Path().extension().generic_string());
-            auto typeIt = mAssetTypes.find(extension);
-            if (typeIt == mAssetTypes.end())
-            {
-                return Expected<AssetPtr>::Unexpected(std::format("No asset type registered for '{}', {}", extension, assetInfo->Path().generic_string()));
-            }
-            return Load(typeIt->second, assetInfo->Path());
+            return Load(assetInfo->Type(), assetInfo->Path());
         }
 
         /// load the state of an asset from its library entry
@@ -400,20 +432,45 @@ namespace Lumen::Hidden
             {
                 return false;
             }
-            AssetInfoPtr assetInfo = InfoOf(asset);
+            AssetInfoPtr assetInfo = AssetInfoOf(asset);
             if (!assetInfo)
             {
                 return false;
             }
 
-            Serialized::Type data;
-            if (!Library::Read(assetInfo->UUID(), assetInfo->Path(), data))
+            // Library entries are always packed, they hold the asset info and the asset
+            Serialized::Type entry;
+            if (!Library::Read(assetInfo->UUID(), assetInfo->Path(), entry))
             {
                 return false;
             }
+            Serialized::Type infoData;
+            Serialized::Type data;
+            if (!Serialized::DeserializeValue(entry, true, Serialized::cAssetInfoToken, Serialized::cAssetInfoTokenPacked, infoData) ||
+                !Serialized::DeserializeValue(entry, true, Serialized::cAssetToken, Serialized::cAssetTokenPacked, data))
+            {
+                Lumen::DebugLog::Warning("Library entry of {} is broken", assetInfo->Path().generic_string());
+                return false;
+            }
+
+            // the stored asset info must be the one of the asset, an entry written before a rename still has the old path
+            Lumen::UUID entryUUID = UUID_INVALID;
+            std::filesystem::path entryPath;
+            Hash entryType = HASH_INVALID;
+            if (!AssetInfo::Deserialize(infoData, true, entryUUID, entryPath, entryType))
+            {
+                Lumen::DebugLog::Warning("Library entry of {} has an incomplete asset info, it is rebuilt", assetInfo->Path().generic_string());
+                return false;
+            }
+            if ((entryUUID != assetInfo->UUID()) || (Normalize(entryPath) != Normalize(assetInfo->Path())) ||
+                (entryType != static_cast<Hash>(assetInfo->Type())))
+            {
+                Lumen::DebugLog::Detail("Library entry of {} does not match its asset info", assetInfo->Path().generic_string());
+                return false;
+            }
+
             try
             {
-                // Library entries are always packed
                 asset.Deserialize(data, true);
             }
             catch (const std::exception &e)
@@ -434,7 +491,7 @@ namespace Lumen::Hidden
             {
                 return false;
             }
-            AssetInfoPtr assetInfo = InfoOf(asset);
+            AssetInfoPtr assetInfo = AssetInfoOf(asset);
             if (!assetInfo)
             {
                 return false;
@@ -452,7 +509,14 @@ namespace Lumen::Hidden
                 Lumen::DebugLog::Detail("Library entry of {} not written, {}", assetInfo->Path().generic_string(), e.what());
                 return false;
             }
-            return Library::Write(assetInfo->UUID(), data);
+
+            // the asset info goes with the asset, a game build recreates the asset info from the entry alone
+            Serialized::Type infoData;
+            assetInfo->Serialize(infoData, true);
+            Serialized::Type entry = Serialized::Type::array();
+            Serialized::SerializeValue(entry, true, Serialized::cAssetInfoToken, Serialized::cAssetInfoTokenPacked, infoData);
+            Serialized::SerializeValue(entry, true, Serialized::cAssetToken, Serialized::cAssetTokenPacked, data);
+            return Library::Write(assetInfo->UUID(), entry);
         }
 
         /// load the state of an asset, library first
@@ -463,9 +527,9 @@ namespace Lumen::Hidden
                 return true;
             }
 
-            // a builtin asset has no source to fall back to
+            // no source to fall back to, a builtin asset (or one a game build only has in the Library)
             const std::filesystem::path &path = asset.Path();
-            if (AssetInfo::IsBuiltinPath(path))
+            if (!FileSystem::Exists(path))
             {
                 return false;
             }
@@ -530,7 +594,7 @@ namespace Lumen::Hidden
             {
                 return;
             }
-            auto assetInfoExpected = GetInfo(name);
+            auto assetInfoExpected = GetAssetInfo(name);
             if (assetInfoExpected.HasValue())
             {
                 Import(assetInfoExpected.Value());
@@ -541,7 +605,7 @@ namespace Lumen::Hidden
         void CollectLibraryGarbage()
         {
             // no source asset registered usually means the assets could not be read at all, never touch the cache in that case
-            if (mAssetPaths.size() <= mBuiltinInfos.size())
+            if (mAssetPaths.size() <= mPinnedInfos.size())
             {
                 return;
             }
@@ -760,18 +824,32 @@ namespace Lumen::Hidden
 
     private:
         /// drops the cache entry of an asset info that was destroyed, unless the key already maps to a newer info
-        static void ForgetInfo(const std::string &key);
+        static void ForgetAssetInfo(const std::string &key);
 
-        /// asset info of an asset that lives in a file system or is builtin, null for assets that do not exist
-        AssetInfoPtr InfoOf(const Asset &asset)
+        /// keeps an asset info alive for the lifetime of the asset manager, the builtin infos (editor) or the Library infos (game build)
+        void PinInfo(const std::string &key, const AssetInfoPtr &assetInfo)
+        {
+            mAssetPaths[assetInfo->UUID()] = key;
+            mAssetUUIDs[key] = assetInfo->UUID();
+            mAssetInfos[key] = assetInfo;
+            mPinnedInfos.push_back(assetInfo);
+        }
+
+        /// asset info of an asset, null for assets that do not exist
+        AssetInfoPtr AssetInfoOf(const Asset &asset)
         {
             const std::string key = Normalize(asset.Path());
-            if (AssetInfo::IsBuiltinPath(key))
+
+            // a pinned info has no source, a builtin asset (editor) or one a game build only has in the Library
+            auto assetInfoIt = mAssetInfos.find(key);
+            if (assetInfoIt != mAssetInfos.end())
             {
-                // a builtin asset the asset manager does not know is not cached
-                auto assetInfoExpected = GetInfo(key);
-                return assetInfoExpected.HasValue() ? assetInfoExpected.Value() : nullptr;
+                if (auto ptr = assetInfoIt->second.lock())
+                {
+                    return ptr;
+                }
             }
+
             if (!FileSystem::Exists(key))
             {
 #ifdef EDITOR
@@ -785,7 +863,7 @@ namespace Lumen::Hidden
                 }
 #endif
             }
-            auto assetInfoExpected = GetInfo(key);
+            auto assetInfoExpected = GetAssetInfo(key);
             if (!assetInfoExpected.HasValue())
             {
                 DebugLog::Warning("Unable to acquire asset info for file: {}, error: {}", key, assetInfoExpected.Error());
@@ -839,8 +917,8 @@ namespace Lumen::Hidden
         /// asset info uuids by normalized path
         std::unordered_map<std::string, Lumen::UUID> mAssetUUIDs;
 
-        /// builtin asset infos, kept alive for the lifetime of the asset manager
-        std::vector<AssetInfoPtr> mBuiltinInfos;
+        /// asset infos kept alive for the lifetime of the asset manager, the builtin infos (editor) or the Library infos (game build)
+        std::vector<AssetInfoPtr> mPinnedInfos;
 
 #ifdef EDITOR
         /// importers by (lower case) extension
@@ -861,7 +939,7 @@ namespace Lumen::Hidden
     static AssetManagerImplUniquePtr gAssetManagerImpl;
 
     /// drops the cache entry of an asset info that was destroyed
-    void AssetManagerImpl::ForgetInfo(const std::string &key)
+    void AssetManagerImpl::ForgetAssetInfo(const std::string &key)
     {
         // the asset manager may already be shut down
         if (!gAssetManagerImpl)
@@ -907,11 +985,13 @@ void AssetManager::RegisterType(std::string_view extension, HashType type)
     Hidden::gAssetManagerImpl->RegisterType(extension, type);
 }
 
-/// register a builtin asset with its static UUID
-void AssetManager::RegisterBuiltin(const std::filesystem::path &path, HashType type, UUID uuid)
+#ifdef EDITOR
+/// register the asset info of a builtin asset
+void AssetManager::RegisterBuiltin(const AssetInfoPtr &assetInfo)
 {
-    Hidden::gAssetManagerImpl->RegisterBuiltin(path, type, uuid);
+    Hidden::gAssetManagerImpl->RegisterBuiltin(assetInfo);
 }
+#endif
 
 /// scan assets
 void AssetManager::Scan()
@@ -920,9 +1000,9 @@ void AssetManager::Scan()
 }
 
 /// create or get cached assetinfo
-Expected<AssetInfoPtr> AssetManager::GetInfo(const std::filesystem::path &path)
+Expected<AssetInfoPtr> AssetManager::GetAssetInfo(const std::filesystem::path &path)
 {
-    return Hidden::gAssetManagerImpl->GetInfo(path);
+    return Hidden::gAssetManagerImpl->GetAssetInfo(path);
 }
 
 /// load asset

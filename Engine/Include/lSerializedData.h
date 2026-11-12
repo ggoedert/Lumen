@@ -105,6 +105,24 @@ namespace Lumen
         /// name token packed
         extern const Hash cNameTokenPacked;
 
+        /// asset info token, the asset info stored in a Library entry
+        extern const std::string cAssetInfoToken;
+
+        /// asset info token packed
+        extern const Hash cAssetInfoTokenPacked;
+
+        /// path token
+        extern const std::string cPathToken;
+
+        /// path token packed
+        extern const Hash cPathTokenPacked;
+
+        /// asset token, the asset data stored in a Library entry
+        extern const std::string cAssetToken;
+
+        /// asset token packed
+        extern const Hash cAssetTokenPacked;
+
         /// serialized value
         inline void SerializeValue(Type &out, bool packed, const std::string &key, const Hash &keyPacked, const Type &value)
         {
